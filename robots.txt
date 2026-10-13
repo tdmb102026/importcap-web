@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://singular-kangaroo-93b1e6.netlify.app/sitemap.xml
