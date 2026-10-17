@@ -699,6 +699,12 @@ body[data-view="joyeria"] footer{background:#0b0a08;color:#9b9282;border-color:#
 .cosmos-ui .der{display:flex;gap:8px}
 .cosmos-ui button,.cosmos-ui .volver,.pista{white-space:nowrap}
 @media (max-width:520px){.pista{display:none}.cosmos-ui{justify-content:flex-end}.jw-flota img{width:calc(var(--w,90px) * .72)}}
+#zoom-mas,#zoom-menos{width:36px;padding:0;font-size:18px;line-height:34px;height:36px}
+.space{transform-origin:0 0}
+.jw-fijo{position:fixed;left:20px;bottom:24px;z-index:30;display:inline-flex;align-items:center;gap:8px;font:500 13px var(--sans);letter-spacing:.2em;text-transform:uppercase;text-decoration:none;color:#0b0a08;background:linear-gradient(135deg,#e9cf8f,#c9a45c 55%,#a8823e);padding:14px 22px;border-radius:999px;box-shadow:0 8px 24px rgba(0,0,0,.45),0 0 0 1px rgba(255,236,190,.35) inset;transition:transform .2s}
+.jw-fijo:hover{transform:translateY(-2px)}
+.jw-fijo span{font-size:15px}
+@media (max-width:520px){.jw-fijo{left:16px;bottom:20px;padding:13px 18px}}
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -1052,6 +1058,7 @@ body[data-view="joyeria"] footer{background:#0b0a08;color:#9b9282;border-color:#
 
 <!-- ================= JOYERÍA (sobria) ================= -->
 <section class="view jw" id="v-joyeria" data-view-root hidden>
+  <a class="jw-fijo" href="#pines"><span aria-hidden="true">✦</span> Pines</a>
   <div class="wrap jw-hero">
     <div>
       <span class="kick">Importcap · Joyería</span>
@@ -1083,8 +1090,8 @@ body[data-view="joyeria"] footer{background:#0b0a08;color:#9b9282;border-color:#
   <div class="cosmos" id="cosmos" tabindex="0" aria-label="Joyería y pines. Arrastra para explorar y toca un artículo para ver su precio.">
     <div class="space" id="space"></div>
     <div class="cosmos-ui">
-      <span class="pista" id="pista"><span class="pc">Arrastra con el mouse para explorar</span><span class="tc">Desliza con el dedo para explorar</span></span>
-      <span class="der"><a class="volver" href="#joyeria">← Joyería</a><button type="button" id="centrar">Volver al centro</button></span>
+      <span class="pista" id="pista"><span class="pc">Arrastra para moverte · rueda del mouse para acercar</span><span class="tc">Desliza para moverte · pellizca para acercar</span></span>
+      <span class="der"><a class="volver" href="#joyeria">← Joyería</a><button type="button" id="zoom-menos" aria-label="Alejar">−</button><button type="button" id="zoom-mas" aria-label="Acercar">+</button><button type="button" id="centrar">Volver al centro</button></span>
     </div>
     <p class="arcoiris" id="arcoiris" aria-hidden="true">Con todos los colores que tu pantalla pueda mostrar</p>
   </div>
@@ -1654,7 +1661,8 @@ async function cargarHoja() {
 const universo = (function () {
   const box = document.getElementById("cosmos"), space = document.getElementById("space");
   const dlg = document.getElementById("joya-dlg"), pista = document.getElementById("pista");
-  let W = 0, H = 0, x = 0, y = 0, vx = 0, vy = 0, hecho = false, anchoHecho = 0, cx = 0, cy = 0;
+  let W = 0, H = 0, x = 0, y = 0, z = 1, vx = 0, vy = 0, hecho = false, anchoHecho = 0, cx = 0, cy = 0;
+  const ZMIN = 0.45, ZMAX = 2.6;
 
   // Letras de colores, como en la web de los planetas
   const arco = document.getElementById("arcoiris"), tonos = ["#ff4d4d", "#ffb43b", "#ffe94d", "#5dff7a", "#4dd2ff", "#8f7bff", "#ff6ad5"];
@@ -1728,16 +1736,25 @@ const universo = (function () {
     });
     space.style.width = W + "px"; space.style.height = H + "px";
     space.innerHTML = html;
-    hecho = true; anchoHecho = bw;
+    hecho = true; anchoHecho = bw; z = 1;
     centrar();
   }
 
   function poner() {
     const bw = box.clientWidth, bh = box.clientHeight;
-    x = Math.min(0, Math.max(bw - W, x)); y = Math.min(0, Math.max(bh - H, y));
-    space.style.transform = "translate3d(" + x + "px," + y + "px,0)";
+    const ww = W * z, hh = H * z;
+    x = ww <= bw ? (bw - ww) / 2 : Math.min(0, Math.max(bw - ww, x));
+    y = hh <= bh ? (bh - hh) / 2 : Math.min(0, Math.max(bh - hh, y));
+    space.style.transform = "translate3d(" + x + "px," + y + "px,0) scale(" + z + ")";
   }
-  function centrar() { x = box.clientWidth / 2 - cx; y = box.clientHeight / 2 - cy; vx = vy = 0; poner(); }
+  function centrar() { z = 1; x = box.clientWidth / 2 - cx; y = box.clientHeight / 2 - cy; vx = vy = 0; poner(); }
+  // Acercar o alejar manteniendo quieto el punto (px, py) de la pantalla
+  function zoom(f, px, py) {
+    const r = box.getBoundingClientRect();
+    if (px == null) { px = r.width / 2; py = r.height / 2; } else { px -= r.left; py -= r.top; }
+    const nz = Math.min(ZMAX, Math.max(ZMIN, z * f)), sx = (px - x) / z, sy = (py - y) / z;
+    z = nz; x = px - sx * z; y = py - sy * z; pista.classList.add("fuera"); poner();
+  }
 
   function abrir(i) {
     const p = JOYERIA[i]; if (!p) return;
@@ -1757,14 +1774,26 @@ const universo = (function () {
   dlg.addEventListener("click", e => { if (performance.now() - abierto < 450) return; if (e.target === dlg || e.target.closest(".cerrar")) dlg.close ? dlg.close() : dlg.removeAttribute("open"); });
 
   // Arrastrar con el dedo o el mouse, con un poco de inercia
-  let abajo = null, movido = 0, lx = 0, ly = 0, lt = 0, raf = 0;
+  // Con dos dedos se acerca o aleja (pellizcar)
+  let abajo = null, movido = 0, lx = 0, ly = 0, lt = 0, raf = 0, pinza = null;
+  const dedos = new Map();
+  function medidaPinza() { const [a, b] = [...dedos.values()]; return { d: Math.hypot(a.x - b.x, a.y - b.y), mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2 }; }
   box.addEventListener("pointerdown", e => {
     if (e.button !== 0 || e.target.closest(".cosmos-ui")) return;
-    abajo = e.target.closest(".obj"); movido = 0; lx = e.clientX; ly = e.clientY; lt = performance.now(); vx = vy = 0;
+    dedos.set(e.pointerId, { x: e.clientX, y: e.clientY });
     cancelAnimationFrame(raf); box.setPointerCapture(e.pointerId);
+    if (dedos.size === 2) { pinza = medidaPinza(); movido = 99; abajo = null; return; }
+    abajo = e.target.closest(".obj"); movido = 0; lx = e.clientX; ly = e.clientY; lt = performance.now(); vx = vy = 0;
   });
   box.addEventListener("pointermove", e => {
     if (!box.hasPointerCapture(e.pointerId)) return;
+    if (dedos.has(e.pointerId)) dedos.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pinza && dedos.size >= 2) {
+      const m = medidaPinza();
+      x += m.mx - pinza.mx; y += m.my - pinza.my;
+      zoom(m.d / Math.max(1, pinza.d), m.mx, m.my); pinza = m; return;
+    }
+    if (pinza) return;
     const dx = e.clientX - lx, dy = e.clientY - ly, ahora = performance.now(), dt = Math.max(1, ahora - lt);
     movido += Math.abs(dx) + Math.abs(dy);
     if (movido > 6) { box.classList.add("drag"); pista.classList.add("fuera"); }
@@ -1773,6 +1802,8 @@ const universo = (function () {
   function soltar(e) {
     if (!box.hasPointerCapture(e.pointerId)) return;
     box.releasePointerCapture(e.pointerId); box.classList.remove("drag");
+    dedos.delete(e.pointerId);
+    if (pinza) { if (!dedos.size) pinza = null; return; }
     if (movido <= 6) { if (abajo) abrir(+abajo.dataset.i); return; }
     if (performance.now() - lt > 80) return;
     (function inercia() { vx *= 0.94; vy *= 0.94; x += vx; y += vy; poner(); if (Math.abs(vx) + Math.abs(vy) > 0.3) raf = requestAnimationFrame(inercia); })();
@@ -1781,12 +1812,18 @@ const universo = (function () {
   box.addEventListener("pointercancel", soltar);
   // Teclado (Enter en un artículo) llega como click sin mouse
   box.addEventListener("click", e => { const o = e.target.closest(".obj"); if (o && e.detail === 0) abrir(+o.dataset.i); });
-  box.addEventListener("wheel", e => { e.preventDefault(); cancelAnimationFrame(raf); x -= e.shiftKey ? e.deltaY : e.deltaX; y -= e.shiftKey ? 0 : e.deltaY; pista.classList.add("fuera"); poner(); }, { passive: false });
+  // La rueda del mouse acerca o aleja
+  box.addEventListener("wheel", e => { e.preventDefault(); cancelAnimationFrame(raf); zoom(Math.exp(-e.deltaY * (e.ctrlKey ? 0.01 : 0.0015)), e.clientX, e.clientY); }, { passive: false });
   box.addEventListener("keydown", e => {
     const paso = { ArrowLeft: [80, 0], ArrowRight: [-80, 0], ArrowUp: [0, 80], ArrowDown: [0, -80] }[e.key];
     if (paso && e.target === box) { e.preventDefault(); x += paso[0]; y += paso[1]; poner(); }
+    else if ((e.key === "+" || e.key === "=") && e.target === box) zoom(1.25);
+    else if (e.key === "-" && e.target === box) zoom(0.8);
   });
   document.getElementById("centrar").addEventListener("click", centrar);
+  document.getElementById("zoom-mas").addEventListener("click", () => zoom(1.3));
+  document.getElementById("zoom-menos").addEventListener("click", () => zoom(1 / 1.3));
+  addEventListener("hashchange", () => { if (dlg.open) dlg.close ? dlg.close() : dlg.removeAttribute("open"); });
   addEventListener("resize", () => {
     if (document.body.dataset.view !== "pines") return;
     medir();
