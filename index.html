@@ -14,7 +14,7 @@
 <meta name="description" content="Importcap en Ambato, Ecuador: excavadoras y carros a control remoto, emblemas 3D, ropa y accesorios importados. Envíos a todo Ecuador, pide por WhatsApp 096 842 8316.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@300;400;500;600;700&family=Archivo:wdth,wght@62..125,100..900&family=Caveat:wght@600&family=Lilita+One&family=Russo+One&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@300;400;500;600;700&family=Archivo:wdth,wght@62..125,100..900&family=Caveat:wght@600&family=Lilita+One&family=Russo+One&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&display=swap">
 <style>
 /* Layout: tienda de 4 vistas (inicio, juguetes, ropa, accesorios).
    Inicio, ropa y accesorios: blanco, aire y fotos grandes (estilo limpio).
@@ -561,15 +561,15 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .fab:hover{transform:scale(1.06)}
 .fab svg{width:30px;height:30px}
 /* ---------- Joyería y pines: universo que se arrastra ---------- */
-body[data-view="joyeria"]{background:#000}
-body[data-view="joyeria"] .top{background:#05060c;border-color:#1d2040}
-body[data-view="joyeria"] .logo,body[data-view="joyeria"] .nav a[aria-current="page"]{color:#fff3cf}
-body[data-view="joyeria"] .logo svg{color:#f5c84b}
-body[data-view="joyeria"] .nav a{color:#9aa0c4}
-body[data-view="joyeria"] .nav a:hover{color:#fff}
-body[data-view="joyeria"] .nav a[aria-current="page"]{background:#1d2040}
-body[data-view="joyeria"] footer{display:none}
-#v-joyeria{position:relative}
+body[data-view="pines"]{background:#000}
+body[data-view="pines"] .top{background:#05060c;border-color:#1d2040}
+body[data-view="pines"] .logo,body[data-view="pines"] .nav a[aria-current="page"]{color:#fff3cf}
+body[data-view="pines"] .logo svg{color:#f5c84b}
+body[data-view="pines"] .nav a{color:#9aa0c4}
+body[data-view="pines"] .nav a:hover{color:#fff}
+body[data-view="pines"] .nav a[aria-current="page"]{background:#1d2040}
+body[data-view="pines"] footer{display:none}
+#v-pines{position:relative}
 .cosmos{position:relative;height:calc(100svh - var(--toph,64px));min-height:420px;overflow:hidden;background:#000;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;outline:none}
 .cosmos.drag{cursor:grabbing}
 .space{position:absolute;left:0;top:0;will-change:transform;
@@ -640,6 +640,65 @@ body[data-view="joyeria"] footer{display:none}
 @media (max-width:760px){.nav a{white-space:nowrap}}
 .pista .tc{display:none}
 @media (hover:none){.pista .pc{display:none}.pista .tc{display:inline}}
+
+/* ---------- Joyería fina (sobria) ---------- */
+body[data-view="joyeria"]{background:#0b0a08}
+body[data-view="joyeria"] .top{background:#0b0a08;border-color:#2a251c}
+body[data-view="joyeria"] .logo,body[data-view="joyeria"] .nav a[aria-current="page"]{color:#efe6d2}
+body[data-view="joyeria"] .logo svg{color:#c9a45c}
+body[data-view="joyeria"] .nav a{color:#9b9282}
+body[data-view="joyeria"] .nav a:hover{color:#efe6d2}
+body[data-view="joyeria"] .nav a[aria-current="page"]{background:transparent;box-shadow:inset 0 0 0 1px #c9a45c}
+body[data-view="joyeria"] footer{background:#0b0a08;color:#9b9282;border-color:#2a251c}
+.jw{--jw-bg:#0b0a08;--jw-ink:#efe6d2;--jw-muted:#9b9282;--jw-gold:#c9a45c;--jw-line:#2a251c;--serif:"Cormorant Garamond","Cormorant",Georgia,"Times New Roman",serif;background:var(--jw-bg);color:var(--jw-ink)}
+.jw .kick{font:500 12px/1 var(--sans);letter-spacing:.38em;text-transform:uppercase;color:var(--jw-gold)}
+.jw-hero{display:grid;grid-template-columns:1.1fr .9fr;gap:56px;align-items:center;padding:72px 20px 88px}
+.jw-hero h1{font:300 clamp(46px,6.4vw,92px)/.98 var(--serif);letter-spacing:-.01em;margin:22px 0 0}
+.jw-hero h1 em{font-style:italic;color:var(--jw-gold)}
+.jw-rule{display:flex;align-items:center;gap:12px;margin:30px 0;max-width:340px;color:var(--jw-gold)}
+.jw-rule::before,.jw-rule::after{content:"";height:1px;flex:1;background:linear-gradient(90deg,transparent,var(--jw-gold),transparent)}
+.jw-rule i{width:8px;height:8px;border:1px solid currentColor;transform:rotate(45deg)}
+.jw-hero p{color:var(--jw-muted);font-size:17px;line-height:1.7;max-width:46ch;margin:0}
+.jw-sellos{display:flex;flex-wrap:wrap;gap:10px 26px;margin-top:30px;padding:0;list-style:none;font:500 12px var(--sans);letter-spacing:.18em;text-transform:uppercase;color:var(--jw-ink)}
+.jw-sellos li::before{content:"◆";color:var(--jw-gold);font-size:8px;margin-right:10px;vertical-align:2px}
+.jw-arco{position:relative;justify-self:center;width:min(400px,100%)}
+.jw-arco::before{content:"";position:absolute;inset:-14px -14px 14px 14px;border:1px solid var(--jw-gold);border-radius:999px 999px 0 0;opacity:.7}
+.jw-arco img{position:relative;display:block;width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:999px 999px 0 0}
+.jw-arco figcaption{position:relative;margin-top:16px;font:italic 400 18px var(--serif);color:var(--jw-muted);text-align:center}
+.jw-grupo{padding:24px 20px 72px}
+.jw-head{display:grid;grid-template-columns:auto 1fr auto;align-items:end;gap:20px;border-bottom:1px solid var(--jw-line);padding-bottom:18px;margin-bottom:36px}
+.jw-head .rom{font:italic 400 22px var(--serif);color:var(--jw-gold)}
+.jw-head h2{font:300 clamp(36px,4.6vw,60px)/1 var(--serif);margin:0}
+.jw-head span{font:500 12px var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--jw-muted)}
+.jw-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:48px 32px}
+.jw-pieza{display:flex;flex-direction:column}
+.jw-pieza .foto{overflow:hidden;background:#15130f;aspect-ratio:1}
+.jw-pieza .foto img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .9s cubic-bezier(.2,.7,.2,1),filter .6s;filter:saturate(.92)}
+.jw-pieza:hover .foto img{transform:scale(1.05);filter:saturate(1.05)}
+.jw-pieza h3{font:400 25px/1.15 var(--serif);margin:20px 0 6px}
+.jw-pieza .mat{font:500 11px var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--jw-muted)}
+.jw-pieza .pie{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:16px;padding-top:14px;border-top:1px solid var(--jw-line)}
+.jw-pieza .val{font:500 17px var(--sans);letter-spacing:.06em;color:var(--jw-gold)}
+.jw-pieza .val .pending{font-size:11px}
+.jw-pieza a{font:500 12px var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--jw-ink);text-decoration:none;border-bottom:1px solid var(--jw-gold);padding-bottom:3px;transition:color .2s}
+.jw-pieza a:hover{color:var(--jw-gold)}
+.jw-pines{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;margin:16px 20px 88px;padding:64px clamp(24px,5vw,72px);border:1px solid var(--jw-line);overflow:hidden;
+  background:radial-gradient(1px 1px at 20% 30%,#fff8 50%,transparent 51%),radial-gradient(1px 1px at 70% 20%,#fff6 50%,transparent 51%),radial-gradient(1px 1px at 85% 75%,#fff7 50%,transparent 51%),radial-gradient(1px 1px at 40% 80%,#fff5 50%,transparent 51%),radial-gradient(1.5px 1.5px at 60% 55%,#c9a45c 50%,transparent 51%),radial-gradient(circle at 80% 50%,#1a1712,#0b0a08 70%)}
+.jw-pines h2{font:300 clamp(38px,4.6vw,62px)/1 var(--serif);margin:18px 0 16px}
+.jw-pines h2 em{font-style:italic;color:var(--jw-gold)}
+.jw-pines p{color:var(--jw-muted);font-size:16px;line-height:1.7;margin:0 0 30px;max-width:40ch}
+.jw-btn{display:inline-flex;align-items:center;gap:12px;font:500 13px var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--jw-ink);text-decoration:none;border:1px solid var(--jw-gold);padding:16px 26px;transition:background .25s,color .25s}
+.jw-btn:hover{background:var(--jw-gold);color:#0b0a08}
+.jw-flota{position:relative;height:300px}
+.jw-flota img{position:absolute;width:var(--w,90px);filter:drop-shadow(0 8px 14px rgba(0,0,0,.6));animation:flota var(--d,5s) ease-in-out var(--dl,0s) infinite alternate}
+.jw-fin{text-align:center;padding:0 20px 96px}
+.jw-fin h2{font:300 italic clamp(30px,3.6vw,46px)/1.1 var(--serif);margin:0 0 22px}
+@media (max-width:900px){.jw-hero{grid-template-columns:1fr;gap:56px;padding-top:48px}.jw-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:36px 18px}.jw-pines{grid-template-columns:1fr}.jw-flota{height:220px}}
+@media (max-width:520px){.jw-pieza h3{font-size:21px}.jw-pieza .pie{flex-direction:column;align-items:flex-start}.jw-head{grid-template-columns:auto 1fr}.jw-head span{display:none}}
+.cosmos-ui .volver{text-decoration:none;font:600 13px/1 var(--sans);color:#fff;background:rgba(15,18,45,.8);border:1px solid #2c3270;padding:9px 14px;border-radius:999px}
+.cosmos-ui .der{display:flex;gap:8px}
+.cosmos-ui button,.cosmos-ui .volver,.pista{white-space:nowrap}
+@media (max-width:520px){.pista{display:none}.cosmos-ui{justify-content:flex-end}.jw-flota img{width:calc(var(--w,90px) * .72)}}
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -666,7 +725,7 @@ body[data-view="joyeria"] footer{display:none}
       <a href="#juguetes" data-view="juguetes" class="toys">Juguetes</a>
       <a href="#ropa" data-view="ropa">Ropa</a>
       <a href="#accesorios" data-view="accesorios">Accesorios</a>
-      <a href="#joyeria" data-view="joyeria">Joyería y pines</a>
+      <a href="#joyeria" data-view="joyeria">Joyería</a>
     </nav>
     <a class="btn btn-wa" data-wa="Hola Importcap, quisiera información." href="#" target="_blank" rel="noopener"><svg><use href="#i-wa"/></svg><span class="lbl">WhatsApp</span></a>
   </div>
@@ -702,7 +761,7 @@ body[data-view="joyeria"] footer{display:none}
       <a href="#juguetes" data-close-menu>Juguetes <small>02</small></a>
       <a href="#ropa" data-close-menu>Ropa <small>03</small></a>
       <a href="#accesorios" data-close-menu>Accesorios <small>04</small></a>
-      <a href="#joyeria" data-close-menu>Joyería y pines <small>05</small></a>
+      <a href="#joyeria" data-close-menu>Joyería <small>05</small></a>
       <a href="#contacto" data-close-menu>Contacto <small>06</small></a>
     </nav>
     <p>WhatsApp 096 842 8316 · TikTok @importcap_ec · Instagram @elipuntoeli</p>
@@ -845,6 +904,7 @@ body[data-view="joyeria"] footer{display:none}
     <a class="h-line" href="#juguetes"><span class="n">01</span><span class="t">Juguetes</span><span class="d">Vehículos a control remoto, pelotas y más</span><img src="img/cut-excavadora.png" alt="" loading="lazy"><i>→</i></a>
     <a class="h-line" href="#ropa"><span class="n">02</span><span class="t">Ropa</span><span class="d">Polos y prendas para el día a día</span><i>→</i></a>
     <a class="h-line" href="#accesorios"><span class="n">03</span><span class="t">Accesorios</span><span class="d">Emblemas 3D, relojes, cadenas y fútbol</span><img src="img/emblema-alemania-producto.jpg" alt="" loading="lazy"><i>→</i></a>
+    <a class="h-line" href="#joyeria"><span class="n">04</span><span class="t">Joyería</span><span class="d">Cadenas, relojes y pines</span><img src="img/joyas/virgen.jpg" alt="" loading="lazy"><i>→</i></a>
   </nav>
 
   <div class="wrap h-fame">
@@ -990,13 +1050,41 @@ body[data-view="joyeria"] footer{display:none}
   </div>
 </section>
 
-<!-- ================= JOYERÍA Y PINES ================= -->
-<section class="view" id="v-joyeria" data-view-root hidden>
+<!-- ================= JOYERÍA (sobria) ================= -->
+<section class="view jw" id="v-joyeria" data-view-root hidden>
+  <div class="wrap jw-hero">
+    <div>
+      <span class="kick">Importcap · Joyería</span>
+      <h1>El brillo que <em>te acompaña</em> cada día</h1>
+      <div class="jw-rule"><i></i></div>
+      <p>Cadenas, medallas y relojes dorados en acero inoxidable, elegidos uno por uno para regalar o para llevar siempre contigo.</p>
+      <ul class="jw-sellos"><li>Acero inoxidable</li><li>Acabado dorado</li><li>Envíos a todo Ecuador</li></ul>
+    </div>
+    <figure class="jw-arco"><img src="img/joyas/virgen.jpg" alt="Cadena de la Virgen dorada con piedras azules"><figcaption>Cadena de la Virgen</figcaption></figure>
+  </div>
+  <div class="wrap" id="jw-grupos"></div>
+  <div class="wrap"><div class="jw-pines" style="margin-inline:0">
+    <div>
+      <span class="kick">Colección aparte</span>
+      <h2>Pines <em>esmaltados</em></h2>
+      <p>Más de setenta diseños flotando en su propio universo. Recórrelo con el dedo o el mouse y elige los tuyos, desde $1.</p>
+      <a class="jw-btn" href="#pines">Entrar al universo de pines <span aria-hidden="true">→</span></a>
+    </div>
+    <div class="jw-flota" id="jw-flota" aria-hidden="true"></div>
+  </div></div>
+  <div class="jw-fin">
+    <h2>¿Buscas una pieza en especial?</h2>
+    <a class="jw-btn" data-wa="Hola Importcap, busco una joya en especial." href="#" target="_blank" rel="noopener">Escríbenos por WhatsApp</a>
+  </div>
+</section>
+
+<!-- ================= PINES (universo) ================= -->
+<section class="view" id="v-pines" data-view-root hidden>
   <div class="cosmos" id="cosmos" tabindex="0" aria-label="Joyería y pines. Arrastra para explorar y toca un artículo para ver su precio.">
     <div class="space" id="space"></div>
     <div class="cosmos-ui">
       <span class="pista" id="pista"><span class="pc">Arrastra con el mouse para explorar</span><span class="tc">Desliza con el dedo para explorar</span></span>
-      <button type="button" id="centrar">Volver al centro</button>
+      <span class="der"><a class="volver" href="#joyeria">← Joyería</a><button type="button" id="centrar">Volver al centro</button></span>
     </div>
     <p class="arcoiris" id="arcoiris" aria-hidden="true">Con todos los colores que tu pantalla pueda mostrar</p>
   </div>
@@ -1081,17 +1169,17 @@ const PRODUCTOS = {
 };
 /* Joyería y pines (también se pueden poner en la hoja con seccion "joyeria" y tipo "Pines", "Cadenas" o "Relojes") */
 let JOYERIA = [
-  { nombre: "Collar Arcángel Miguel", tipo: "Cadenas", precio: 5.99, foto: "img/joyas/arcangel-miguel.jpg" },
-  { nombre: "Cadena de la Virgen", tipo: "Cadenas", precio: 6, foto: "img/joyas/virgen.jpg" },
-  { nombre: "Cadena de Mariposa esmaltada", tipo: "Cadenas", precio: 6, foto: "img/joyas/mariposa-esmaltada.jpg" },
-  { nombre: "Cadena de San Benito", tipo: "Cadenas", precio: 6, foto: "img/joyas/san-benito.jpg" },
-  { nombre: "Cadena de Mariposa calada", tipo: "Cadenas", precio: 6, foto: "img/joyas/mariposa-calada.jpg" },
-  { nombre: "Reloj dorado IPX7", tipo: "Relojes", precio: 12, foto: "img/joyas/reloj-dorado.jpg" },
-  { nombre: "Cadena de Cruz con piedras", tipo: "Cadenas", precio: 6, foto: "img/joyas/cruz-estuche.jpg" },
-  { nombre: "Cadena Medalla de Cruz", tipo: "Cadenas", precio: 6, foto: "img/joyas/medalla-cruz.jpg" },
-  { nombre: "Cadena de Cruz con circones", tipo: "Cadenas", precio: 6, foto: "img/joyas/cruz-circones.jpg" },
-  { nombre: "Cadena de Cruz mini", tipo: "Cadenas", precio: 6, foto: "img/joyas/cruz-mini.jpg" },
-  { nombre: "Cadena de Trébol", tipo: "Cadenas", precio: 6, foto: "img/joyas/trebol.jpg" },
+  { nombre: "Collar Arcángel Miguel", tipo: "Cadenas", detalle: "Acero inoxidable · Dorado", precio: 5.99, foto: "img/joyas/arcangel-miguel.jpg" },
+  { nombre: "Cadena de la Virgen", tipo: "Cadenas", detalle: "Acero inoxidable · Dorado", precio: 6, foto: "img/joyas/virgen.jpg" },
+  { nombre: "Cadena de Mariposa esmaltada", tipo: "Cadenas", detalle: "Acero inoxidable · Dorado", precio: 6, foto: "img/joyas/mariposa-esmaltada.jpg" },
+  { nombre: "Cadena de San Benito", tipo: "Cadenas", detalle: "Acero inoxidable · Dorado", precio: 6, foto: "img/joyas/san-benito.jpg" },
+  { nombre: "Cadena de Mariposa calada", tipo: "Cadenas", detalle: "Acero inoxidable · Dorado", precio: 6, foto: "img/joyas/mariposa-calada.jpg" },
+  { nombre: "Reloj dorado IPX7", tipo: "Relojes", detalle: "Acero inoxidable · Dorado", precio: 12, foto: "img/joyas/reloj-dorado.jpg" },
+  { nombre: "Cadena de Cruz con piedras", tipo: "Cadenas", detalle: "Acero inoxidable · Dorado", precio: 6, foto: "img/joyas/cruz-estuche.jpg" },
+  { nombre: "Cadena Medalla de Cruz", tipo: "Cadenas", detalle: "Acero inoxidable · Dorado", precio: 6, foto: "img/joyas/medalla-cruz.jpg" },
+  { nombre: "Cadena de Cruz con circones", tipo: "Cadenas", detalle: "Acero inoxidable · Dorado", precio: 6, foto: "img/joyas/cruz-circones.jpg" },
+  { nombre: "Cadena de Cruz mini", tipo: "Cadenas", detalle: "Acero inoxidable · Dorado", precio: 6, foto: "img/joyas/cruz-mini.jpg" },
+  { nombre: "Cadena de Trébol", tipo: "Cadenas", detalle: "Acero inoxidable · Dorado", precio: 6, foto: "img/joyas/trebol.jpg" },
   { nombre: "Pin Hoja de otoño", tipo: "Pines", precio: 1.5, foto: "img/pines/hoja-otono.webp" },
   { nombre: "Pin Tomate", tipo: "Pines", precio: 1.5, foto: "img/pines/tomate.webp" },
   { nombre: "Pin Cactus", tipo: "Pines", precio: 1, foto: "img/pines/cactus.webp" },
@@ -1260,18 +1348,18 @@ document.addEventListener("click", e => {
   }
 });
 
-const VISTAS = ["inicio", "juguetes", "ropa", "accesorios", "joyeria"];
+const VISTAS = ["inicio", "juguetes", "ropa", "accesorios", "joyeria", "pines"];
 function mostrar() {
   const h = location.hash.slice(1);
   const vista = VISTAS.includes(h) ? h : (h === "contacto" ? "inicio" : "inicio");
   document.querySelectorAll("[data-view-root]").forEach(s => { s.hidden = s.id !== "v-" + vista; });
   document.body.dataset.view = vista;
   document.querySelectorAll(".nav a").forEach(a => {
-    if (a.dataset.view === vista) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+    if (a.dataset.view === (vista === "pines" ? "joyeria" : vista)) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
   });
   if (h === "contacto") document.getElementById("v-contacto").scrollIntoView();
   else window.scrollTo(0, 0);
-  if (vista === "joyeria") universo.mostrar();
+  if (vista === "pines") universo.mostrar();
 }
 window.addEventListener("hashchange", mostrar);
 
@@ -1555,7 +1643,7 @@ async function cargarHoja() {
       nuevos[sec].push({ nombre, tipo: (k.tipo >= 0 && f[k.tipo] || "").trim() || "Otros", precio: k.precio >= 0 ? num(f[k.precio]) : null,
         antes: k.antes >= 0 ? num(f[k.antes]) : null, fotos });
     }
-    if (joyas.length) { JOYERIA = joyas; universo.rehacer(); }
+    if (joyas.length) { JOYERIA = joyas; universo.rehacer(); renderJoyeria(); }
     if (!Object.values(nuevos).some(l => l.length)) return;
     Object.assign(PRODUCTOS, nuevos);
     Object.keys(PRODUCTOS).forEach(l => { filtros[l] = "Todo"; renderGrid(l); });
@@ -1700,16 +1788,45 @@ const universo = (function () {
   });
   document.getElementById("centrar").addEventListener("click", centrar);
   addEventListener("resize", () => {
-    if (document.body.dataset.view !== "joyeria") return;
+    if (document.body.dataset.view !== "pines") return;
     medir();
     if (Math.abs(box.clientWidth - anchoHecho) > 120) construir(); else poner();
   });
 
   return {
     mostrar() { if (!hecho) construir(); else { medir(); poner(); } },
-    rehacer() { hecho = false; if (document.body.dataset.view === "joyeria") construir(); }
+    rehacer() { hecho = false; if (document.body.dataset.view === "pines") construir(); }
   };
 })();
+/* ---------- Joyería fina: piezas por tipo y vitrina de pines ---------- */
+function renderJoyeria() {
+  const piezas = JOYERIA.filter(p => !/pin/i.test(p.tipo));
+  const tipos = [...new Set(piezas.map(p => p.tipo))];
+  const rom = ["I", "II", "III", "IV", "V", "VI"];
+  document.getElementById("jw-grupos").innerHTML = tipos.map((t, i) => {
+    const lista = piezas.filter(p => p.tipo === t);
+    return `<section class="jw-grupo" style="padding-inline:0">
+      <div class="jw-head"><span class="rom">${rom[i] || ""}</span><h2>${esc(t)}</h2><span>${lista.length} ${lista.length === 1 ? "pieza" : "piezas"}</span></div>
+      <div class="jw-grid">${lista.map(p => `
+        <article class="jw-pieza">
+          <div class="foto">${p.foto ? `<img src="${esc(p.foto)}" alt="${esc(p.nombre)}" loading="lazy">` : ""}</div>
+          <h3>${esc(p.nombre)}</h3>
+          ${p.detalle ? `<span class="mat">${esc(p.detalle)}</span>` : ""}
+          <div class="pie"><span class="val">${p.precio == null ? '<span class="pending">Precio por completar</span>' : usd(p.precio)}</span>
+          <a href="${waLink("Hola Importcap, me interesa: " + p.nombre + (p.precio != null ? " (" + usd(p.precio) + ")" : "") + ".")}" target="_blank" rel="noopener">Pedir</a></div>
+        </article>`).join("")}</div>
+    </section>`;
+  }).join("");
+  const pines = JOYERIA.filter(p => /pin/i.test(p.tipo) && p.foto);
+  const sitios = [[6, 6, 92], [36, 0, 78], [66, 8, 100], [18, 46, 84], [48, 38, 108], [78, 50, 80], [2, 66, 70], [60, 66, 72]];
+  const favoritos = ["oso-rosa", "faraon", "dirigible", "girasol", "astronauta", "hongo", "sandia", "planeta"];
+  const elegidos = [...favoritos.map(f => pines.find(p => p.foto.includes("/" + f + "."))).filter(Boolean), ...pines].filter((p, i, l) => l.indexOf(p) === i).slice(0, sitios.length);
+  document.getElementById("jw-flota").innerHTML = elegidos.map((p, i) => {
+    const [x, y, w] = sitios[i];
+    return `<img src="${esc(p.foto)}" alt="" style="left:${x}%;top:${y}%;--w:${w}px;--d:${(4 + i * .7).toFixed(1)}s;--dl:${(-i * .9).toFixed(1)}s;--r:${3 + i % 4}deg">`;
+  }).join("");
+}
+renderJoyeria();
 linkWhatsApp(document);
 mostrar();
 </script>
