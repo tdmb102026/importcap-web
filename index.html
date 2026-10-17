@@ -1308,7 +1308,7 @@ const calmado = matchMedia("(prefers-reduced-motion: reduce)").matches;
 (function cargar() {
   const box = document.getElementById("loader"), pct = document.getElementById("load-pct");
   if (calmado || location.hash.replace("#", "") && location.hash !== "#inicio") { box.remove(); return; }
-  const t0 = performance.now(), dur = 1900;
+  const t0 = performance.now(), dur = 3500;
   (function paso(t) {
     const k = Math.min(1, (t - t0) / dur);
     pct.textContent = Math.round(k * 100) + "%";
