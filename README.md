@@ -14,3 +14,10 @@ Página de una sola compra para los anuncios de Meta: https://importcap.squadrae
 Se edita directo aquí (`excavadora/index.html`), no pasa por `build_netlify.py`. Precios, envío, pago,
 garantía, píxel de Meta y testimonios se cambian en el bloque `CONFIG` al inicio del `<script>`.
 Los pedidos llegan por Netlify Forms (formulario `pedido-excavadora`): Netlify > Forms.
+
+## Servidor para Railway (opcional)
+
+`server.js` muestra la misma web y guarda los formularios (pedidos y comprobantes de Deuna) sin Netlify.
+En Railway: nuevo servicio desde este repositorio (arranca con `npm start`), agregar un volumen montado
+en `/data`, y las variables `DATA_DIR=/data` y `ADMIN_CLAVE=<clave>`. Los pedidos se ven en `/admin`
+(usuario `importcap`) y se descargan en CSV.
