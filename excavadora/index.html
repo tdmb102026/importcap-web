@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Excavadora RC 11 canales · $45 · Importcap</title>
+<title>Excavadora RC 11 canales · $50 envío incluido · Importcap</title>
 <meta name="description" content="Excavadora a control remoto de 11 canales, cuchara metálica, luces y sonido. Pídela en 1 minuto sin chatear. Envíos a todo Ecuador desde Ambato.">
 <link rel="canonical" href="https://importcap.squadraec.com/excavadora/">
 <meta property="og:type" content="product">
 <meta property="og:url" content="https://importcap.squadraec.com/excavadora/">
-<meta property="og:title" content="Excavadora RC 11 canales · $45 · Importcap">
+<meta property="og:title" content="Excavadora RC 11 canales · $50 envío incluido · Importcap">
 <meta property="og:description" content="No es otro carrito. Es maquinaria a escala. Pídela en 1 minuto, envíos a todo Ecuador.">
 <meta property="og:image" content="https://importcap.squadraec.com/excavadora/img/og.jpg">
 <meta name="theme-color" content="#0c1a10">
@@ -223,6 +223,38 @@ footer a{color:var(--ink)}
 .up input[type=file]{width:100%;font:15px var(--sans);color:#14200b;background:#f2f4ee;border:1.5px dashed #9aa58f;border-radius:12px;padding:14px}
 .up button{min-height:50px;border:0;border-radius:12px;background:var(--lime);color:var(--lime-ink);font:800 16px var(--sans);cursor:pointer}
 .up .ok{display:none;background:#eef5d8;border-radius:12px;padding:12px;font-weight:700;text-align:center}
+/* colección */
+.coll{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px}
+.prod{background:var(--bg2);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column}
+.prod .ph{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;background:#fff}
+.prod .ph::-webkit-scrollbar{display:none}
+.prod .ph img{flex:0 0 100%;aspect-ratio:1;object-fit:cover;scroll-snap-align:start}
+.prod .in{padding:10px 12px 12px;display:flex;flex-direction:column;gap:4px;flex:1}
+.prod b{font-size:15px;line-height:1.2}.prod .sp{font-size:12px;color:var(--muted)}
+.prod .pr{font:900 22px/1 var(--head);font-stretch:125%;color:var(--lime);margin-top:auto;padding-top:6px}
+.prod .pr small{display:block;font:600 11px var(--sans);color:var(--muted)}
+.prod button{margin-top:8px;min-height:42px;border:0;border-radius:10px;background:var(--lime);color:var(--lime-ink);font:800 14px var(--sans);cursor:pointer}
+.dots{display:flex;gap:4px;justify-content:center;margin-top:-16px;position:relative;z-index:1;padding-bottom:6px}
+.dots i{width:6px;height:6px;border-radius:50%;background:rgba(0,0,0,.3)}
+/* carrito */
+.cart{display:grid;gap:8px}
+.ci{display:flex;gap:10px;align-items:center;border:2px solid var(--line);border-radius:14px;padding:8px 10px;background:var(--card)}
+.ci.on{border-color:var(--lime)}
+.ci img{width:52px;height:52px;border-radius:10px;object-fit:cover;background:#fff}
+.ci .t{flex:1;line-height:1.25}.ci .t b{display:block;font-size:14px}.ci .t span{font-size:13px;color:var(--lime);font-weight:700}
+.ci .ctrl{display:flex;align-items:center;gap:4px}
+.ci .ctrl button{width:36px;height:36px;border-radius:10px;border:0;background:var(--line);color:var(--ink);font-size:20px;cursor:pointer}
+.ci .ctrl output{min-width:24px;text-align:center;font:900 18px var(--head)}
+.maps{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.maps button{flex:1;min-height:42px;border:1.5px solid var(--line);border-radius:10px;background:transparent;color:var(--ink);font:600 14px var(--sans);cursor:pointer;white-space:nowrap}
+.maps button:active{border-color:var(--lime)}
+.mapok{font-size:13px;color:var(--lime);margin-top:6px;display:none}
+.bank{background:#f2f4ee;border-radius:12px;padding:12px;margin-top:12px;text-align:left;font-size:14px}
+.bank div{display:flex;justify-content:space-between;gap:8px;padding:3px 0}
+.bank button{border:0;background:#14200b;color:#d2ff3c;border-radius:8px;padding:4px 10px;font-weight:700;cursor:pointer}
+.steps{text-align:left;font-size:14px;margin:12px 0 0;padding-left:20px}
+.steps li{margin:4px 0}
+@media(min-width:760px){.coll{grid-template-columns:repeat(4,1fr)}}
 @media(min-width:760px){.gift{grid-template-columns:1fr 1fr}.reel{flex-basis:23%}}
 </style>
 </head>
@@ -261,7 +293,7 @@ footer a{color:var(--ink)}
   <h1 style="margin-top:8px">No es otro carrito. <span class="hl">Es maquinaria a escala.</span></h1>
   <p class="muted">Cava, levanta, gira y descarga como una de verdad. Tu hijo la maneja con un control de 11 canales, un botón para cada movimiento.</p>
 
-  <div class="price"><b id="precioHero">$45</b><s id="antesHero"></s></div>
+  <div class="price"><b id="precioHero">$50</b><s id="antesHero"></s></div>
   <p style="margin:0 0 16px" class="muted" id="envioHero"></p>
 
   <a class="cta" href="#pedido">Quiero mi excavadora<small id="ctaSub">Pídela en 1 minuto, sin chatear</small></a>
@@ -282,6 +314,16 @@ footer a{color:var(--ink)}
     <h2 style="margin-top:8px">Así se juega <span class="hl">de verdad</span></h2>
     <div class="reels" id="reels"></div>
     <p class="hint">Desliza para ver más · Toca un video para activar el sonido</p>
+  </div>
+</section>
+
+<!-- Colección -->
+<section id="coleccion">
+  <div class="wrap">
+    <p class="eyebrow">La colección completa</p>
+    <h2 style="margin-top:8px">Arma tu <span class="hl">obra</span></h2>
+    <p class="muted">Todas con control 2.4 GHz y batería recargable. Pídelas juntas en el mismo pedido.</p>
+    <div class="coll" id="coll"></div>
   </div>
 </section>
 
@@ -351,7 +393,7 @@ footer a{color:var(--ink)}
     <div>
       <p class="eyebrow">Para regalar</p>
       <h2 style="margin-top:8px">El regalo que <span class="hl">van a recordar</span></h2>
-      <p>Te la entregamos <b class="hl">envuelta y con una tarjeta con su nombre, sin costo.</b> Solo escribe el nombre en el formulario.</p>
+      <p>Te la entregamos <b class="hl">envuelta para regalo, sin costo.</b> Lista para poner bajo el árbol.</p>
     </div>
   </div>
 </section>
@@ -404,28 +446,26 @@ footer a{color:var(--ink)}
     <form name="pedido-excavadora" method="POST" data-netlify="true" netlify-honeypot="bot-field" id="form" novalidate>
       <input type="hidden" name="form-name" value="pedido-excavadora">
       <p class="hp"><label>No llenar: <input name="bot-field"></label></p>
-      <input type="hidden" name="producto" value="Excavadora RC 11 canales">
+      <input type="hidden" name="productos" id="fProductos">
       <input type="hidden" name="total" id="fTotal">
       <input type="hidden" name="origen" id="fOrigen">
       <input type="hidden" name="codigo" id="fCodigo">
       <input type="hidden" name="a_pagar_ahora" id="fAhora">
+      <input type="hidden" name="cantidad" id="fCant">
 
-      <div class="packs" id="packs"></div>
-      <div class="qty" id="qtyBox" hidden>
-        <div><b>Cantidad</b><br><span class="muted" style="font-size:13px" id="unitTxt"></span></div>
-        <div class="ctrl"><button type="button" onclick="setQty(-1)" aria-label="Menos">−</button><output id="qtyOut">1</output><button type="button" onclick="setQty(1)" aria-label="Más">+</button></div>
-      </div>
-      <input type="hidden" name="cantidad" id="fCant" value="1">
+      <p class="legend">¿Qué quieres llevar?</p>
+      <div class="cart" id="cart"></div>
+      <p class="formerr" id="carterr" style="margin:0">Elige al menos un producto.</p>
 
       <div class="field"><label for="nombre">Nombre y apellido</label><input id="nombre" name="nombre" autocomplete="name" required><div class="err">Escribe tu nombre.</div></div>
       <div class="field"><label for="telefono">Celular (WhatsApp)</label><input id="telefono" name="telefono" type="tel" inputmode="numeric" placeholder="09XXXXXXXX" autocomplete="tel" required><div class="err">Escribe un celular de 10 dígitos que empiece con 09.</div></div>
-      <div class="row2">
-        <div class="field"><label for="provincia">Provincia</label><select id="provincia" name="provincia" required><option value="">Elige</option></select><div class="err">Elige tu provincia.</div></div>
-        <div class="field"><label for="ciudad">Ciudad</label><input id="ciudad" name="ciudad" autocomplete="address-level2" required><div class="err">Escribe tu ciudad.</div></div>
+      <div class="field"><label for="ciudad">Ciudad</label><input id="ciudad" name="ciudad" autocomplete="address-level2" placeholder="Ej. Quito" required><div class="err">Escribe tu ciudad.</div></div>
+      <div class="field"><label for="direccion">Dirección y referencia</label><textarea id="direccion" name="direccion" placeholder="Calles, número de casa y una referencia" required></textarea><div class="err">Escribe la dirección con una referencia para el courier.</div></div>
+      <div class="field"><label for="ubicacion">Ubicación de Google Maps <small>(opcional, ayuda al courier)</small></label>
+        <input id="ubicacion" name="ubicacion" inputmode="url" placeholder="Pega aquí el enlace de Maps">
+        <div class="maps"><button type="button" id="btnPegar">📋 Pegar enlace</button><button type="button" id="btnGps">📍 Usar mi ubicación</button></div>
+        <div class="mapok" id="mapok">✓ Ubicación agregada</div>
       </div>
-      <div class="field"><label for="direccion">Dirección exacta y referencia</label><textarea id="direccion" name="direccion" placeholder="Calle principal, secundaria, número de casa y una referencia (ej. frente a la tienda X)" required></textarea><div class="err">Escribe la dirección con una referencia para el courier.</div></div>
-      <div class="field"><label for="tarjeta">Nombre para la tarjeta de regalo <small>(opcional)</small></label><input id="tarjeta" name="tarjeta_regalo" placeholder="Ej. Para Mateo, de papá y mamá"></div>
-      <div class="field"><label for="notas">Notas <small>(opcional)</small></label><input id="notas" name="notas" placeholder="Horario para recibir, otra persona que recibe, etc."></div>
 
       <p class="legend">Forma de pago</p>
       <div class="pays" id="pays"></div>
@@ -458,7 +498,7 @@ footer a{color:var(--ink)}
 
 <div class="sticky" id="sticky"><div class="in">
   <img src="img/estudio.jpg" alt="">
-  <div class="t"><b>Excavadora RC 11 canales</b><span id="stickyPrice">$45</span></div>
+  <div class="t"><b>Excavadora RC 11 canales</b><span id="stickyPrice">$50</span></div>
   <a class="cta" href="#pedido">Pedir ahora</a>
 </div></div>
 
@@ -471,7 +511,14 @@ footer a{color:var(--ink)}
       <p style="margin:0;font-weight:700" id="payT">Paga con Deuna</p>
       <div class="amt" id="payAmt"></div>
       <img id="payQr" alt="Código QR de Deuna" hidden>
-      <a class="btn" id="payLink" target="_blank" rel="noopener" hidden>Pagar con Deuna</a>
+      <a class="btn" id="payDl" download="QR-Deuna-Importcap.png">⬇️ Guardar QR en mi galería</a>
+      <ol class="steps" id="paySteps">
+        <li>Toca <b>Guardar QR en mi galería</b>.</li>
+        <li>Abre <b>Deuna</b> → <b>Pagar</b> → toca el ícono de <b>imagen/galería</b> y elige el QR que guardaste.</li>
+        <li>Escribe el monto <b id="payAmt2"></b> y paga.</li>
+      </ol>
+      <div class="bank" id="payBank" hidden></div>
+      <a class="btn" id="payLink" target="_blank" rel="noopener" hidden style="background:#eef5d8;color:#14200b">Abrir enlace de Deuna</a>
       <p style="font-size:14px;margin:12px 0 0">En la descripción del pago pon tu código <span class="code" id="payCode"></span></p>
       <p style="font-size:14px;margin:10px 0 0" id="payNoQr" hidden>En unos minutos te enviamos el QR de Deuna por WhatsApp.</p>
       <form class="up" name="comprobante" method="POST" data-netlify="true" netlify-honeypot="bot-field" enctype="multipart/form-data" id="upForm">
@@ -497,16 +544,18 @@ footer a{color:var(--ink)}
    ============================================================ */
 const CONFIG = {
   whatsapp: "593968428316",
-  // Opciones de compra. Si hay una sola, se muestra un selector de cantidad.
-  packs: [
-    { id: "1", cant: 1, titulo: "1 excavadora", detalle: "Excavadora + control + batería USB", precio: 45 }
-    // { id: "2", cant: 2, titulo: "2 excavadoras", detalle: "Para hermanos o primos", precio: 85, antes: 90, etiqueta: "Ahorras $5" },
+  productos: [
+    { id: "excavadora", nombre: "Excavadora RC 11 canales", corto: "Excavadora", precio: 50, specs: "11 canales · gira 680° · luces y sonido", fotos: ["img/estudio.jpg", "../img/excavadora-1.jpg", "img/excava.jpg"] },
+    { id: "volqueta", nombre: "Volqueta RC", corto: "Volqueta", precio: 45, specs: "Volteo real · batería recargable", fotos: ["../img/volquete-1.jpg", "../img/volquete-2.jpg", "../img/volquete-3.jpg"] },
+    { id: "bulldozer", nombre: "Bulldozer RC", corto: "Bulldozer", precio: 45, specs: "9 canales · aleación · luces y sonido", fotos: ["../img/topadora-2.jpg", "../img/topadora-1.jpg", "../img/topadora-3.jpg"] },
+    { id: "tractor", nombre: "Tractor cargador RC", corto: "Tractor cargador", precio: 45, specs: "Pala que sube y baja · aleación", fotos: ["../img/pala-2.jpg", "../img/pala-1.jpg", "../img/pala-4.jpg"] }
   ],
-  maxCantidad: 5,
+  maxCantidad: 10,
   precioAntes: null,                       // ej. 60 para mostrar $60 tachado (solo si es real)
-  envio: { costo: null, texto: "POR CONFIRMAR: costo y tiempo de envío" }, // costo: 0 = gratis
+  envio: { costo: 0, texto: "Envío incluido a todo Ecuador" }, // costo: 0 = incluido
   pagos: {
-    deuna: { activo: true, qr: "img/deuna-qr.png", link: "https://pagar.deuna.app/H92p/merchant?id=6964a0ead4ee6a238e89b599cb040b6d556ecd22" },   // qr: "img/deuna-qr.png" · link: enlace de cobro de Deuna
+    deuna: { activo: true, qr: "img/deuna-qr.png", link: "https://pagar.deuna.app/H92p/merchant?id=6964a0ead4ee6a238e89b599cb040b6d556ecd22",
+      cuenta: { banco: "", tipo: "", numero: "", titular: "", cedula: "" } }, // datos para transferir desde cualquier banco   // qr: "img/deuna-qr.png" · link: enlace de cobro de Deuna
     contraEntrega: { activo: true, anticipo: 5 }  // anticipo por Deuna para reservar (0 = sin anticipo)
   },
   garantia: "60 días",                       // POR CONFIRMAR si aplica a la excavadora sola
@@ -534,18 +583,17 @@ const CONFIG = {
 
 const $ = s => document.querySelector(s);
 const money = n => "$" + (Math.round(n * 100) / 100).toFixed(n % 1 ? 2 : 0);
-const PROV = ["Azuay","Bolívar","Cañar","Carchi","Chimborazo","Cotopaxi","El Oro","Esmeraldas","Galápagos","Guayas","Imbabura","Loja","Los Ríos","Manabí","Morona Santiago","Napo","Orellana","Pastaza","Pichincha","Santa Elena","Santo Domingo de los Tsáchilas","Sucumbíos","Tungurahua","Zamora Chinchipe"];
 const envioGratis = CONFIG.envio.costo === 0;
-const base = CONFIG.packs[0];
+const PRODS = CONFIG.productos, base = PRODS[0];
 const P = CONFIG.pagos, ANT = P.contraEntrega.activo ? (P.contraEntrega.anticipo || 0) : 0;
 const pagoTxt = [P.deuna.activo ? "con Deuna" : "", P.contraEntrega.activo ? (ANT ? `contra entrega (reservas con ${money(ANT)} por Deuna y el resto lo pagas al recibir)` : "contra entrega, en efectivo al recibir") : ""].filter(Boolean).join(" o ");
 const pagoCorto = [P.deuna.activo ? "Deuna" : "", P.contraEntrega.activo ? "contra entrega" : ""].filter(Boolean).join(" o ");
 
 /* textos que dependen de la configuración */
-$("#precioHero").textContent = money(base.precio / base.cant);
-$("#stickyPrice").textContent = money(base.precio / base.cant);
+$("#precioHero").textContent = money(base.precio);
+$("#stickyPrice").innerHTML = money(base.precio) + (envioGratis ? ' <small style="font:600 12px var(--sans);color:var(--muted)">envío incluido</small>' : "");
 if (CONFIG.precioAntes) $("#antesHero").textContent = money(CONFIG.precioAntes);
-$("#envioHero").textContent = CONFIG.envio.texto;
+$("#envioHero").innerHTML = envioGratis ? "<b style='color:var(--ink)'>Envío incluido</b> a todo Ecuador" : CONFIG.envio.texto;
 $("#ctaSub").textContent = "Paga con " + pagoCorto + " · Pídela en 1 minuto";
 $("#underHero").innerHTML = [envioGratis ? "Envío gratis" : "Envíos a todo Ecuador", CONFIG.garantia ? "Garantía " + CONFIG.garantia : "", "Tienda en Ambato"].filter(Boolean).map(t => `<span>${t}</span>`).join("");
 $("#garTabla").textContent = CONFIG.garantia || "—";
@@ -593,7 +641,8 @@ const FAQ = [
   ["¿Tengo que escribir por WhatsApp para pedir?", "No. Llenas el formulario y nosotros te contactamos para confirmar la entrega. Si prefieres, también puedes escribirnos al 096 842 8316."],
   ["¿Qué trae la caja?", "La excavadora con luces y sonido, el control de 11 canales y la batería recargable con su cable USB. El control usa pilas AA, que no vienen incluidas."],
   ["¿Funciona en arena y tierra?", "Sí. Tiene orugas de goma y la cuchara es metálica, así que cava arena, tierra y piedritas. No la metas al agua."],
-  ["¿La pueden envolver para regalo?", "Sí, sin costo. Escribe el nombre para la tarjeta en el formulario."],
+  ["¿Puedo pedir varias máquinas juntas?", "Sí. En el formulario eliges cuántas quieres de cada una: excavadora, volqueta, bulldozer o tractor cargador. Todas llegan en el mismo envío."],
+  ["¿La pueden envolver para regalo?", "Sí, sin costo. Escríbenos en el pedido si es para regalo."],
   CONFIG.garantia ? ["¿Y si llega dañada?", "Tiene garantía de " + CONFIG.garantia + " por defectos de fábrica. Escríbenos por WhatsApp con una foto o video y tu nombre, y lo resolvemos."] : null,
   ["¿Puedo verla en persona?", "Sí. Estamos en Ambato, Rumiñahui y Shyris, frente a Servientrega, de 11:00 a 19:00."],
   ["¿Venden por mayor?", "Sí, tenemos precio para revendedores. Escríbenos por WhatsApp."]
@@ -616,16 +665,17 @@ mark(0);
 const painMsgs = ["", "Eso tiene solución 👇", "Ya van dos. La excavadora es para ti 👇", "Tu casa necesita una obra 👇", "Definitivamente es para ustedes 👇"];
 $("#pains").addEventListener("change", () => { $("#painmsg").textContent = painMsgs[$("#pains").querySelectorAll(":checked").length]; });
 
-/* opciones de compra y total */
-let qty = 1, pack = base;
-const multi = CONFIG.packs.length > 1;
-if (multi) {
-  $("#packs").innerHTML = CONFIG.packs.map((p,i) => `<label class="pack">${p.etiqueta ? `<span class="tag">${p.etiqueta}</span>` : ""}<input type="radio" name="pack" value="${p.id}" ${i ? "" : "checked"}><img src="img/estudio.jpg" alt=""><span class="t"><b>${p.titulo}</b><span>${p.detalle}</span></span><span class="p"><b>${money(p.precio)}</b>${p.antes ? `<s>${money(p.antes)}</s>` : ""}</span></label>`).join("");
-  $("#packs").addEventListener("change", e => { pack = CONFIG.packs.find(p => p.id === e.target.value); qty = pack.cant; total(); });
-} else {
-  $("#qtyBox").hidden = false;
-  $("#unitTxt").textContent = money(base.precio) + " cada una";
+/* colección */
+let touched = false;
+const qty = Object.fromEntries(PRODS.map((p,i) => [p.id, i ? 0 : 1]));
+$("#coll").innerHTML = PRODS.map(p => `<div class="prod"><div class="ph">${p.fotos.map((f,i) => `<img src="${f}" alt="${p.nombre}" loading="lazy">`).join("")}</div><div class="dots">${p.fotos.map(() => "<i></i>").join("")}</div><div class="in"><b>${p.nombre}</b><span class="sp">${p.specs}</span><span class="pr">${money(p.precio)}<small>${envioGratis ? "envío incluido" : ""}</small></span><button type="button" data-add="${p.id}">La quiero</button></div></div>`).join("");
+$("#coll").addEventListener("click", e => { const id = e.target.dataset && e.target.dataset.add; if (!id) return; if (!touched) PRODS.forEach(p => qty[p.id] = 0); touched = true; if (!qty[id]) qty[id] = 1; renderCart(); $("#pedido").scrollIntoView({behavior: "smooth"}); });
+function renderCart(){
+  $("#cart").innerHTML = PRODS.map(p => `<div class="ci ${qty[p.id] ? "on" : ""}"><img src="${p.fotos[0]}" alt=""><div class="t"><b>${p.nombre}</b><span>${money(p.precio)}</span></div><div class="ctrl"><button type="button" data-d="-1" data-id="${p.id}" aria-label="Menos ${p.corto}">−</button><output>${qty[p.id]}</output><button type="button" data-d="1" data-id="${p.id}" aria-label="Más ${p.corto}">+</button></div></div>`).join("");
+  total();
 }
+$("#cart").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; const id = b.dataset.id; touched = true; qty[id] = Math.min(CONFIG.maxCantidad, Math.max(0, qty[id] + (+b.dataset.d))); renderCart(); });
+
 /* forma de pago */
 const PAYS = [
   P.deuna.activo ? { id: "deuna", t: "Pago con Deuna", s: "Pagas ahora con el QR y despachamos apenas se acredite.", tag: "Más rápido" } : null,
@@ -634,17 +684,17 @@ const PAYS = [
 $("#pays").innerHTML = PAYS.map((o,i) => `<label class="pay">${o.tag ? `<span class="tag">${o.tag}</span>` : ""}<input type="radio" name="pago" value="${o.t}" data-id="${o.id}" ${i ? "" : "checked"}><span><b>${o.t}</b><span>${o.s}</span></span></label>`).join("");
 const payId = () => { const x = $("#pays input:checked"); return x ? x.dataset.id : PAYS[0].id; };
 $("#pays").addEventListener("change", () => total());
-function setQty(d){ qty = Math.min(CONFIG.maxCantidad, Math.max(1, qty + d)); $("#qtyOut").textContent = qty; total(); }
 function calc(){
-  const sub = multi ? pack.precio : base.precio * qty;
+  const items = PRODS.filter(p => qty[p.id]).map(p => ({ ...p, n: qty[p.id] }));
+  const sub = items.reduce((a, p) => a + p.precio * p.n, 0);
   const env = CONFIG.envio.costo || 0;
   const tot = sub + env, id = payId();
   const ahora = id === "deuna" ? tot : Math.min(ANT, tot);
-  return { sub, env, tot, cant: multi ? pack.cant : qty, ahora, alRecibir: tot - ahora, pago: id };
+  return { items, sub, env, tot, cant: items.reduce((a, p) => a + p.n, 0), ahora, alRecibir: tot - ahora, pago: id };
 }
 function sumHTML(c){
-  const envTxt = CONFIG.envio.costo === 0 ? "Gratis" : CONFIG.envio.costo ? money(CONFIG.envio.costo) : "Por confirmar";
-  return `<div><span>Excavadora RC × ${c.cant}</span><span>${money(c.sub)}</span></div><div><span>Envío</span><span>${envTxt}</span></div><div class="tot"><span>Total</span><span>${money(c.tot)}</span></div>` +
+  const envTxt = CONFIG.envio.costo === 0 ? "Incluido" : CONFIG.envio.costo ? money(CONFIG.envio.costo) : "Por confirmar";
+  return c.items.map(p => `<div><span>${p.corto} × ${p.n}</span><span>${money(p.precio * p.n)}</span></div>`).join("") + `<div><span>Envío</span><span>${envTxt}</span></div><div class="tot"><span>Total</span><span>${money(c.tot)}</span></div>` +
     (c.ahora ? `<div><span>Pagas ahora por Deuna</span><span>${money(c.ahora)}</span></div>` : "") +
     (c.alRecibir ? `<div><span>Pagas al recibir</span><span>${money(c.alRecibir)}</span></div>` : "");
 }
@@ -653,9 +703,26 @@ function total(){
   $("#sum").innerHTML = sumHTML(c);
   $("#sendSub").textContent = "Total " + money(c.tot);
   $("#fTotal").value = money(c.tot); $("#fCant").value = c.cant; $("#fAhora").value = money(c.ahora);
+  $("#fProductos").value = c.items.map(p => `${p.n} × ${p.corto}`).join(", ");
+  if (c.cant) $("#carterr").style.display = "none";
 }
-total();
-const prov = $("#provincia"); PROV.forEach(p => prov.add(new Option(p, p)));
+renderCart();
+
+/* ubicación de Google Maps: pegar o usar GPS */
+function setUbic(v){ $("#ubicacion").value = v; $("#mapok").style.display = v ? "block" : "none"; }
+$("#ubicacion").addEventListener("input", e => $("#mapok").style.display = /maps|goo\.gl|google/.test(e.target.value) ? "block" : "none");
+$("#btnPegar").onclick = async () => {
+  try { const t = (await navigator.clipboard.readText()).trim(); if (t) setUbic(t); else $("#ubicacion").focus(); }
+  catch { $("#ubicacion").focus(); }
+};
+$("#btnGps").onclick = () => {
+  if (!navigator.geolocation) return $("#ubicacion").focus();
+  const b = $("#btnGps"); b.textContent = "Buscando…";
+  navigator.geolocation.getCurrentPosition(pos => {
+    const { latitude: la, longitude: lo } = pos.coords;
+    setUbic(`https://maps.google.com/?q=${la.toFixed(6)},${lo.toFixed(6)}`); b.textContent = "📍 Usar mi ubicación";
+  }, () => { b.textContent = "📍 Usar mi ubicación"; $("#ubicacion").focus(); }, { enableHighAccuracy: true, timeout: 12000 });
+};
 
 /* origen del anuncio (utm) para saber qué anuncio vende */
 const q = new URLSearchParams(location.search);
@@ -666,7 +733,7 @@ const form = $("#form");
 const rules = {
   nombre: v => v.trim().split(/\s+/).length >= 2 || v.trim().length >= 4,
   telefono: v => /^09\d{8}$/.test(v.replace(/\D/g,"").replace(/^5939/,"09")),
-  provincia: v => !!v, ciudad: v => v.trim().length >= 3, direccion: v => v.trim().length >= 10
+  ciudad: v => v.trim().length >= 3, direccion: v => v.trim().length >= 8
 };
 function check(name){ const el = form.elements[name], ok = rules[name](el.value); el.closest(".field").classList.toggle("bad", !ok); return ok; }
 Object.keys(rules).forEach(n => {
@@ -678,7 +745,7 @@ Object.keys(rules).forEach(n => {
 
 function waText(d, c){
   return `Hola Importcap, acabo de hacer este pedido en la página:%0A` + encodeURIComponent(
-    `• Pedido ${d.codigo}\n• Excavadora RC × ${c.cant} — Total ${money(c.tot)}\n• Pago: ${d.pago}\n• ${d.nombre}\n• ${d.telefono}\n• ${d.ciudad}, ${d.provincia}\n• ${d.direccion}` + (d.tarjeta_regalo ? `\n• Tarjeta: ${d.tarjeta_regalo}` : ""));
+    `• Pedido ${d.codigo}\n• ${d.productos} — Total ${money(c.tot)}\n• Pago: ${d.pago}\n• ${d.nombre}\n• ${d.telefono}\n• ${d.ciudad}\n• ${d.direccion}` + (d.ubicacion ? `\n• Ubicación: ${d.ubicacion}` : ""));
 }
 
 form.addEventListener("submit", async e => {
@@ -696,11 +763,11 @@ form.addEventListener("submit", async e => {
     if (!r.ok) throw new Error(r.status);
     if (window.fbq) fbq("track", "Purchase", { value: c.tot, currency: "USD", content_name: "Excavadora RC", num_items: c.cant });
     $("#thxMsg").innerHTML = `Gracias, <b>${d.nombre.split(" ")[0]}</b>. Te contactaremos al <b>${d.telefono}</b> para confirmar la entrega.`;
-    $("#thxSum").innerHTML = sumHTML(c) + `<div style="margin-top:8px;color:var(--muted);font-size:14px;display:block">${d.direccion}, ${d.ciudad}, ${d.provincia}</div>`;
+    $("#thxSum").innerHTML = sumHTML(c) + `<div style="margin-top:8px;color:var(--muted);font-size:14px;display:block">${d.direccion}, ${d.ciudad}</div>`;
     $("#thxWa").href = `https://wa.me/${CONFIG.whatsapp}?text=` + waText(d, c);
     showPay(d, c);
-    $("#thanks").classList.add("on"); document.body.style.overflow = "hidden";
-    form.reset(); qty = 1; $("#qtyOut").textContent = 1; total();
+    $("#thanks").classList.add("on"); document.body.style.overflow = "hidden"; onScroll();
+    form.reset(); PRODS.forEach((p,i) => qty[p.id] = i ? 0 : 1); touched = false; setUbic(""); renderCart();
   } catch (err) {
     $("#errWa").href = `https://wa.me/${CONFIG.whatsapp}?text=` + waText(d, c);
     $("#formerr").style.display = "block";
@@ -716,6 +783,11 @@ function showPay(d, c){
   $("#payAmt").textContent = money(c.ahora);
   $("#payQr").hidden = !hasQr; if (hasQr) $("#payQr").src = P.deuna.qr;
   $("#payLink").hidden = !hasLink; if (hasLink) $("#payLink").href = P.deuna.link;
+  $("#payDl").hidden = $("#paySteps").hidden = !hasQr; if (hasQr) $("#payDl").href = P.deuna.qr;
+  $("#payAmt2").textContent = money(c.ahora);
+  const cu = P.deuna.cuenta || {};
+  $("#payBank").hidden = !cu.numero;
+  if (cu.numero) $("#payBank").innerHTML = `<b>¿Prefieres transferir desde tu banco?</b>` + [["Banco", cu.banco], ["Cuenta " + (cu.tipo || ""), cu.numero], ["Titular", cu.titular], ["Cédula/RUC", cu.cedula]].filter(x => x[1]).map(([k,v]) => `<div><span>${k}</span><span><b>${v}</b> <button type="button" data-copy="${v}">Copiar</button></span></div>`).join("");
   $("#payCode").textContent = d.codigo;
   $("#upCodigo").value = d.codigo; $("#upTel").value = d.telefono; $("#upNombre").value = d.nombre;
   $("#upForm").hidden = !(hasQr || hasLink); $("#upOk").style.display = "none";
@@ -735,12 +807,14 @@ $("#upForm").addEventListener("submit", async e => {
   finally { b.disabled = false; }
 });
 
+$("#payBank").addEventListener("click", e => { const v = e.target.dataset.copy; if (!v) return; navigator.clipboard.writeText(v).then(() => { e.target.textContent = "¡Copiado!"; setTimeout(() => e.target.textContent = "Copiar", 1500); }).catch(() => {}); });
+
 /* barra fija: aparece al bajar y se oculta en el formulario */
 const sticky = $("#sticky"), pedido = $("#pedido");
 function onScroll(){
   const r = pedido.getBoundingClientRect();
   const inForm = r.top < innerHeight && r.bottom > 0;
-  sticky.classList.toggle("on", scrollY > 500 && !inForm);
+  sticky.classList.toggle("on", scrollY > 500 && !inForm && !$("#thanks").classList.contains("on"));
 }
 addEventListener("scroll", onScroll, {passive:true}); onScroll();
 

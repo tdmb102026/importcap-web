@@ -78,7 +78,7 @@ app.get("/admin/comprobante/:f", auth, (req, res) => {
 
 app.get("/admin/pedidos.csv", auth, (req, res) => {
   const rows = leer().filter(r => r.formulario === "pedido-excavadora");
-  const cols = ["fecha", "codigo", "nombre", "telefono", "provincia", "ciudad", "direccion", "cantidad", "total", "pago", "a_pagar_ahora", "tarjeta_regalo", "notas", "origen"];
+  const cols = ["fecha", "codigo", "nombre", "telefono", "ciudad", "direccion", "ubicacion", "productos", "cantidad", "total", "pago", "a_pagar_ahora", "provincia", "tarjeta_regalo", "notas", "origen"];
   const csv = [cols.join(",")].concat(rows.map(r => cols.map(c => '"' + String(c === "fecha" ? r.fecha : r.datos[c] ?? "").replace(/"/g, '""') + '"').join(","))).join("\n");
   res.type("text/csv").set("Content-Disposition", "attachment; filename=pedidos-importcap.csv").send("﻿" + csv);
 });
@@ -93,12 +93,12 @@ app.get("/admin", auth, (req, res) => {
     const d = r.datos, cs = comp[d.codigo] || [];
     const tel = String(d.telefono || "").replace(/\D/g, "").replace(/^0/, "593");
     const comps = cs.map(c => c.archivo ? `<a href="/admin/comprobante/${esc(c.archivo)}" target="_blank">ver captura</a>` : "").join(" ");
-    return `<tr><td>${esc(fmt(r.fecha))}<br><b>${esc(d.codigo)}</b></td><td><b>${esc(d.nombre)}</b><br><a href="https://wa.me/${esc(tel)}" target="_blank">${esc(d.telefono)}</a></td><td>${esc(d.direccion)}<br>${esc(d.ciudad)}, ${esc(d.provincia)}${d.tarjeta_regalo ? `<br>🎁 ${esc(d.tarjeta_regalo)}` : ""}${d.notas ? `<br>📝 ${esc(d.notas)}` : ""}</td><td>${esc(d.cantidad)} × excavadora<br><b>${esc(d.total)}</b></td><td>${esc(d.pago)}<br>Ahora: ${esc(d.a_pagar_ahora)}<br>${comps || '<span class="no">sin comprobante</span>'}</td><td class="o">${esc(d.origen)}</td></tr>`;
+    return `<tr><td>${esc(fmt(r.fecha))}<br><b>${esc(d.codigo)}</b></td><td><b>${esc(d.nombre)}</b><br><a href="https://wa.me/${esc(tel)}" target="_blank">${esc(d.telefono)}</a></td><td>${esc(d.direccion)}<br>${esc(d.ciudad)}${d.provincia ? ", " + esc(d.provincia) : ""}${/^https?:\/\//.test(d.ubicacion || "") ? `<br><a href="${esc(d.ubicacion)}" target="_blank">📍 ver en Maps</a>` : d.ubicacion ? `<br>📍 ${esc(d.ubicacion)}` : ""}${d.tarjeta_regalo ? `<br>🎁 ${esc(d.tarjeta_regalo)}` : ""}${d.notas ? `<br>📝 ${esc(d.notas)}` : ""}</td><td>${esc(d.productos || d.cantidad + " × excavadora")}<br><b>${esc(d.total)}</b></td><td>${esc(d.pago)}<br>Ahora: ${esc(d.a_pagar_ahora)}<br>${comps || '<span class="no">sin comprobante</span>'}</td><td class="o">${esc(d.origen)}</td></tr>`;
   }).join("");
   const sueltos = regs.filter(r => r.formulario === "comprobante" && !pedidos.some(p => p.datos.codigo === r.datos.codigo));
   res.send(`<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Pedidos · Importcap</title>
 <style>body{font:15px system-ui,sans-serif;margin:0;background:#0c1a10;color:#f4f1e8}header{padding:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}h1{margin:0;font-size:20px}a{color:#d2ff3c}.wrap{overflow-x:auto;padding:0 16px 30px}table{border-collapse:collapse;width:100%;min-width:900px}td,th{border-bottom:1px solid #2a4433;padding:10px;text-align:left;vertical-align:top}th{color:#b9c2b5;font-size:12px;text-transform:uppercase}.no{color:#ff8a7a}.o{font-size:12px;color:#b9c2b5;max-width:180px}.btn{background:#d2ff3c;color:#14200b;border-radius:10px;padding:8px 12px;text-decoration:none;font-weight:700}</style></head><body>
-<header><h1>Pedidos de la excavadora (${pedidos.length})</h1><a class="btn" href="/admin/pedidos.csv">Descargar Excel (CSV)</a></header>
+<header><h1>Pedidos (${pedidos.length})</h1><a class="btn" href="/admin/pedidos.csv">Descargar Excel (CSV)</a></header>
 <div class="wrap"><table><thead><tr><th>Fecha / código</th><th>Cliente</th><th>Dirección</th><th>Pedido</th><th>Pago</th><th>Anuncio</th></tr></thead><tbody>${filas || '<tr><td colspan="6">Todavía no hay pedidos.</td></tr>'}</tbody></table>
 ${sueltos.length ? `<h2 style="font-size:16px">Comprobantes sin pedido</h2>` + sueltos.map(s => `<p>${esc(fmt(s.fecha))} · ${esc(s.datos.codigo)} · ${esc(s.datos.nombre)} · <a href="/admin/comprobante/${esc(s.archivo)}" target="_blank">ver</a></p>`).join("") : ""}
 </div></body></html>`);
