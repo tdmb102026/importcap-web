@@ -10,7 +10,7 @@ Cada push a `main` lo publica Netlify en https://importcap.netlify.app (el repos
 
 ## Página de pedido de la excavadora (`/excavadora/`)
 
-Página de una sola compra para los anuncios de Meta: https://importcap.netlify.app/excavadora/
+Página de una sola compra para los anuncios de Meta: https://importcap.squadraec.com/excavadora/
 Se edita directo aquí (`excavadora/index.html`), no pasa por `build_netlify.py`. Precios, envío, pago,
 garantía, píxel de Meta y testimonios se cambian en el bloque `CONFIG` al inicio del `<script>`.
 Los pedidos llegan por Netlify Forms (formulario `pedido-excavadora`): Netlify > Forms.
