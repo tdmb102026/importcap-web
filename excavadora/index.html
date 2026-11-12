@@ -183,7 +183,47 @@ footer a{color:var(--ink)}
 .thanks .sum{text-align:left;margin:20px 0}
 .wa{display:inline-flex;gap:8px;align-items:center;justify-content:center;width:100%;min-height:54px;border-radius:14px;background:var(--wa);color:#fff;font-weight:700;text-decoration:none;margin-top:8px}
 
-@media(min-width:760px){.gift{grid-template-columns:1fr 1fr}}
+/* videos */
+.reels{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;margin:18px -18px 0;padding:0 18px}
+.reels::-webkit-scrollbar{display:none}
+.reel{position:relative;flex:0 0 62%;max-width:250px;aspect-ratio:9/16;border-radius:16px;overflow:hidden;scroll-snap-align:start;background:#000;cursor:pointer}
+.reel video{width:100%;height:100%;object-fit:cover}
+.reel .snd{position:absolute;top:10px;right:10px;width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,.55);display:grid;place-items:center;font-size:16px}
+.reel .cap{position:absolute;left:0;right:0;bottom:0;padding:26px 12px 12px;background:linear-gradient(transparent,rgba(0,0,0,.85));font:900 13px/1.15 var(--head);font-stretch:125%;text-transform:uppercase}
+.reel .cap span{color:var(--lime)}
+.hint{font-size:13px;color:var(--muted);text-align:center;margin-top:10px}
+/* mensajes */
+.msgs{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;margin:18px -18px 0;padding:0 18px}
+.msgs::-webkit-scrollbar{display:none}
+.msg{flex:0 0 70%;max-width:280px;scroll-snap-align:start;background:var(--bg2);border:1px solid var(--line);border-radius:16px;overflow:hidden;cursor:zoom-in}
+.msg img{width:100%;aspect-ratio:3/4;object-fit:cover;object-position:top}
+.msg div{padding:10px 12px;font-size:14px}.msg .st{color:var(--warn);letter-spacing:2px}
+.lb{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.92);display:none;place-items:center;padding:20px}
+.lb.on{display:grid}.lb img{max-height:90vh;border-radius:12px}
+/* redes */
+.socials{display:grid;gap:10px;margin-top:18px}
+.soc{display:flex;gap:12px;align-items:center;text-decoration:none;background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:10px}
+.soc img{width:64px;height:84px;border-radius:10px;object-fit:cover}
+.soc .t{flex:1}.soc .t b{display:block;font:900 20px/1.1 var(--head);font-stretch:125%;color:var(--lime)}.soc .t span{font-size:13px;color:var(--muted)}
+.soc .go{font-weight:700;font-size:14px;white-space:nowrap}
+/* pago */
+.pays{display:grid;gap:10px}
+.pay{position:relative;display:flex;gap:12px;align-items:flex-start;border:2px solid var(--line);border-radius:16px;padding:14px;cursor:pointer;background:var(--card)}
+.pay input{margin:3px 0 0;accent-color:var(--lime);width:20px;height:20px;flex:0 0 20px}
+.pay:has(input:checked){border-color:var(--lime)}
+.pay b{display:block}.pay span{font-size:14px;color:var(--muted)}
+.pay .tag{position:absolute;top:-10px;right:12px;background:var(--lime);color:var(--lime-ink);font-size:11px;font-weight:800;border-radius:99px;padding:3px 9px;text-transform:uppercase}
+.legend{font-weight:700;font-size:15px;margin:4px 0 -4px}
+.paybox{background:#fff;color:#14200b;border-radius:18px;padding:18px;margin:18px 0;text-align:center}
+.paybox img{width:230px;max-width:100%;margin:10px auto;border-radius:8px}
+.paybox .amt{font:900 34px/1 var(--head);font-stretch:125%}
+.paybox .code{display:inline-block;background:#eef5d8;border-radius:8px;padding:4px 10px;font-weight:800;letter-spacing:.06em}
+.paybox .btn{display:flex;align-items:center;justify-content:center;min-height:50px;border-radius:12px;background:#14200b;color:#d2ff3c;font-weight:800;text-decoration:none;margin-top:10px}
+.up{display:grid;gap:10px;margin-top:14px;text-align:left}
+.up input[type=file]{width:100%;font:15px var(--sans);color:#14200b;background:#f2f4ee;border:1.5px dashed #9aa58f;border-radius:12px;padding:14px}
+.up button{min-height:50px;border:0;border-radius:12px;background:var(--lime);color:var(--lime-ink);font:800 16px var(--sans);cursor:pointer}
+.up .ok{display:none;background:#eef5d8;border-radius:12px;padding:12px;font-weight:700;text-align:center}
+@media(min-width:760px){.gift{grid-template-columns:1fr 1fr}.reel{flex-basis:23%}}
 </style>
 </head>
 <body>
@@ -235,12 +275,22 @@ footer a{color:var(--ink)}
   </ul>
 </div>
 
-<!-- Video -->
+<!-- Videos -->
 <section>
   <div class="wrap">
-    <p class="eyebrow">Mírala por dentro</p>
-    <h2 style="margin-top:8px">Cada pieza <span class="hl">se mueve</span></h2>
-    <div class="vid"><video src="img/promo.mp4" poster="img/promo.jpg" autoplay muted loop playsinline preload="none" id="vid"></video></div>
+    <p class="eyebrow">▶ Mírala en acción</p>
+    <h2 style="margin-top:8px">Así se juega <span class="hl">de verdad</span></h2>
+    <div class="reels" id="reels"></div>
+    <p class="hint">Desliza para ver más · Toca un video para activar el sonido</p>
+  </div>
+</section>
+
+<!-- Redes (se muestra solo si hay enlaces en CONFIG) -->
+<section id="redes" hidden>
+  <div class="wrap">
+    <p class="eyebrow">Ya es tendencia</p>
+    <h2 style="margin-top:8px" id="redesT">Miles ya la vieron <span class="hl">en redes</span></h2>
+    <div class="socials" id="socials"></div>
   </div>
 </section>
 
@@ -332,14 +382,17 @@ footer a{color:var(--ink)}
   </div>
 </section>
 
-<!-- Testimonios (se muestran solo si hay en CONFIG) -->
-<section id="testimonios" hidden>
+<!-- Mensajes de clientes (se muestra solo si hay capturas en CONFIG) -->
+<section id="mensajes" hidden>
   <div class="wrap">
-    <p class="eyebrow">Ya la tienen</p>
-    <h2 style="margin-top:8px">Familias <span class="hl">que ya juegan</span></h2>
-    <div class="revs" id="revs"></div>
+    <p class="eyebrow">💬 Lo que nos escriben</p>
+    <h2 style="margin-top:8px">Mensajes de <span class="hl">clientes reales</span></h2>
+    <div class="msgs" id="msgs"></div>
+    <p class="hint">Desliza · Toca para ampliar</p>
+    <a class="cta" href="#pedido" style="margin-top:18px">La quiero</a>
   </div>
 </section>
+<div class="lb" id="lb" onclick="this.classList.remove('on')"><img alt=""></div>
 
 <!-- Formulario -->
 <section id="pedido">
@@ -354,6 +407,8 @@ footer a{color:var(--ink)}
       <input type="hidden" name="producto" value="Excavadora RC 11 canales">
       <input type="hidden" name="total" id="fTotal">
       <input type="hidden" name="origen" id="fOrigen">
+      <input type="hidden" name="codigo" id="fCodigo">
+      <input type="hidden" name="a_pagar_ahora" id="fAhora">
 
       <div class="packs" id="packs"></div>
       <div class="qty" id="qtyBox" hidden>
@@ -371,6 +426,9 @@ footer a{color:var(--ink)}
       <div class="field"><label for="direccion">Dirección exacta y referencia</label><textarea id="direccion" name="direccion" placeholder="Calle principal, secundaria, número de casa y una referencia (ej. frente a la tienda X)" required></textarea><div class="err">Escribe la dirección con una referencia para el courier.</div></div>
       <div class="field"><label for="tarjeta">Nombre para la tarjeta de regalo <small>(opcional)</small></label><input id="tarjeta" name="tarjeta_regalo" placeholder="Ej. Para Mateo, de papá y mamá"></div>
       <div class="field"><label for="notas">Notas <small>(opcional)</small></label><input id="notas" name="notas" placeholder="Horario para recibir, otra persona que recibe, etc."></div>
+
+      <p class="legend">Forma de pago</p>
+      <div class="pays" id="pays"></div>
 
       <div class="sum" id="sum"></div>
       <div class="formerr" id="formerr">No se pudo enviar el pedido. Revisa tu conexión e inténtalo otra vez, o <a id="errWa" href="#">pídelo por WhatsApp</a>.</div>
@@ -409,6 +467,23 @@ footer a{color:var(--ink)}
     <div class="ok">✓</div>
     <h2 id="thxT">¡Pedido <span class="hl">recibido!</span></h2>
     <p id="thxMsg"></p>
+    <div class="paybox" id="paybox" hidden>
+      <p style="margin:0;font-weight:700" id="payT">Paga con Deuna</p>
+      <div class="amt" id="payAmt"></div>
+      <img id="payQr" alt="Código QR de Deuna" hidden>
+      <a class="btn" id="payLink" target="_blank" rel="noopener" hidden>Pagar con Deuna</a>
+      <p style="font-size:14px;margin:12px 0 0">En la descripción del pago pon tu código <span class="code" id="payCode"></span></p>
+      <p style="font-size:14px;margin:10px 0 0" id="payNoQr" hidden>En unos minutos te enviamos el QR de Deuna por WhatsApp.</p>
+      <form class="up" name="comprobante" method="POST" data-netlify="true" netlify-honeypot="bot-field" enctype="multipart/form-data" id="upForm">
+        <input type="hidden" name="form-name" value="comprobante">
+        <p class="hp"><label>No llenar: <input name="bot-field"></label></p>
+        <input type="hidden" name="codigo" id="upCodigo"><input type="hidden" name="telefono" id="upTel"><input type="hidden" name="nombre" id="upNombre">
+        <label style="font-weight:700;font-size:14px">Sube la captura de tu pago</label>
+        <input type="file" name="captura" accept="image/*" required>
+        <button type="submit">Enviar comprobante</button>
+        <div class="ok" id="upOk">✓ Comprobante recibido. Preparamos tu envío.</div>
+      </form>
+    </div>
     <div class="sum" id="thxSum"></div>
     <a class="wa" id="thxWa" href="#" target="_blank" rel="noopener">Enviar mi pedido por WhatsApp (opcional)</a>
     <p class="fine" style="margin-top:10px">No es necesario: tu pedido ya quedó registrado.</p>
@@ -430,12 +505,26 @@ const CONFIG = {
   maxCantidad: 5,
   precioAntes: null,                       // ej. 60 para mostrar $60 tachado (solo si es real)
   envio: { costo: null, texto: "POR CONFIRMAR: costo y tiempo de envío" }, // costo: 0 = gratis
-  pago: "POR CONFIRMAR: forma de pago",      // ej. "Pagas en efectivo al recibir (contra entrega)"
+  pagos: {
+    deuna: { activo: true, qr: "", link: "" },   // qr: "img/deuna-qr.png" · link: enlace de cobro de Deuna
+    contraEntrega: { activo: true, anticipo: 5 }  // anticipo por Deuna para reservar (0 = sin anticipo)
+  },
   garantia: "60 días",                       // POR CONFIRMAR si aplica a la excavadora sola
   metaPixel: "",                             // ID del píxel de Meta, para medir pedidos desde los anuncios
-  testimonios: [
-    // { nombre: "María, Quito", texto: "Llegó en dos días y mi hijo no la suelta.", foto: "img/entrega-1.jpg" },
-  ]
+  videos: [
+    { src: "vid/v1.mp4", poster: "vid/v1.jpg", cap: "Cava en la arena <span>de verdad</span>" },
+    { src: "vid/v2.mp4", poster: "vid/v2.jpg", cap: "Túneles <span>en la playa</span>" },
+    { src: "vid/v5.mp4", poster: "vid/v5.jpg", cap: "Batería recargable <span>y control 2.4 GHz</span>" },
+    { src: "vid/v3.mp4", poster: "vid/v3.jpg", cap: "El mejor plan <span>de playa</span>" },
+    { src: "vid/v6.mp4", poster: "vid/v6.jpg", cap: "La playa se vuelve <span>una obra</span>" },
+    { src: "vid/v4.mp4", poster: "vid/v4.jpg", cap: "No es solo <span>para niños</span>" },
+    { src: "vid/v7.mp4", poster: "vid/v7.jpg", cap: "Arma toda <span>la colección</span>" },
+    { src: "img/promo.mp4", poster: "img/promo.jpg", cap: "Cada pieza <span>se mueve</span>" }
+  ],
+  // Publicaciones de Instagram/TikTok: { red: "Instagram", url: "https://www.instagram.com/p/...", vistas: "207 mil", likes: "3 mil", portada: "vid/v1.jpg" }
+  redes: [],
+  // Capturas de mensajes reales de clientes (sin número visible): { img: "msg/cliente-1.jpg", texto: "Llegó perfecta", nombre: "María, Quito" }
+  mensajes: []
 };
 
 const $ = s => document.querySelector(s);
@@ -443,34 +532,57 @@ const money = n => "$" + (Math.round(n * 100) / 100).toFixed(n % 1 ? 2 : 0);
 const PROV = ["Azuay","Bolívar","Cañar","Carchi","Chimborazo","Cotopaxi","El Oro","Esmeraldas","Galápagos","Guayas","Imbabura","Loja","Los Ríos","Manabí","Morona Santiago","Napo","Orellana","Pastaza","Pichincha","Santa Elena","Santo Domingo de los Tsáchilas","Sucumbíos","Tungurahua","Zamora Chinchipe"];
 const envioGratis = CONFIG.envio.costo === 0;
 const base = CONFIG.packs[0];
+const P = CONFIG.pagos, ANT = P.contraEntrega.activo ? (P.contraEntrega.anticipo || 0) : 0;
+const pagoTxt = [P.deuna.activo ? "con Deuna" : "", P.contraEntrega.activo ? (ANT ? `contra entrega (reservas con ${money(ANT)} por Deuna y el resto lo pagas al recibir)` : "contra entrega, en efectivo al recibir") : ""].filter(Boolean).join(" o ");
+const pagoCorto = [P.deuna.activo ? "Deuna" : "", P.contraEntrega.activo ? "contra entrega" : ""].filter(Boolean).join(" o ");
 
 /* textos que dependen de la configuración */
 $("#precioHero").textContent = money(base.precio / base.cant);
 $("#stickyPrice").textContent = money(base.precio / base.cant);
 if (CONFIG.precioAntes) $("#antesHero").textContent = money(CONFIG.precioAntes);
 $("#envioHero").textContent = CONFIG.envio.texto;
-$("#ctaSub").textContent = (CONFIG.pago.startsWith("POR") ? "" : CONFIG.pago.split("(")[0].trim() + " · ") + "Pídela en 1 minuto";
+$("#ctaSub").textContent = "Paga con " + pagoCorto + " · Pídela en 1 minuto";
 $("#underHero").innerHTML = [envioGratis ? "Envío gratis" : "Envíos a todo Ecuador", CONFIG.garantia ? "Garantía " + CONFIG.garantia : "", "Tienda en Ambato"].filter(Boolean).map(t => `<span>${t}</span>`).join("");
 $("#garTabla").textContent = CONFIG.garantia || "—";
-$("#pedidoSub").textContent = "Te llamamos o escribimos solo para confirmar la entrega. " + (CONFIG.pago.startsWith("POR") ? "" : CONFIG.pago + ".");
-$("#fine").textContent = [CONFIG.pago, CONFIG.envio.texto].join(" · ");
+$("#pedidoSub").textContent = "Te escribimos solo para confirmar la entrega. Pagas " + pagoTxt + ".";
+$("#fine").textContent = CONFIG.envio.texto;
 $("#trust").innerHTML = [
   ["🏪","Tienda física en Ambato","Rumiñahui y Shyris, frente a Servientrega. Puedes visitarnos de 11:00 a 19:00."],
   ["🚚","Envíos a todo Ecuador", CONFIG.envio.texto],
-  ["💵","Forma de pago", CONFIG.pago],
+  ["💵","Pagas " + pagoCorto, "Pagas " + pagoTxt + "."],
   CONFIG.garantia ? ["🛡️","Garantía de " + CONFIG.garantia,"Si llega con un defecto de fábrica, nos escribes por WhatsApp con una foto o video y lo solucionamos."] : null,
   ["👨‍👩‍👦","Negocio familiar","Te atiende uno de los dueños, no un robot."]
 ].filter(Boolean).map(([i,b,s]) => `<div><i>${i}</i><div><b>${b}</b><span>${s}</span></div></div>`).join("");
 
-/* testimonios: solo reales */
-if (CONFIG.testimonios.length) {
-  $("#testimonios").hidden = false;
-  $("#revs").innerHTML = CONFIG.testimonios.map(t => `<div class="rev">${t.foto ? `<img src="${t.foto}" alt="" loading="lazy">` : ""}<div class="st">★★★★★</div><p>${t.texto}</p><b>${t.nombre}</b></div>`).join("");
+/* videos */
+const reels = $("#reels");
+reels.innerHTML = CONFIG.videos.map(v => `<div class="reel"><video src="${v.src}" poster="${v.poster}" muted loop playsinline preload="none"></video><span class="snd">🔇</span><div class="cap">${v.cap}</div></div>`).join("");
+const vids = [...reels.querySelectorAll("video")];
+const vo = new IntersectionObserver(es => es.forEach(x => { const v = x.target; if (x.isIntersecting) { v.preload = "auto"; v.play().catch(()=>{}); } else v.pause(); }), {threshold: .6});
+vids.forEach(v => vo.observe(v));
+reels.querySelectorAll(".reel").forEach((r,i) => r.onclick = () => {
+  const v = vids[i], on = v.muted;
+  vids.forEach(o => { o.muted = true; o.nextElementSibling.textContent = "🔇"; });
+  v.muted = !on; r.querySelector(".snd").textContent = on ? "🔊" : "🔇"; v.play().catch(()=>{});
+});
+
+/* redes: solo enlaces reales */
+if (CONFIG.redes.length) {
+  $("#redes").hidden = false;
+  $("#socials").innerHTML = CONFIG.redes.map(r => `<a class="soc" href="${r.url}" target="_blank" rel="noopener">${r.portada ? `<img src="${r.portada}" alt="" loading="lazy">` : ""}<span class="t"><b>${r.vistas ? r.vistas + " vistas" : r.red}</b><span>${[r.likes ? r.likes + " me gusta" : "", r.red].filter(Boolean).join(" · ")}</span></span><span class="go">Ver →</span></a>`).join("");
+}
+
+/* mensajes de clientes: solo capturas reales */
+if (CONFIG.mensajes.length) {
+  $("#mensajes").hidden = false;
+  $("#msgs").innerHTML = CONFIG.mensajes.map(m => `<div class="msg"><img src="${m.img}" alt="Mensaje de cliente" loading="lazy">${m.texto || m.nombre ? `<div><div class="st">★★★★★</div>${m.texto ? `<p style="margin:4px 0">${m.texto}</p>` : ""}${m.nombre ? `<b>${m.nombre}</b>` : ""}</div>` : ""}</div>`).join("");
+  $("#msgs").querySelectorAll("img").forEach(im => im.parentElement.onclick = () => { $("#lb img").src = im.src; $("#lb").classList.add("on"); });
 }
 
 /* preguntas */
 const FAQ = [
-  ["¿Cómo pago?", CONFIG.pago],
+  ["¿Cómo pago?", "Pagas " + pagoTxt + ". Al terminar tu pedido te mostramos el código QR de Deuna y el monto exacto."],
+  ANT ? ["¿Por qué piden un anticipo en contra entrega?", `Para reservar tu excavadora y cubrir el envío. Son ${money(ANT)} por Deuna y el resto lo pagas al recibir. Así despachamos más rápido a quien de verdad la espera.`] : null,
   ["¿Cuánto cuesta el envío y cuánto tarda?", CONFIG.envio.texto],
   ["¿Tengo que escribir por WhatsApp para pedir?", "No. Llenas el formulario y nosotros te contactamos para confirmar la entrega. Si prefieres, también puedes escribirnos al 096 842 8316."],
   ["¿Qué trae la caja?", "La excavadora con luces y sonido, el control de 11 canales y la batería recargable con su cable USB. El control usa pilas AA, que no vienen incluidas."],
@@ -508,21 +620,33 @@ if (multi) {
   $("#qtyBox").hidden = false;
   $("#unitTxt").textContent = money(base.precio) + " cada una";
 }
+/* forma de pago */
+const PAYS = [
+  P.deuna.activo ? { id: "deuna", t: "Pago con Deuna", s: "Pagas ahora con el QR y despachamos apenas se acredite.", tag: "Más rápido" } : null,
+  P.contraEntrega.activo ? { id: "contra", t: "Contra entrega", s: ANT ? `Reservas con ${money(ANT)} por Deuna y pagas el resto al recibir.` : "Pagas en efectivo cuando la recibes." } : null
+].filter(Boolean);
+$("#pays").innerHTML = PAYS.map((o,i) => `<label class="pay">${o.tag ? `<span class="tag">${o.tag}</span>` : ""}<input type="radio" name="pago" value="${o.t}" data-id="${o.id}" ${i ? "" : "checked"}><span><b>${o.t}</b><span>${o.s}</span></span></label>`).join("");
+const payId = () => { const x = $("#pays input:checked"); return x ? x.dataset.id : PAYS[0].id; };
+$("#pays").addEventListener("change", () => total());
 function setQty(d){ qty = Math.min(CONFIG.maxCantidad, Math.max(1, qty + d)); $("#qtyOut").textContent = qty; total(); }
 function calc(){
   const sub = multi ? pack.precio : base.precio * qty;
   const env = CONFIG.envio.costo || 0;
-  return { sub, env, tot: sub + env, cant: multi ? pack.cant : qty };
+  const tot = sub + env, id = payId();
+  const ahora = id === "deuna" ? tot : Math.min(ANT, tot);
+  return { sub, env, tot, cant: multi ? pack.cant : qty, ahora, alRecibir: tot - ahora, pago: id };
 }
 function sumHTML(c){
   const envTxt = CONFIG.envio.costo === 0 ? "Gratis" : CONFIG.envio.costo ? money(CONFIG.envio.costo) : "Por confirmar";
-  return `<div><span>Excavadora RC × ${c.cant}</span><span>${money(c.sub)}</span></div><div><span>Envío</span><span>${envTxt}</span></div><div class="tot"><span>Total</span><span>${money(c.tot)}</span></div>`;
+  return `<div><span>Excavadora RC × ${c.cant}</span><span>${money(c.sub)}</span></div><div><span>Envío</span><span>${envTxt}</span></div><div class="tot"><span>Total</span><span>${money(c.tot)}</span></div>` +
+    (c.ahora ? `<div><span>Pagas ahora por Deuna</span><span>${money(c.ahora)}</span></div>` : "") +
+    (c.alRecibir ? `<div><span>Pagas al recibir</span><span>${money(c.alRecibir)}</span></div>` : "");
 }
 function total(){
   const c = calc();
   $("#sum").innerHTML = sumHTML(c);
   $("#sendSub").textContent = "Total " + money(c.tot);
-  $("#fTotal").value = money(c.tot); $("#fCant").value = c.cant;
+  $("#fTotal").value = money(c.tot); $("#fCant").value = c.cant; $("#fAhora").value = money(c.ahora);
 }
 total();
 const prov = $("#provincia"); PROV.forEach(p => prov.add(new Option(p, p)));
@@ -548,7 +672,7 @@ Object.keys(rules).forEach(n => {
 
 function waText(d, c){
   return `Hola Importcap, acabo de hacer este pedido en la página:%0A` + encodeURIComponent(
-    `• Excavadora RC × ${c.cant} — Total ${money(c.tot)}\n• ${d.nombre}\n• ${d.telefono}\n• ${d.ciudad}, ${d.provincia}\n• ${d.direccion}` + (d.tarjeta_regalo ? `\n• Tarjeta: ${d.tarjeta_regalo}` : ""));
+    `• Pedido ${d.codigo}\n• Excavadora RC × ${c.cant} — Total ${money(c.tot)}\n• Pago: ${d.pago}\n• ${d.nombre}\n• ${d.telefono}\n• ${d.ciudad}, ${d.provincia}\n• ${d.direccion}` + (d.tarjeta_regalo ? `\n• Tarjeta: ${d.tarjeta_regalo}` : ""));
 }
 
 form.addEventListener("submit", async e => {
@@ -557,6 +681,7 @@ form.addEventListener("submit", async e => {
   if (bad.length) { form.elements[bad[0]].focus(); return; }
   const btn = $("#send"); btn.disabled = true; btn.firstChild.textContent = "Enviando… ";
   $("#formerr").style.display = "none";
+  $("#fCodigo").value = "IC-" + Date.now().toString(36).slice(-4).toUpperCase() + Math.floor(Math.random()*90+10);
   const fd = new FormData(form);
   fd.set("telefono", fd.get("telefono").replace(/\D/g,""));
   const d = Object.fromEntries(fd), c = calc();
@@ -567,12 +692,41 @@ form.addEventListener("submit", async e => {
     $("#thxMsg").innerHTML = `Gracias, <b>${d.nombre.split(" ")[0]}</b>. Te contactaremos al <b>${d.telefono}</b> para confirmar la entrega.`;
     $("#thxSum").innerHTML = sumHTML(c) + `<div style="margin-top:8px;color:var(--muted);font-size:14px;display:block">${d.direccion}, ${d.ciudad}, ${d.provincia}</div>`;
     $("#thxWa").href = `https://wa.me/${CONFIG.whatsapp}?text=` + waText(d, c);
+    showPay(d, c);
     $("#thanks").classList.add("on"); document.body.style.overflow = "hidden";
     form.reset(); qty = 1; $("#qtyOut").textContent = 1; total();
   } catch (err) {
     $("#errWa").href = `https://wa.me/${CONFIG.whatsapp}?text=` + waText(d, c);
     $("#formerr").style.display = "block";
   } finally { btn.disabled = false; btn.firstChild.textContent = "Confirmar pedido"; }
+});
+
+/* pago con Deuna después del pedido */
+function showPay(d, c){
+  const box = $("#paybox"); box.hidden = !c.ahora;
+  if (!c.ahora) return;
+  const hasQr = !!P.deuna.qr, hasLink = !!P.deuna.link;
+  $("#payT").textContent = c.pago === "deuna" ? "Último paso: paga con Deuna" : "Último paso: reserva con Deuna";
+  $("#payAmt").textContent = money(c.ahora);
+  $("#payQr").hidden = !hasQr; if (hasQr) $("#payQr").src = P.deuna.qr;
+  $("#payLink").hidden = !hasLink; if (hasLink) $("#payLink").href = P.deuna.link;
+  $("#payCode").textContent = d.codigo;
+  $("#upCodigo").value = d.codigo; $("#upTel").value = d.telefono; $("#upNombre").value = d.nombre;
+  $("#upForm").hidden = !(hasQr || hasLink); $("#upOk").style.display = "none";
+  $("#payNoQr").hidden = hasQr || hasLink;
+  $("#thxMsg").innerHTML = `Gracias, <b>${d.nombre.split(" ")[0]}</b>. Tu pedido <b>${d.codigo}</b> quedó registrado. ` + (c.pago === "deuna" ? "Apenas se acredite el pago lo despachamos." : `Con el anticipo lo despachamos y pagas ${money(c.alRecibir)} al recibir.`);
+}
+$("#upForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const f = e.target, b = f.querySelector("button");
+  if (!f.captura.files.length) { f.captura.focus(); return; }
+  b.disabled = true; b.textContent = "Enviando…";
+  try {
+    const r = await fetch("/", { method: "POST", body: new FormData(f) });
+    if (!r.ok) throw new Error(r.status);
+    $("#upOk").style.display = "block"; f.captura.hidden = true; b.hidden = true;
+  } catch (err) { b.textContent = "No se pudo enviar. Toca para intentar otra vez"; }
+  finally { b.disabled = false; }
 });
 
 /* barra fija: aparece al bajar y se oculta en el formulario */
@@ -584,8 +738,6 @@ function onScroll(){
 }
 addEventListener("scroll", onScroll, {passive:true}); onScroll();
 
-/* video: carga cuando se acerca */
-new IntersectionObserver((es, o) => es.forEach(x => { if (x.isIntersecting) { x.target.preload = "auto"; x.target.play().catch(()=>{}); o.disconnect(); } }), {rootMargin: "200px"}).observe($("#vid"));
 
 /* píxel de Meta (solo si hay ID) */
 if (CONFIG.metaPixel) {
