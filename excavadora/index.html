@@ -451,7 +451,7 @@ footer a{color:var(--ink)}
 <footer>
   <div class="wrap">
     <p><b style="color:var(--ink)">IMPORTCAP</b> · Ambato, Rumiñahui y Shyris, frente a Servientrega · 11:00 a 19:00</p>
-    <p><a href="https://wa.me/593968428316">WhatsApp 096 842 8316</a> · <a href="https://www.tiktok.com/@importcap_ec">TikTok @importcap_ec</a> · <a href="/">Ver toda la tienda</a></p>
+    <p><a href="https://wa.me/593968428316">WhatsApp 096 842 8316</a> · <a href="https://www.tiktok.com/@importcap_ec">TikTok @importcap_ec</a> · <a href="https://www.instagram.com/importcap.ec/">Instagram @importcap.ec</a> · <a href="/">Ver toda la tienda</a></p>
     <p style="font-size:12px">Juguete con piezas pequeñas: la carga de la batería debe hacerla un adulto. No es resistente al agua. Las fotos son referenciales.</p>
   </div>
 </footer>
@@ -506,7 +506,7 @@ const CONFIG = {
   precioAntes: null,                       // ej. 60 para mostrar $60 tachado (solo si es real)
   envio: { costo: null, texto: "POR CONFIRMAR: costo y tiempo de envío" }, // costo: 0 = gratis
   pagos: {
-    deuna: { activo: true, qr: "", link: "" },   // qr: "img/deuna-qr.png" · link: enlace de cobro de Deuna
+    deuna: { activo: true, qr: "img/deuna-qr.png", link: "https://pagar.deuna.app/H92p/merchant?id=6964a0ead4ee6a238e89b599cb040b6d556ecd22" },   // qr: "img/deuna-qr.png" · link: enlace de cobro de Deuna
     contraEntrega: { activo: true, anticipo: 5 }  // anticipo por Deuna para reservar (0 = sin anticipo)
   },
   garantia: "60 días",                       // POR CONFIRMAR si aplica a la excavadora sola
@@ -522,7 +522,12 @@ const CONFIG = {
     { src: "img/promo.mp4", poster: "img/promo.jpg", cap: "Cada pieza <span>se mueve</span>" }
   ],
   // Publicaciones de Instagram/TikTok: { red: "Instagram", url: "https://www.instagram.com/p/...", vistas: "207 mil", likes: "3 mil", portada: "vid/v1.jpg" }
-  redes: [],
+  redesTitulo: 'Más de 200 mil vistas <span class="hl">en Instagram</span>',
+  redes: [
+    { red: "Instagram", url: "https://www.instagram.com/reel/DfYtWzfuKJF/", vistas: "225 mil", likes: "3 mil", portada: "vid/v3.jpg" },
+    { red: "Instagram", url: "https://www.instagram.com/importcap.ec/", titulo: "@importcap.ec", sub: "Míranos en Instagram", portada: "vid/v2.jpg" },
+    { red: "TikTok", url: "https://www.tiktok.com/@importcap_ec", titulo: "@importcap_ec", sub: "Míranos en TikTok", portada: "vid/v1.jpg" }
+  ],
   // Capturas de mensajes reales de clientes (sin número visible): { img: "msg/cliente-1.jpg", texto: "Llegó perfecta", nombre: "María, Quito" }
   mensajes: []
 };
@@ -569,7 +574,8 @@ reels.querySelectorAll(".reel").forEach((r,i) => r.onclick = () => {
 /* redes: solo enlaces reales */
 if (CONFIG.redes.length) {
   $("#redes").hidden = false;
-  $("#socials").innerHTML = CONFIG.redes.map(r => `<a class="soc" href="${r.url}" target="_blank" rel="noopener">${r.portada ? `<img src="${r.portada}" alt="" loading="lazy">` : ""}<span class="t"><b>${r.vistas ? r.vistas + " vistas" : r.red}</b><span>${[r.likes ? r.likes + " me gusta" : "", r.red].filter(Boolean).join(" · ")}</span></span><span class="go">Ver →</span></a>`).join("");
+  if (CONFIG.redesTitulo) $("#redesT").innerHTML = CONFIG.redesTitulo;
+  $("#socials").innerHTML = CONFIG.redes.map(r => `<a class="soc" href="${r.url}" target="_blank" rel="noopener">${r.portada ? `<img src="${r.portada}" alt="" loading="lazy">` : ""}<span class="t"><b>${r.titulo || (r.vistas ? r.vistas + " vistas" : r.red)}</b><span>${r.sub || [r.likes ? r.likes + " me gusta" : "", r.red].filter(Boolean).join(" · ")}</span></span><span class="go">Ver →</span></a>`).join("");
 }
 
 /* mensajes de clientes: solo capturas reales */
