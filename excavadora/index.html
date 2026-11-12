@@ -577,7 +577,7 @@ const CONFIG = {
     { red: "Instagram", url: "https://www.instagram.com/importcap.ec/", titulo: "@importcap.ec", sub: "Míranos en Instagram", portada: "vid/v2.jpg" },
     { red: "TikTok", url: "https://www.tiktok.com/@importcap_ec", titulo: "@importcap_ec", sub: "Míranos en TikTok", portada: "vid/v1.jpg" }
   ],
-  // Capturas de mensajes reales de clientes (sin número visible): { img: "msg/cliente-1.jpg", texto: "Llegó perfecta", nombre: "María, Quito" }
+  // Reseñas reales de clientes: { img: "msg/cliente-1.jpg", nombre: "María R.", fecha: "22/10/2026", titulo: "Llegó perfecta", texto: "..." }
   mensajes: []
 };
 
@@ -629,7 +629,7 @@ if (CONFIG.redes.length) {
 /* mensajes de clientes: solo capturas reales */
 if (CONFIG.mensajes.length) {
   $("#mensajes").hidden = false;
-  $("#msgs").innerHTML = CONFIG.mensajes.map(m => `<div class="msg"><img src="${m.img}" alt="Mensaje de cliente" loading="lazy">${m.texto || m.nombre ? `<div><div class="st">★★★★★</div>${m.texto ? `<p style="margin:4px 0">${m.texto}</p>` : ""}${m.nombre ? `<b>${m.nombre}</b>` : ""}</div>` : ""}</div>`).join("");
+  $("#msgs").innerHTML = CONFIG.mensajes.map(m => `<div class="msg">${m.img ? `<img src="${m.img}" alt="Foto de cliente" loading="lazy">` : ""}<div><div class="st">★★★★★</div>${m.nombre ? `<b>${m.nombre}</b>` : ""}${m.fecha ? ` <span class="muted" style="font-size:12px">${m.fecha}</span>` : ""}${m.titulo ? `<p style="margin:6px 0 2px;font-weight:700">${m.titulo}</p>` : ""}${m.texto ? `<p style="margin:2px 0;color:var(--muted)">${m.texto}</p>` : ""}</div></div>`).join("");
   $("#msgs").querySelectorAll("img").forEach(im => im.parentElement.onclick = () => { $("#lb img").src = im.src; $("#lb").classList.add("on"); });
 }
 
