@@ -443,8 +443,8 @@ footer a{color:var(--ink)}
 <!-- Mensajes de clientes (se muestra solo si hay capturas en CONFIG) -->
 <section id="mensajes" hidden>
   <div class="wrap">
-    <p class="eyebrow">💬 Lo que nos escriben</p>
-    <h2 style="margin-top:8px">Mensajes de <span class="hl">clientes reales</span></h2>
+    <p class="eyebrow">💬 Clientes satisfechos</p>
+    <h2 style="margin-top:8px">Ya confiaron <span class="hl">en nosotros</span></h2>
     <div class="msgs" id="msgs"></div>
     <p class="hint">Desliza · Toca para ampliar</p>
     <a class="cta" href="#pedido" style="margin-top:18px">La quiero</a>
@@ -602,7 +602,10 @@ const CONFIG = {
     { red: "TikTok", url: "https://www.tiktok.com/@importcap_ec", titulo: "@importcap_ec", sub: "Míranos en TikTok", portada: "vid/v1.jpg" }
   ],
   // Reseñas reales de clientes: { img: "msg/cliente-1.jpg", nombre: "María R.", fecha: "22/10/2026", titulo: "Llegó perfecta", texto: "..." }
-  mensajes: []
+  mensajes: [ // capturas de clientes de Importcap (datos personales difuminados)
+    { img: "msg/cliente-1.jpg", titulo: "Pago confirmado", texto: "Depósito recibido y atendido el mismo día." },
+    { img: "msg/cliente-2.jpg", titulo: "Transferencia confirmada", texto: "Pagó por transferencia y quedó atendido en minutos." }
+  ]
 };
 
 const $ = s => document.querySelector(s);
@@ -665,7 +668,7 @@ if (CONFIG.redes.length) {
 /* mensajes de clientes: solo capturas reales */
 if (CONFIG.mensajes.length) {
   $("#mensajes").hidden = false;
-  $("#msgs").innerHTML = CONFIG.mensajes.map(m => `<div class="msg">${m.img ? `<img src="${m.img}" alt="Foto de cliente" loading="lazy">` : ""}<div><div class="st">★★★★★</div>${m.nombre ? `<b>${m.nombre}</b>` : ""}${m.fecha ? ` <span class="muted" style="font-size:12px">${m.fecha}</span>` : ""}${m.titulo ? `<p style="margin:6px 0 2px;font-weight:700">${m.titulo}</p>` : ""}${m.texto ? `<p style="margin:2px 0;color:var(--muted)">${m.texto}</p>` : ""}</div></div>`).join("");
+  $("#msgs").innerHTML = CONFIG.mensajes.map(m => `<div class="msg">${m.img ? `<img src="${m.img}" alt="Foto de cliente" loading="lazy">` : ""}<div>${m.estrellas ? `<div class="st">${"★".repeat(m.estrellas)}</div>` : ""}${m.nombre ? `<b>${m.nombre}</b>` : ""}${m.fecha ? ` <span class="muted" style="font-size:12px">${m.fecha}</span>` : ""}${m.titulo ? `<p style="margin:6px 0 2px;font-weight:700">${m.titulo}</p>` : ""}${m.texto ? `<p style="margin:2px 0;color:var(--muted)">${m.texto}</p>` : ""}</div></div>`).join("");
   $("#msgs").querySelectorAll("img").forEach(im => im.parentElement.onclick = () => { $("#lb img").src = im.src; $("#lb").classList.add("on"); });
 }
 
