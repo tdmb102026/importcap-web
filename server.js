@@ -80,8 +80,8 @@ app.post("/", express.urlencoded({ extended: false, limit: "50kb" }), upload.sin
     archivo: req.file ? req.file.filename : null
   });
   res.status(200).send("ok");
-  if (b["form-name"] === "pedido-excavadora") // aviso suave, sin sonido: confirmó pero aún no paga
-    avisar({ title: `📝 ${datos.codigo || ""}: confirmó un pedido, aún sin pagar`, body: `${datos.nombre || ""} · ${datos.productos || ""} · ${datos.total || ""} · ${datos.ciudad || ""}`, tag: datos.codigo, silent: true, url: "/admin#" + (datos.codigo || "") }).catch(() => {});
+  if (b["form-name"] === "pedido-excavadora") // aviso con sonido: confirmó pero aún no paga
+    avisar({ title: `📝 ${datos.codigo || ""}: confirmó un pedido, aún sin pagar`, body: `${datos.nombre || ""} · ${datos.productos || ""} · ${datos.total || ""} · ${datos.ciudad || ""}`, tag: datos.codigo, url: "/admin#" + (datos.codigo || "") }).catch(() => {});
   else if (pedido) {
     const p = pedido.datos, como = datos.via === "transferencia" ? "dice que ya transfirió" : "tocó Pagar con Deuna";
     avisar({ title: `🛒 Pedido ${p.codigo}: ${como}`, body: `${p.nombre || ""} · ${p.productos || ""} · ${p.total || ""}\nA pagar ahora: ${p.a_pagar_ahora || ""} · ${p.ciudad || ""}`, tag: p.codigo, url: "/admin#" + p.codigo }).catch(() => {});
@@ -154,7 +154,7 @@ app.post("/admin/api/suscribir", auth, express.json({ limit: "10kb" }), (req, re
   res.json({ ok: true });
 });
 app.get("/admin/api/resumen", auth, (req, res) => {
-  res.set("Cache-Control", "no-store").json({ n: leer().filter(r => r.formulario !== "pedido-excavadora").length, subs: leerJSON(SUBS_F, []).length });
+  res.set("Cache-Control", "no-store").json({ n: leer().length, subs: leerJSON(SUBS_F, []).length });
 });
 app.post("/admin/api/probar", auth, (req, res) => { avisar({ title: "🔔 Notificaciones activadas", body: "Así te avisaremos cada pedido nuevo.", url: "/admin" }).finally(() => res.json({ ok: true })); });
 const ESTADOS = ["nuevo", "pagado", "despachado", "cancelado"];
