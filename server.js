@@ -106,7 +106,7 @@ header .btns{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}header .bt
 .f{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-top:6px}.f button{padding:5px 2px!important;font-size:11.5px!important;background:#14281a;color:#b9c2b5;border:1px solid #2a4433;border-radius:20px;padding:6px 12px;font:600 13px system-ui;white-space:nowrap}.f button.on{background:#d2ff3c;color:#14200b;border-color:#d2ff3c}
 main{padding:12px;display:grid;gap:12px;max-width:760px;margin:auto}main>.tabla{max-width:none}
 .tabla{overflow-x:auto;margin:0 -12px;padding:0 12px}table{border-collapse:collapse;width:100%;min-width:980px}td,th{border-bottom:1px solid #2a4433;padding:10px;text-align:left;vertical-align:top}th{color:#b9c2b5;font-size:12px;text-transform:uppercase}
-tr:target{background:#1b3022}.o{font-size:12px;color:#b9c2b5;max-width:180px}.nw{white-space:nowrap}.nw select{flex:none;width:120px}.card{max-width:760px;width:100%;background:#14281a;border:1px solid #2a4433;border-radius:14px;padding:14px}.card:target{outline:2px solid #d2ff3c}
+tr:target{background:#1b3022}.o{font-size:12px;color:#b9c2b5;max-width:180px}.nw{white-space:nowrap}.wab{display:flex;gap:6px;margin-top:8px}.wab .btn{padding:6px 8px;font-size:12px;white-space:nowrap}.nw select{flex:none;width:120px}.card{max-width:760px;width:100%;background:#14281a;border:1px solid #2a4433;border-radius:14px;padding:14px}.card:target{outline:2px solid #d2ff3c}
 .top{display:flex;justify-content:space-between;gap:8px;align-items:baseline}.code{font-weight:800;color:#d2ff3c}.muted{color:#b9c2b5;font-size:13px}.tot{font-size:18px;font-weight:800}
 .row{margin-top:8px}.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.acts a,.acts button{flex:1 1 100px;text-align:center}.acts select{flex:1 1 140px}.acts .del{flex:0 0 52px}
 textarea{font-family:inherit}
@@ -285,12 +285,19 @@ app.get("/admin", auth, (req, res) => {
   const tarjetas = todos.map(r => {
     const d = r.datos, cs = comp[d.codigo] || [], borrado = bor.has(r.id), e = borrado ? "papelera" : est[d.codigo] || "nuevo";
     const tel = String(d.telefono || "").replace(/\D/g, "").replace(/^0/, "593");
+    // mensajes de WhatsApp listos: un toque abre el chat del cliente con el texto escrito
+    const nom = String(d.nombre || "").trim().split(/\s+/)[0] || "";
+    const contra = /contra/i.test(d.pago || "");
+    const msgRecibido = `Hola ${nom} 👋, somos Importcap. Recibimos tu pedido ${d.codigo}: ${d.productos || d.cantidad + " × excavadora"}, total ${d.total}.\n\n` +
+      (cs.some(c => c.archivo) ? "Ya tenemos tu comprobante, lo estamos revisando." : `Para empezar a despacharlo, envíanos por aquí la foto del comprobante de ${d.a_pagar_ahora || "tu pago"}${contra ? " (la reserva; el resto lo pagas al recibir)" : ""}.`);
+    const msgAprobado = `Hola ${nom} ✅, tu pago del pedido ${d.codigo} fue aprobado. Ya estamos preparando tu envío y te avisamos por aquí cuando salga, con el número de guía. ¡Gracias por confiar en Importcap!`;
+    const wa = t => `https://wa.me/${tel}?text=${encodeURIComponent(t)}`;
     const comps = cs.filter(c => c.archivo).map((c, i) => `<a href="/admin/comprobante/${esc(c.archivo)}" target="_blank">🧾 comprobante${cs.length > 1 ? " " + (i + 1) : ""}</a>`).join("<br>");
     const maps = /^https:\/\//.test(d.ubicacion || "") ? `<br><a href="${esc(d.ubicacion)}" target="_blank">📍 ver en Maps</a>` : d.ubicacion ? `<br>📍 ${esc(d.ubicacion)}` : "";
     const accion = borrado ? `<button class="btn s" data-del="${esc(r.id)}" data-volver="1">↩️ Recuperar</button>`
       : `<select data-c="${esc(d.codigo)}">${ESTADOS.map(x => `<option${x === e ? " selected" : ""}>${x}</option>`).join("")}</select> <button data-del="${esc(r.id)}" class="btn s del" aria-label="Eliminar">🗑️</button>`;
     return `<tr id="${esc(d.codigo)}" data-e="${e}"${borrado ? " hidden" : ""}><td>${esc(fmt(r.fecha))}<br><b class="code">${esc(d.codigo)}</b><br><span class="est e-${e}">${e}</span></td>
-<td><b>${esc(d.nombre)}</b><br><a href="https://wa.me/${esc(tel)}" target="_blank">${esc(d.telefono)}</a></td>
+<td><b>${esc(d.nombre)}</b><br><a href="https://wa.me/${esc(tel)}" target="_blank">${esc(d.telefono)}</a><div class="wab"><a class="btn s" href="${esc(wa(msgRecibido))}" target="_blank">📲 Recibido</a><a class="btn s" href="${esc(wa(msgAprobado))}" target="_blank" data-aprobar="${esc(d.codigo)}">✅ Aprobado</a></div></td>
 <td>${esc(d.direccion)}<br>${esc(d.ciudad)}${d.provincia ? ", " + esc(d.provincia) : ""}${maps}${d.notas ? `<br>📝 ${esc(d.notas)}` : ""}</td>
 <td>${esc(d.productos || d.cantidad + " × excavadora")}<br><b>${esc(d.total)}</b></td>
 <td>${esc(d.pago)}<br>Ahora: ${esc(d.a_pagar_ahora)}<br>${comps || '<span class="no">sin comprobante</span>'}</td>
@@ -329,6 +336,10 @@ document.querySelectorAll("[data-apr]").forEach(b => b.onclick = async () => {
   const r = await fetch("/admin/api/aprobar", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: b.dataset.apr, quitar: !!b.dataset.quitar }) });
   if (r.ok) location.reload(); else alert("No se pudo");
 });
+document.querySelectorAll("[data-aprobar]").forEach(a => a.addEventListener("click", () => {
+  const s = document.querySelector('select[data-c="' + a.dataset.aprobar + '"]');
+  if (s && s.value === "nuevo") { s.value = "pagado"; s.dispatchEvent(new Event("change")); }
+}));
 document.querySelectorAll("[data-del]").forEach(b => b.onclick = async () => {
   const volver = !!b.dataset.volver;
   if (!volver && !confirm("¿Eliminar? Queda en la papelera por si te equivocas.")) return;
