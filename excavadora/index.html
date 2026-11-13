@@ -479,6 +479,7 @@ footer a{color:var(--ink)}
 
       <div class="field"><label for="nombre">Nombre y apellido</label><input id="nombre" name="nombre" autocomplete="name" required><div class="err">Escribe tu nombre.</div></div>
       <div class="field"><label for="telefono">Celular (WhatsApp)</label><input id="telefono" name="telefono" type="tel" inputmode="numeric" placeholder="09XXXXXXXX" autocomplete="tel" required><div class="err">Escribe un celular de 10 dígitos que empiece con 09.</div></div>
+      <div class="field"><label for="cedula">Cédula</label><input id="cedula" name="cedula" type="text" inputmode="numeric" maxlength="13" placeholder="10 dígitos" autocomplete="off" required><div class="err">Revisa tu cédula: son 10 dígitos (o 13 si es RUC).</div></div>
       <div class="field"><label for="ciudad">Ciudad</label><input id="ciudad" name="ciudad" autocomplete="address-level2" placeholder="Ej. Quito" required><div class="err">Escribe tu ciudad.</div></div>
       <div class="field"><label for="direccion">Dirección y referencia</label><textarea id="direccion" name="direccion" placeholder="Calles, número de casa y una referencia" required></textarea><div class="err">Escribe la dirección con una referencia para el courier.</div></div>
       <div class="field"><label for="ubicacion">Ubicación de Google Maps <small>(opcional, ayuda al courier)</small></label>
@@ -872,10 +873,19 @@ const q = new URLSearchParams(location.search);
 $("#fOrigen").value = ["utm_campaign","utm_content","utm_term","utm_placement"].map(k => q.get(k)).filter(Boolean).join(" | ") || document.referrer || "directo";
 
 /* validación y envío */
+// cédula ecuatoriana: 10 dígitos con dígito verificador; RUC: 13 dígitos
+function cedulaOk(c){
+  if (/^\d{13}$/.test(c)) return true;
+  if (!/^\d{10}$/.test(c)) return false;
+  const pr = +c.slice(0, 2); if (!((pr >= 1 && pr <= 24) || pr === 30) || +c[2] > 5) return false;
+  let s = 0; for (let i = 0; i < 9; i++) { let d = +c[i] * (i % 2 ? 1 : 2); if (d > 9) d -= 9; s += d; }
+  return (10 - s % 10) % 10 === +c[9];
+}
 const form = $("#form");
 const rules = {
   nombre: v => v.trim().split(/\s+/).length >= 2 || v.trim().length >= 4,
   telefono: v => /^09\d{8}$/.test(v.replace(/\D/g,"").replace(/^5939/,"09")),
+  cedula: v => cedulaOk(v.replace(/\D/g, "")),
   ciudad: v => v.trim().length >= 3, direccion: v => v.trim().length >= 8
 };
 function check(name){ const el = form.elements[name], ok = rules[name](el.value); el.closest(".field").classList.toggle("bad", !ok); return ok; }
@@ -888,7 +898,7 @@ Object.keys(rules).forEach(n => {
 
 function waText(d, c){
   return `Hola Importcap, acabo de hacer este pedido en la página:%0A` + encodeURIComponent(
-    `• Pedido ${d.codigo}\n• ${d.productos} — Total ${money(c.tot)}\n• Pago: ${d.pago}\n• ${d.nombre}\n• ${d.telefono}\n• ${d.ciudad}\n• ${d.direccion}` + (d.ubicacion ? `\n• Ubicación: ${d.ubicacion}` : ""));
+    `• Pedido ${d.codigo}\n• ${d.productos} — Total ${money(c.tot)}\n• Pago: ${d.pago}\n• ${d.nombre}\n• Cédula ${d.cedula}\n• ${d.telefono}\n• ${d.ciudad}\n• ${d.direccion}` + (d.ubicacion ? `\n• Ubicación: ${d.ubicacion}` : ""));
 }
 
 form.addEventListener("submit", async e => {
@@ -899,7 +909,7 @@ form.addEventListener("submit", async e => {
   $("#formerr").style.display = "none";
   $("#fCodigo").value = "IC-" + Date.now().toString(36).slice(-4).toUpperCase() + Math.floor(Math.random()*90+10);
   const fd = new FormData(form);
-  fd.set("telefono", fd.get("telefono").replace(/\D/g,""));
+  fd.set("telefono", fd.get("telefono").replace(/\D/g,"")); fd.set("cedula", (fd.get("cedula") || "").replace(/\D/g,""));
   const d = Object.fromEntries(fd), c = calc();
   try {
     const r = await fetch("/", { method: "POST", headers: {"Content-Type": "application/x-www-form-urlencoded"}, body: new URLSearchParams(fd).toString() });

@@ -252,7 +252,7 @@ app.get("/admin/comprobante/:f", auth, (req, res) => {
 app.get("/admin/pedidos.csv", auth, (req, res) => {
   const bor = new Set(leerJSON(BOR_F, []));
   const rows = leer().filter(r => r.formulario === "pedido-excavadora" && !bor.has(r.id)), est = leerJSON(EST_F, {});
-  const cols = ["fecha", "estado", "codigo", "nombre", "telefono", "ciudad", "direccion", "ubicacion", "productos", "cantidad", "total", "pago", "a_pagar_ahora", "provincia", "tarjeta_regalo", "notas", "origen"];
+  const cols = ["fecha", "estado", "codigo", "nombre", "cedula", "telefono", "ciudad", "direccion", "ubicacion", "productos", "cantidad", "total", "pago", "a_pagar_ahora", "provincia", "tarjeta_regalo", "notas", "origen"];
   const val = (r, c) => c === "fecha" ? r.fecha : c === "estado" ? est[r.datos.codigo] || "nuevo" : r.datos[c] ?? "";
   const csv = [cols.join(",")].concat(rows.map(r => cols.map(c => '"' + String(val(r, c)).replace(/"/g, '""') + '"').join(","))).join("\n");
   res.type("text/csv").set("Content-Disposition", "attachment; filename=pedidos-importcap.csv").send("﻿" + csv);
@@ -297,7 +297,7 @@ app.get("/admin", auth, (req, res) => {
     const accion = borrado ? `<button class="btn s" data-del="${esc(r.id)}" data-volver="1">↩️ Recuperar</button>`
       : `<select data-c="${esc(d.codigo)}">${ESTADOS.map(x => `<option${x === e ? " selected" : ""}>${x}</option>`).join("")}</select> <button data-del="${esc(r.id)}" class="btn s del" aria-label="Eliminar">🗑️</button>`;
     return `<tr id="${esc(d.codigo)}" data-e="${e}"${borrado ? " hidden" : ""}><td>${esc(fmt(r.fecha))}<br><b class="code">${esc(d.codigo)}</b><br><span class="est e-${e}">${e}</span></td>
-<td><b>${esc(d.nombre)}</b><br><a href="https://wa.me/${esc(tel)}" target="_blank">${esc(d.telefono)}</a><div class="wab"><a class="btn s" href="${esc(wa(msgRecibido))}" target="_blank">📲 Recibido</a><a class="btn s" href="${esc(wa(msgAprobado))}" target="_blank" data-aprobar="${esc(d.codigo)}">✅ Aprobado</a></div></td>
+<td><b>${esc(d.nombre)}</b>${d.cedula ? `<br><span class="muted">CI ${esc(d.cedula)}</span>` : ""}<br><a href="https://wa.me/${esc(tel)}" target="_blank">${esc(d.telefono)}</a><div class="wab"><a class="btn s" href="${esc(wa(msgRecibido))}" target="_blank">📲 Recibido</a><a class="btn s" href="${esc(wa(msgAprobado))}" target="_blank" data-aprobar="${esc(d.codigo)}">✅ Aprobado</a></div></td>
 <td>${esc(d.direccion)}<br>${esc(d.ciudad)}${d.provincia ? ", " + esc(d.provincia) : ""}${maps}${d.notas ? `<br>📝 ${esc(d.notas)}` : ""}</td>
 <td>${esc(d.productos || d.cantidad + " × excavadora")}<br><b>${esc(d.total)}</b></td>
 <td>${esc(d.pago)}<br>Ahora: ${esc(d.a_pagar_ahora)}<br>${comps || '<span class="no">sin comprobante</span>'}</td>
