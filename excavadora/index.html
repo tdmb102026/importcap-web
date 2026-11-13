@@ -117,7 +117,7 @@ header.brand{display:flex;justify-content:space-between;align-items:center;paddi
 
 /* confianza */
 .trust{display:grid;gap:10px;margin-top:16px}
-.trust>div{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--bg2)}
+.trust>div,.trust>a{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--bg2)}
 .trust i{font-style:normal;font-size:22px}
 .trust b{display:block}.trust span{color:var(--muted);font-size:14px}
 
@@ -488,7 +488,7 @@ footer a{color:var(--ink)}
     </form>
   </div>
 </section>
-<div class="lb" id="lb" onclick="this.classList.remove('on')"><img alt=""></div>
+<div class="lb" id="lb" onclick="history.back()"><img alt=""></div>
 
 <!-- Formulario -->
 <section id="pedido">
@@ -621,6 +621,7 @@ const CONFIG = {
       ] }, // datos para transferir desde cualquier banco   // qr: "img/deuna-qr.png" · link: enlace de cobro de Deuna
     contraEntrega: { activo: true, anticipo: 5 }  // anticipo por Deuna para reservar (0 = sin anticipo)
   },
+  mapsTienda: "https://www.google.com/maps/search/?api=1&query=Importcap+Rumi%C3%B1ahui+y+Shyris+Ambato", // cambia por el enlace de Importcap en Google Maps
   garantia: "60 días",                       // POR CONFIRMAR si aplica a la excavadora sola
   metaPixel: "",                             // ID del píxel de Meta, para medir pedidos desde los anuncios
   videos: [
@@ -683,19 +684,26 @@ $("#garTabla").textContent = CONFIG.garantia || "—";
 $("#pedidoSub").textContent = "Te escribimos solo para confirmar la entrega. Pagas " + pagoTxt + ".";
 $("#fine").textContent = CONFIG.envio.texto;
 $("#trust").innerHTML = [
-  ["🏪","Tienda física en Ambato","Rumiñahui y Shyris, frente a Servientrega. Puedes visitarnos de 11:00 a 19:00."],
+  ["🏪","Tienda física en Ambato","Rumiñahui y Shyris, frente a Servientrega. Puedes visitarnos de 11:00 a 19:00.", CONFIG.mapsTienda],
   ["🚚","Envíos a todo Ecuador", CONFIG.envio.texto],
   ["💵","Pagas " + pagoCorto, "Pagas " + pagoTxt + "."],
   CONFIG.garantia ? ["🛡️","Garantía de " + CONFIG.garantia,"Si llega con un defecto de fábrica, nos escribes por WhatsApp con una foto o video y lo solucionamos."] : null,
   ["👨‍👩‍👦","Negocio familiar","Te atiende uno de los dueños, no un robot."]
-].filter(Boolean).map(([i,b,s]) => `<div><i>${i}</i><div><b>${b}</b><span>${s}</span></div></div>`).join("");
+].filter(Boolean).map(([i,b,s,u]) => u ? `<a href="${u}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit"><i>${i}</i><div><b>${b} <span style="color:var(--lime);font-size:13px">· Ver en Maps →</span></b><span>${s}</span></div></a>` : `<div><i>${i}</i><div><b>${b}</b><span>${s}</span></div></div>`).join("");
 
 /* videos */
 const reels = $("#reels");
 reels.innerHTML = CONFIG.videos.map(v => `<div class="reel"><video src="${v.src}" poster="${v.poster}" muted loop playsinline preload="none"></video><span class="snd">🔇</span><div class="cap">${v.cap}</div></div>`).join("");
 const vids = [...reels.querySelectorAll("video")];
-const vo = new IntersectionObserver(es => es.forEach(x => { const v = x.target; if (x.isIntersecting) { v.preload = "auto"; v.play().catch(()=>{}); } else v.pause(); }), {threshold: .6});
-vids.forEach(v => vo.observe(v));
+// se reproduce solo el video que más se ve; los demás se pausan
+const vista = new Map();
+const vo = new IntersectionObserver(es => {
+  es.forEach(x => vista.set(x.target, x.intersectionRatio));
+  let mejor = -1, r = .5;
+  vids.forEach((v, i) => { const q = vista.get(v) || 0; if (q > r + .05) { r = q; mejor = i; } });
+  vids.forEach((v, i) => { if (i === mejor) { v.preload = "auto"; v.play().catch(()=>{}); } else v.pause(); });
+  if (mejor >= 0 && mejor !== activo) { activo = mejor; aplicaSonido(); }
+}, { threshold: [0, .25, .5, .6, .75, .9, 1] });
 // sonido: suena un video a la vez. El navegador solo deja sonar después del primer toque en la página;
 // desde ahí suena el video que se ve, y al tocar otro el sonido pasa a ese.
 let activo = 0, gesto = false, callado = false;
@@ -705,12 +713,7 @@ function aplicaSonido(){
 }
 const primerToque = () => { if (gesto) return; gesto = true; aplicaSonido(); };
 ["pointerdown", "touchend", "keydown"].forEach(ev => document.addEventListener(ev, primerToque, { passive: true }));
-const vo2 = new IntersectionObserver(es => es.forEach(x => {
-  if (!x.isIntersecting) return;
-  const i = vids.indexOf(x.target);
-  if (i >= 0 && i !== activo && vids[activo].paused) { activo = i; aplicaSonido(); }
-}), { threshold: .9 });
-vids.forEach(v => vo2.observe(v));
+vids.forEach(v => vo.observe(v));
 reels.querySelectorAll(".reel").forEach((r,i) => r.onclick = () => {
   gesto = true;
   if (i === activo && !vids[i].muted) callado = true; else { callado = false; activo = i; }
@@ -733,7 +736,7 @@ if (CONFIG.redes.length) {
 /* mensajes de clientes: solo capturas reales */
 if (false) { // las capturas ahora van dentro del carrusel de reseñas
   $("#msgs").innerHTML = CONFIG.mensajes.map(m => `<div class="msg">${m.img ? `<img src="${m.img}" alt="Foto de cliente" loading="lazy">` : ""}<div>${m.estrellas ? `<div class="st">${"★".repeat(m.estrellas)}</div>` : ""}${m.nombre ? `<b>${m.nombre}</b>` : ""}${m.fecha ? ` <span class="muted" style="font-size:12px">${m.fecha}</span>` : ""}${m.titulo ? `<p style="margin:6px 0 2px;font-weight:700">${m.titulo}</p>` : ""}${m.texto ? `<p style="margin:2px 0;color:var(--muted)">${m.texto}</p>` : ""}</div></div>`).join("");
-  $("#msgs").querySelectorAll("img").forEach(im => im.parentElement.onclick = () => { $("#lb img").src = im.src; $("#lb").classList.add("on"); });
+  $("#msgs").querySelectorAll("img").forEach(im => im.parentElement.onclick = () => { $("#lb img").src = im.src; $("#lb").classList.add("on"); marca("lb"); });
 }
 
 /* reseñas */
@@ -745,13 +748,13 @@ function resCard(m){
 function pintaRes(extra){
   const todas = extra.concat(CONFIG.resenas || [], CONFIG.mensajes || []);
   $("#resList").innerHTML = todas.map(resCard).join("");
-  $("#resList").querySelectorAll("img").forEach(im => im.parentElement.onclick = () => { $("#lb img").src = im.src; $("#lb").classList.add("on"); });
+  $("#resList").querySelectorAll("img").forEach(im => im.parentElement.onclick = () => { $("#lb img").src = im.src; $("#lb").classList.add("on"); marca("lb"); });
   const con = todas.filter(m => m.estrellas);
   if (con.length >= 3) { const p = con.reduce((a, m) => a + +m.estrellas, 0) / con.length; $("#resProm").hidden = false; $("#resProm").textContent = `★ ${p.toFixed(1)} de 5 · ${con.length} calificaciones`; }
 }
 pintaRes([]);
 fetch("/api/resenas").then(r => r.ok ? r.json() : []).then(l => { if (Array.isArray(l) && l.length) pintaRes(l.map(x => ({ ...x, img: x.foto }))); }).catch(() => {});
-$("#resAbrir").onclick = () => { $("#resForm").hidden = false; $("#resAbrir").hidden = true; $("#resForm").scrollIntoView({ behavior: "smooth", block: "start" }); };
+$("#resAbrir").onclick = () => { $("#resForm").hidden = false; $("#resAbrir").hidden = true; irA($("#resForm")); };
 if (location.hash === "#resena") { $("#resForm").hidden = false; $("#resAbrir").hidden = true; setTimeout(() => $("#resForm").scrollIntoView(), 300); }
 $("#resForm").addEventListener("submit", async e => {
   e.preventDefault();
@@ -800,7 +803,7 @@ $("#pains").addEventListener("change", () => { $("#painmsg").textContent = painM
 let touched = false;
 const qty = Object.fromEntries(PRODS.map((p,i) => [p.id, i ? 0 : 1]));
 $("#coll").innerHTML = PRODS.map(p => `<div class="prod"><div class="ph">${p.fotos.map((f,i) => `<img src="${f}" alt="${p.nombre}" loading="lazy">`).join("")}</div><div class="dots">${p.fotos.map(() => "<i></i>").join("")}</div><div class="in">${CONFIG.oferta && CONFIG.oferta.activa ? `<span class="bf">${CONFIG.oferta.nombre.toUpperCase()}</span>` : ""}<b>${p.nombre}</b><span class="sp">${p.specs}</span><span class="pr">${money(p.precio)}<small>${envioGratis ? "envío incluido" : ""}</small></span><button type="button" data-add="${p.id}">La quiero</button></div></div>`).join("");
-$("#coll").addEventListener("click", e => { const id = e.target.dataset && e.target.dataset.add; if (!id) return; if (!touched) PRODS.forEach(p => qty[p.id] = 0); touched = true; if (!qty[id]) qty[id] = 1; renderCart(); $("#pedido").scrollIntoView({behavior: "smooth"}); });
+$("#coll").addEventListener("click", e => { const id = e.target.dataset && e.target.dataset.add; if (!id) return; if (!touched) PRODS.forEach(p => qty[p.id] = 0); touched = true; if (!qty[id]) qty[id] = 1; renderCart(); irA($("#pedido")); });
 function renderCart(){
   $("#cart").innerHTML = PRODS.map(p => `<div class="ci ${qty[p.id] ? "on" : ""}"><img src="${p.fotos[0]}" alt=""><div class="t"><b>${p.nombre}</b><span>${money(p.precio)}</span></div><div class="ctrl"><button type="button" data-d="-1" data-id="${p.id}" aria-label="Menos ${p.corto}">−</button><output>${qty[p.id]}</output><button type="button" data-d="1" data-id="${p.id}" aria-label="Más ${p.corto}">+</button></div></div>`).join("");
   total();
@@ -865,7 +868,7 @@ $("#btnMapa").onclick = async () => {
   const b = $("#btnMapa"); b.textContent = "Abriendo…";
   try { await cargaLeaflet(); } catch { b.textContent = "🗺️ Elegir en el mapa"; return; }
   b.textContent = "🗺️ Elegir en el mapa";
-  $("#mapdlg").hidden = false; document.body.style.overflow = "hidden";
+  $("#mapdlg").hidden = false; document.body.style.overflow = "hidden"; marca("mapa");
   const m = /q=(-?[\d.]+),(-?[\d.]+)/.exec($("#ubicacion").value);
   if (!mapa) {
     mapa = L.map("mapa", { zoomControl: true }).setView([-1.6, -78.6], 6);
@@ -889,8 +892,8 @@ async function buscaMapa(){
 $("#mapbus").onclick = buscaMapa;
 $("#mapq").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); buscaMapa(); } });
 const cierraMapa = () => { $("#mapdlg").hidden = true; document.body.style.overflow = ""; };
-$("#mapno").onclick = cierraMapa;
-$("#mapsi").onclick = () => { const { lat, lng } = pin.getLatLng(); setUbic(`https://maps.google.com/?q=${lat.toFixed(6)},${lng.toFixed(6)}`); cierraMapa(); };
+$("#mapno").onclick = () => history.back();
+$("#mapsi").onclick = () => { const { lat, lng } = pin.getLatLng(); setUbic(`https://maps.google.com/?q=${lat.toFixed(6)},${lng.toFixed(6)}`); history.back(); };
 
 /* origen del anuncio (utm) para saber qué anuncio vende */
 const q = new URLSearchParams(location.search);
@@ -934,13 +937,34 @@ form.addEventListener("submit", async e => {
     $("#thxSum").innerHTML = sumHTML(c) + `<div style="margin-top:8px;color:var(--muted);font-size:14px;display:block">${d.direccion}, ${d.ciudad}</div>`;
     $("#thxWa").href = `https://wa.me/${CONFIG.whatsapp}?text=` + waText(d, c);
     showPay(d, c);
-    $("#thanks").classList.add("on"); document.body.style.overflow = "hidden"; onScroll();
+    $("#thanks").classList.add("on"); document.body.style.overflow = "hidden"; onScroll(); marca("thx");
     try { localStorage.setItem("ic_pedido", JSON.stringify({ t: Date.now(), d, c, msg: $("#thxMsg").innerHTML, sum: $("#thxSum").innerHTML, wa: $("#thxWa").href })); } catch {}
     form.reset(); PRODS.forEach((p,i) => qty[p.id] = i ? 0 : 1); touched = false; setUbic(""); renderCart();
   } catch (err) {
     $("#errWa").href = `https://wa.me/${CONFIG.whatsapp}?text=` + waText(d, c);
     $("#formerr").style.display = "block";
   } finally { btn.disabled = false; btn.firstChild.textContent = "Confirmar pedido"; }
+});
+
+/* gesto de atrás de Android: cada salto o ventana abierta deja un paso en el historial.
+   Atrás cierra la ventana abierta o regresa a donde estaba, en vez de salir de la página. */
+function marca(ov){
+  try { history.replaceState(Object.assign({}, history.state, { y: scrollY }), ""); history.pushState({ ov: ov || null }, ""); } catch {}
+}
+function irA(el){ if (!el) return; marca(); el.scrollIntoView({ behavior: "smooth", block: "start" }); }
+document.addEventListener("click", e => {
+  const a = e.target.closest && e.target.closest('a[href^="#"]');
+  if (!a) return;
+  const h = a.getAttribute("href"); if (h.length < 2) return;
+  const t = document.querySelector(h); if (!t) return;
+  e.preventDefault(); irA(t);
+});
+addEventListener("popstate", e => {
+  if ($("#lb").classList.contains("on")) $("#lb").classList.remove("on");
+  if (!$("#mapdlg").hidden) cierraMapa();
+  if ($("#thanks").classList.contains("on")) { $("#thanks").classList.remove("on"); document.body.style.overflow = ""; onScroll(); }
+  const y = e.state && e.state.y;
+  if (typeof y === "number") scrollTo({ top: y, behavior: "smooth" });
 });
 
 /* enlaces de cobro actualizados desde el panel (si el servidor los tiene) */
@@ -1011,9 +1035,9 @@ if (CONFIG.metaPixel) {
   if (!g || Date.now() - g.t > 12 * 3600e3) return;
   $("#thxSum").innerHTML = g.sum; $("#thxWa").href = g.wa;
   showPay(g.d, g.c); if (g.msg) $("#thxMsg").innerHTML = g.msg;
-  $("#thanks").classList.add("on"); document.body.style.overflow = "hidden"; onScroll();
+  $("#thanks").classList.add("on"); document.body.style.overflow = "hidden"; onScroll(); marca("thx");
 })();
-$("#thxCerrar").onclick = () => { try { localStorage.removeItem("ic_pedido"); } catch {} $("#thanks").classList.remove("on"); document.body.style.overflow = ""; onScroll(); };
+$("#thxCerrar").onclick = () => { try { localStorage.removeItem("ic_pedido"); } catch {} history.back(); };
 </script>
 </body>
 </html>
