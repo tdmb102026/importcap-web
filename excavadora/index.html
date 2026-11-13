@@ -16,7 +16,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600;700&family=Archivo:wdth,wght@125,800;125,900&display=swap" rel="stylesheet">
 <link rel="preload" as="image" href="img/estudio.jpg">
-<style>
+<style>[hidden]{display:none!important}
 :root{--bg:#0c1a10;--bg2:#12251a;--card:#173022;--line:#2a4433;--ink:#f4f1e8;--muted:#b9c2b5;--lime:#d2ff3c;--lime-ink:#14200b;--warn:#ffcd00;--wa:#1e9e50;
 --head:"Archivo",system-ui,sans-serif;--sans:"Albert Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 *{box-sizing:border-box}html{scroll-behavior:smooth}
@@ -510,7 +510,9 @@ footer a{color:var(--ink)}
     <div class="paybox" id="paybox" hidden>
       <p style="margin:0;font-weight:700" id="payT">Paga con Deuna</p>
       <div class="amt" id="payAmt"></div>
+      <p id="payNota" style="margin:4px 0 12px;font-size:15px" hidden></p>
       <a class="btn" id="payFijo" target="_blank" rel="noopener" hidden style="margin:10px 0 14px"></a>
+      <a class="btn" id="payLink" target="_blank" rel="noopener" hidden style="margin:10px 0 14px">Pagar en Deuna</a>
       <img id="payQr" alt="Código QR de Deuna" hidden>
       <a class="btn" id="payDl" download="QR-Deuna-Importcap.png">⬇️ Guardar QR en mi galería</a>
       <ol class="steps" id="paySteps">
@@ -519,14 +521,13 @@ footer a{color:var(--ink)}
         <li>Escribe el monto <b id="payAmt2"></b> y paga.</li>
       </ol>
       <div class="bank" id="payBank" hidden></div>
-      <a class="btn" id="payLink" target="_blank" rel="noopener" hidden style="background:#eef5d8;color:#14200b">Abrir enlace de Deuna</a>
-      <p style="font-size:14px;margin:12px 0 0">En la descripción del pago pon tu código <span class="code" id="payCode"></span></p>
+      <p style="font-size:14px;margin:12px 0 0" hidden>En la descripción del pago pon tu código <span class="code" id="payCode"></span></p>
       <p style="font-size:14px;margin:10px 0 0" id="payNoQr" hidden>En unos minutos te enviamos el QR de Deuna por WhatsApp.</p>
       <form class="up" name="comprobante" method="POST" data-netlify="true" netlify-honeypot="bot-field" enctype="multipart/form-data" id="upForm">
         <input type="hidden" name="form-name" value="comprobante">
         <p class="hp"><label>No llenar: <input name="bot-field"></label></p>
         <input type="hidden" name="codigo" id="upCodigo"><input type="hidden" name="telefono" id="upTel"><input type="hidden" name="nombre" id="upNombre">
-        <label style="font-weight:700;font-size:14px">Sube la captura de tu pago</label>
+        <label style="font-weight:700;font-size:14px">¿Ya pagaste? Sube aquí la captura del pago</label>
         <input type="file" name="captura" accept="image/*" required>
         <button type="submit">Enviar comprobante</button>
         <div class="ok" id="upOk">✓ Comprobante recibido. Preparamos tu envío.</div>
@@ -555,7 +556,7 @@ const CONFIG = {
   precioAntes: null,                       // ej. 60 para mostrar $60 tachado (solo si es real)
   envio: { costo: 0, texto: "Envío incluido a todo Ecuador" }, // costo: 0 = incluido
   pagos: {
-    deuna: { activo: true, qr: "img/deuna-qr.png", link: "https://pagar.deuna.app/H92p/merchant?id=6964a0ead4ee6a238e89b599cb040b6d556ecd22",
+    deuna: { activo: true, qr: "", /* QR quitado a pedido de fer: confundía. Para volver: "img/deuna-qr.png" */ link: "https://pagar.deuna.app/H92p/merchant?id=6964a0ead4ee6a238e89b599cb040b6d556ecd22",
       cuenta: { banco: "Banco Pichincha", tipo: "de ahorros", numero: "2207286479", titular: "Fernando Benítez", cedula: "" },
       // enlaces de cobro con monto fijo: se usan si el monto coincide y no ha pasado la fecha "hasta"; si no, se usa el enlace general de arriba
       enlaces: [
@@ -685,7 +686,7 @@ $("#cart").addEventListener("click", e => { const b = e.target.closest("button")
 /* forma de pago */
 const PAYS = [
   P.deuna.activo ? { id: "deuna", t: "Deuna o transferencia", s: "Pagas ahora y despachamos apenas se acredite.", tag: "Más rápido" } : null,
-  P.contraEntrega.activo ? { id: "contra", t: "Contra entrega", s: ANT ? `Reservas con ${money(ANT)} por Deuna y pagas el resto al recibir.` : "Pagas en efectivo cuando la recibes." } : null
+  P.contraEntrega.activo ? { id: "contra", t: "Contra entrega", s: ANT ? `Pagas solo ${money(ANT)} para confirmar y el resto al recibir.` : "Pagas en efectivo cuando la recibes." } : null
 ].filter(Boolean);
 $("#pays").innerHTML = PAYS.map((o,i) => `<label class="pay">${o.tag ? `<span class="tag">${o.tag}</span>` : ""}<input type="radio" name="pago" value="${o.t}" data-id="${o.id}" ${i ? "" : "checked"}><span><b>${o.t}</b><span>${o.s}</span></span></label>`).join("");
 const payId = () => { const x = $("#pays input:checked"); return x ? x.dataset.id : PAYS[0].id; };
@@ -789,12 +790,14 @@ function showPay(d, c){
   const fijo = (P.deuna.enlaces || []).find(e => e.monto === c.ahora && e.url && (!e.hasta || hoy <= e.hasta));
   $("#payFijo").hidden = !fijo;
   if (fijo) { $("#payFijo").href = fijo.url; $("#payFijo").textContent = `💳 Pagar ${money(c.ahora)} en Deuna`; }
-  $("#payLink").textContent = fijo ? "¿No abre? Usa el enlace general de Deuna" : "Abrir enlace de Deuna";
+  $("#payLink").hidden = !hasLink || !!fijo; $("#payLink").textContent = `💳 Pagar ${money(c.ahora)} en Deuna`;
+  $("#payNota").hidden = c.pago === "deuna";
+  $("#payNota").innerHTML = `Pagas <b>solo ${money(c.ahora)}</b> ahora para confirmar tu pedido. Los <b>${money(c.alRecibir)}</b> restantes los pagas al recibirlo.`;
   $("#payDl").hidden = $("#paySteps").hidden = !hasQr; if (hasQr) $("#payDl").href = P.deuna.qr;
   $("#payAmt2").textContent = money(c.ahora);
   const cu = P.deuna.cuenta || {};
   $("#payBank").hidden = !cu.numero;
-  if (cu.numero) $("#payBank").innerHTML = `<b>¿Prefieres transferencia bancaria?</b>` + [["Banco", cu.banco], ["Cuenta " + (cu.tipo || ""), cu.numero], ["Titular", cu.titular], ["Cédula/RUC", cu.cedula]].filter(x => x[1]).map(([k,v]) => `<div><span>${k}</span><span><b>${v}</b> <button type="button" data-copy="${v}">Copiar</button></span></div>`).join("");
+  if (cu.numero) $("#payBank").innerHTML = `<b>O transfiere ${money(c.ahora)} a esta cuenta</b>` + [["Banco", cu.banco], ["Cuenta " + (cu.tipo || ""), cu.numero], ["Titular", cu.titular], ["Cédula/RUC", cu.cedula]].filter(x => x[1]).map(([k,v]) => `<div><span>${k}</span><span><b>${v}</b> <button type="button" data-copy="${v}">Copiar</button></span></div>`).join("");
   $("#payCode").textContent = d.codigo;
   $("#upCodigo").value = d.codigo; $("#upTel").value = d.telefono; $("#upNombre").value = d.nombre;
   $("#upForm").hidden = !(hasQr || hasLink); $("#upOk").style.display = "none";
