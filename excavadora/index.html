@@ -535,6 +535,7 @@ footer a{color:var(--ink)}
     <div class="ok">✓</div>
     <h2 id="thxT">¡Pedido <span class="hl">recibido!</span></h2>
     <p id="thxMsg"></p>
+    <p id="volviste" hidden style="background:var(--lime);color:var(--lime-ink);border-radius:12px;padding:10px 12px;font-weight:700;margin:10px 0 0">👋 Aquí sigue tu pedido. Si ya pagaste, sube la captura del pago aquí abajo.</p>
     <div class="paybox" id="paybox" hidden>
       <p style="margin:0;font-weight:700" id="payT">Paga con Deuna</p>
       <div class="amt" id="payAmt"></div>
@@ -952,7 +953,11 @@ document.addEventListener("click", e => {
 addEventListener("popstate", e => {
   if ($("#lb").classList.contains("on")) $("#lb").classList.remove("on");
   if (!$("#mapdlg").hidden) cierraMapa();
-  if ($("#thanks").classList.contains("on")) { $("#thanks").classList.remove("on"); document.body.style.overflow = ""; onScroll(); }
+  if ($("#thanks").classList.contains("on")) {
+    let pend = null; try { pend = localStorage.getItem("ic_pedido"); } catch {}
+    if (pend) { marca("thx"); return; } // sigue en la pantalla de pago
+    $("#thanks").classList.remove("on"); document.body.style.overflow = ""; onScroll();
+  }
   const y = e.state && e.state.y;
   if (typeof y === "number") scrollTo({ top: y, behavior: "smooth" });
 });
@@ -1021,14 +1026,24 @@ if (CONFIG.metaPixel) {
   document.querySelectorAll('a[href="#pedido"]').forEach(a => a.addEventListener("click", () => fbq("track", "InitiateCheckout")));
 }
 
-/* si el cliente vuelve de Deuna (o recarga), le mostramos otra vez su pedido y el pago */
-(function(){
-  let g; try { g = JSON.parse(localStorage.getItem("ic_pedido") || "null"); } catch {}
-  if (!g || Date.now() - g.t > 12 * 3600e3) return;
-  $("#thxSum").innerHTML = g.sum; $("#thxWa").href = g.wa;
-  showPay(g.d, g.c); if (g.msg) $("#thxMsg").innerHTML = g.msg;
-  $("#thanks").classList.add("on"); document.body.style.overflow = "hidden"; onScroll(); marca("thx");
-})();
+/* si el cliente vuelve de Deuna (o recarga, o el navegador cerró la página), le mostramos otra vez su pedido y el pago */
+const pedidoGuardado = () => { let g; try { g = JSON.parse(localStorage.getItem("ic_pedido") || "null"); } catch {} return g && Date.now() - g.t < 12 * 3600e3 ? g : null; };
+function restaura(){
+  const g = pedidoGuardado(); if (!g) return;
+  if (!$("#thanks").classList.contains("on")) {
+    $("#thxSum").innerHTML = g.sum; $("#thxWa").href = g.wa;
+    showPay(g.d, g.c); if (g.msg) $("#thxMsg").innerHTML = g.msg;
+    $("#thanks").classList.add("on"); document.body.style.overflow = "hidden"; onScroll(); marca("thx");
+  }
+  if (g.pago) { $("#volviste").hidden = false; $("#thanks").scrollTo(0, 0); }
+}
+restaura();
+// al volver a la pestaña (desde la app de Deuna o el banco) o si el navegador la trae de memoria
+document.addEventListener("visibilitychange", () => { if (!document.hidden) restaura(); });
+addEventListener("pageshow", e => { if (e.persisted) restaura(); });
+// recuerda que fue a pagar, para saludarlo al volver
+const marcaPago = () => { try { const g = pedidoGuardado(); if (g) { g.pago = 1; localStorage.setItem("ic_pedido", JSON.stringify(g)); } } catch {} };
+["#payFijo", "#payLink", "#yaTransf"].forEach(q => $(q).addEventListener("click", marcaPago));
 $("#thxCerrar").onclick = () => { try { localStorage.removeItem("ic_pedido"); } catch {} history.back(); };
 
 /* flechas para los carruseles: en computadora no se puede deslizar con el mouse */
