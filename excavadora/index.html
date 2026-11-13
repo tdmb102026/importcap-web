@@ -32,6 +32,9 @@ section{padding:46px 0;border-top:1px solid var(--line)}
 p{margin:.6em 0}.muted{color:var(--muted)}
 
 /* barra superior */
+.bf{display:inline-block;background:#000;color:#fff;border:1.5px solid var(--lime);border-radius:8px;padding:4px 10px;font:900 13px/1 var(--head);font-stretch:125%;letter-spacing:.06em;margin-top:14px}
+.prod .bf{margin:0 0 4px;font-size:10px;padding:3px 7px;align-self:flex-start}
+.topbar.negro{background:#000;color:#fff}.topbar.negro b{color:var(--lime)}
 .topbar{background:var(--lime);color:var(--lime-ink);font-weight:700;font-size:13px;text-align:center;padding:8px 12px}
 header.brand{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;max-width:560px;margin:0 auto}
 .logo{font:900 18px/1 var(--head);font-stretch:125%;letter-spacing:.06em;text-decoration:none}
@@ -301,6 +304,7 @@ footer a{color:var(--ink)}
   <h1 style="margin-top:8px">No es otro carrito. <span class="hl">Es maquinaria a escala.</span></h1>
   <p class="muted">Cava, levanta, gira y descarga como una de verdad. Tu hijo la maneja con un control de 11 canales, un botón para cada movimiento.</p>
 
+  <span class="bf" id="bfHero" hidden>BLACK FRIDAY</span>
   <div class="price"><b id="precioHero">$50</b><s id="antesHero"></s></div>
   <p style="margin:0 0 16px" class="muted" id="envioHero"></p>
 
@@ -560,6 +564,7 @@ const CONFIG = {
     { id: "tractor", nombre: "Tractor cargador RC", corto: "Tractor cargador", precio: 45, specs: "Pala que sube y baja · aleación", fotos: ["../img/pala-2.jpg", "../img/pala-1.jpg", "../img/pala-4.jpg"] }
   ],
   maxCantidad: 10,
+  oferta: { activa: true, nombre: "Black Friday" }, // sello de oferta en la barra, el precio y la colección
   precioAntes: null,                       // ej. 60 para mostrar $60 tachado (solo si es real)
   envio: { costo: 0, texto: "Envío incluido a todo Ecuador" }, // costo: 0 = incluido
   pagos: {
@@ -607,6 +612,12 @@ const pagoCorto = [P.deuna.activo ? "Deuna" : "", P.contraEntrega.activo ? "cont
 /* textos que dependen de la configuración */
 $("#precioHero").textContent = money(base.precio);
 $("#stickyPrice").innerHTML = money(base.precio) + (envioGratis ? ' <small style="font:600 12px var(--sans);color:var(--muted)">envío incluido</small>' : "");
+if (CONFIG.oferta && CONFIG.oferta.activa) {
+  const n = CONFIG.oferta.nombre;
+  $("#topbar").classList.add("negro");
+  $("#topbar").innerHTML = `🖤 <b>${n.toUpperCase()}</b> · Precios especiales en toda la colección · Envío incluido`;
+  $("#bfHero").hidden = false; $("#bfHero").textContent = n.toUpperCase();
+}
 if (CONFIG.precioAntes) $("#antesHero").textContent = money(CONFIG.precioAntes);
 $("#envioHero").innerHTML = envioGratis ? "<b style='color:var(--ink)'>Envío incluido</b> a todo Ecuador" : CONFIG.envio.texto;
 $("#ctaSub").textContent = "Paga con " + pagoCorto + " · Pídela en 1 minuto";
@@ -683,7 +694,7 @@ $("#pains").addEventListener("change", () => { $("#painmsg").textContent = painM
 /* colección */
 let touched = false;
 const qty = Object.fromEntries(PRODS.map((p,i) => [p.id, i ? 0 : 1]));
-$("#coll").innerHTML = PRODS.map(p => `<div class="prod"><div class="ph">${p.fotos.map((f,i) => `<img src="${f}" alt="${p.nombre}" loading="lazy">`).join("")}</div><div class="dots">${p.fotos.map(() => "<i></i>").join("")}</div><div class="in"><b>${p.nombre}</b><span class="sp">${p.specs}</span><span class="pr">${money(p.precio)}<small>${envioGratis ? "envío incluido" : ""}</small></span><button type="button" data-add="${p.id}">La quiero</button></div></div>`).join("");
+$("#coll").innerHTML = PRODS.map(p => `<div class="prod"><div class="ph">${p.fotos.map((f,i) => `<img src="${f}" alt="${p.nombre}" loading="lazy">`).join("")}</div><div class="dots">${p.fotos.map(() => "<i></i>").join("")}</div><div class="in">${CONFIG.oferta && CONFIG.oferta.activa ? `<span class="bf">${CONFIG.oferta.nombre.toUpperCase()}</span>` : ""}<b>${p.nombre}</b><span class="sp">${p.specs}</span><span class="pr">${money(p.precio)}<small>${envioGratis ? "envío incluido" : ""}</small></span><button type="button" data-add="${p.id}">La quiero</button></div></div>`).join("");
 $("#coll").addEventListener("click", e => { const id = e.target.dataset && e.target.dataset.add; if (!id) return; if (!touched) PRODS.forEach(p => qty[p.id] = 0); touched = true; if (!qty[id]) qty[id] = 1; renderCart(); $("#pedido").scrollIntoView({behavior: "smooth"}); });
 function renderCart(){
   $("#cart").innerHTML = PRODS.map(p => `<div class="ci ${qty[p.id] ? "on" : ""}"><img src="${p.fotos[0]}" alt=""><div class="t"><b>${p.nombre}</b><span>${money(p.precio)}</span></div><div class="ctrl"><button type="button" data-d="-1" data-id="${p.id}" aria-label="Menos ${p.corto}">−</button><output>${qty[p.id]}</output><button type="button" data-d="1" data-id="${p.id}" aria-label="Más ${p.corto}">+</button></div></div>`).join("");
