@@ -2,6 +2,8 @@
 // Muestra la web (los mismos archivos que publica Netlify) y guarda los pedidos
 // y comprobantes de Deuna que llegan de los formularios, sin depender de Netlify.
 //
+// La app de pedidos (/admin) se instala en el celular y avisa con una notificación cada pedido nuevo.
+//
 // Variables en Railway:
 //   PORT          la pone Railway sola
 //   ADMIN_CLAVE   contraseña para ver los pedidos en /admin (usuario: importcap)
@@ -12,6 +14,7 @@ const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
+const webpush = require("web-push");
 
 const ROOT = __dirname;
 const DATA = process.env.DATA_DIR || path.join(ROOT, "data");
@@ -23,6 +26,23 @@ fs.mkdirSync(FILES, { recursive: true });
 const app = express();
 app.disable("x-powered-by");
 app.set("trust proxy", true);
+
+/* ---------- notificaciones al celular (Web Push) ---------- */
+// Las llaves se crean solas la primera vez y quedan guardadas en el volumen.
+const VAPID_F = path.join(DATA, "vapid.json"), SUBS_F = path.join(DATA, "suscripciones.json"), EST_F = path.join(DATA, "estados.json");
+const leerJSON = (f, def) => { try { return JSON.parse(fs.readFileSync(f, "utf8")); } catch { return def; } };
+const vapid = leerJSON(VAPID_F, null) || (() => { const k = webpush.generateVAPIDKeys(); fs.writeFileSync(VAPID_F, JSON.stringify(k)); return k; })();
+webpush.setVapidDetails("https://importcap.squadraec.com", vapid.publicKey, vapid.privateKey);
+
+async function avisar(msg) {
+  const subs = leerJSON(SUBS_F, []);
+  if (!subs.length) return;
+  const vivas = [];
+  await Promise.all(subs.map(s => webpush.sendNotification(s, JSON.stringify(msg), { TTL: 86400, urgency: "high" })
+    .then(() => vivas.push(s))
+    .catch(e => { if (e.statusCode !== 404 && e.statusCode !== 410) { vivas.push(s); console.error("push", e.statusCode || e.message); } })));
+  fs.writeFileSync(SUBS_F, JSON.stringify(vivas));
+}
 
 /* ---------- formularios (mismo formato que Netlify Forms) ---------- */
 const upload = multer({
@@ -52,24 +72,110 @@ app.post("/", express.urlencoded({ extended: false, limit: "50kb" }), upload.sin
     archivo: req.file ? req.file.filename : null
   });
   res.status(200).send("ok");
+  if (b["form-name"] === "pedido-excavadora")
+    avisar({ title: `🛒 Nuevo pedido ${datos.codigo || ""}`, body: `${datos.nombre || ""} · ${datos.productos || ""} · ${datos.total || ""}\n${datos.pago || ""} · ${datos.ciudad || ""}`, tag: datos.codigo, url: "/admin#" + (datos.codigo || "") }).catch(() => {});
+  else if (b["form-name"] === "comprobante")
+    avisar({ title: `💸 Comprobante ${datos.codigo || ""}`, body: `${datos.nombre || ""} subió la captura del pago`, tag: "c" + datos.codigo, url: "/admin#" + (datos.codigo || "") }).catch(() => {});
 });
 
-/* ---------- panel de pedidos ---------- */
+/* ---------- acceso al panel ---------- */
+// Entra con la clave (ADMIN_CLAVE) una vez y el celular queda con la sesión abierta.
+const SESION = CLAVE ? crypto.createHmac("sha256", CLAVE).update("panel-importcap").digest("hex") : "";
+const cookie = req => Object.fromEntries((req.headers.cookie || "").split(";").map(c => c.trim().split("=")).filter(x => x[0]));
+const igual = (a, b) => typeof a === "string" && a.length === b.length && crypto.timingSafeEqual(Buffer.from(a), Buffer.from(b));
 function auth(req, res, next) {
   if (!CLAVE) return res.status(503).send("Configura ADMIN_CLAVE en Railway para ver los pedidos.");
+  if (igual(cookie(req).ic_panel, SESION)) return next();
   const [tipo, val] = (req.headers.authorization || "").split(" ");
   const [u, p] = tipo === "Basic" ? Buffer.from(val || "", "base64").toString().split(":") : [];
-  const ok = u === "importcap" && p && p.length === CLAVE.length && crypto.timingSafeEqual(Buffer.from(p), Buffer.from(CLAVE));
-  if (ok) return next();
-  res.set("WWW-Authenticate", 'Basic realm="Pedidos Importcap"').status(401).send("Clave requerida");
+  if (u === "importcap" && igual(p, CLAVE)) return next();
+  if (req.method === "GET" && req.accepts("html") && !req.path.startsWith("/admin/api")) return res.redirect("/admin/entrar");
+  res.status(401).send("Clave requerida");
 }
 
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const CABEZA = t => `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex">
+<title>${t}</title><link rel="manifest" href="/admin/manifest.webmanifest"><meta name="theme-color" content="#0c1a10"><link rel="apple-touch-icon" href="/admin/icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes">
+<style>*{box-sizing:border-box}body{font:15px/1.4 system-ui,sans-serif;margin:0;background:#0c1a10;color:#f4f1e8;padding-bottom:env(safe-area-inset-bottom)}a{color:#d2ff3c}
+header{position:sticky;top:0;background:#0c1a10;padding:14px 14px 10px;border-bottom:1px solid #2a4433;z-index:2}h1{margin:0 0 8px;font-size:20px}
+.btns{display:flex;gap:8px;flex-wrap:wrap}.btn{background:#d2ff3c;color:#14200b;border:0;border-radius:10px;padding:9px 12px;text-decoration:none;font:700 14px system-ui;cursor:pointer}.btn.s{background:#1b3022;color:#f4f1e8;border:1px solid #2a4433}
+.f{display:flex;gap:6px;margin-top:10px;overflow-x:auto}.f button{background:#14281a;color:#b9c2b5;border:1px solid #2a4433;border-radius:20px;padding:6px 12px;font:600 13px system-ui;white-space:nowrap}.f button.on{background:#d2ff3c;color:#14200b;border-color:#d2ff3c}
+main{padding:12px;display:grid;gap:12px;max-width:760px;margin:auto}.card{background:#14281a;border:1px solid #2a4433;border-radius:14px;padding:14px}.card:target{outline:2px solid #d2ff3c}
+.top{display:flex;justify-content:space-between;gap:8px;align-items:baseline}.code{font-weight:800;color:#d2ff3c}.muted{color:#b9c2b5;font-size:13px}.tot{font-size:18px;font-weight:800}
+.row{margin-top:8px}.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.acts a,.acts button{flex:1 1 100px;text-align:center}.acts select{flex:1 1 140px}.acts .del{flex:0 0 52px}
+textarea{font-family:inherit}
+.est{display:inline-block;border-radius:20px;padding:2px 10px;font-size:12px;font-weight:700}.e-nuevo{background:#ffcf5a;color:#2a1c00}.e-pagado{background:#5ad2ff;color:#00222e}.e-despachado{background:#d2ff3c;color:#14200b}.e-cancelado{background:#55625a;color:#f4f1e8}
+.no{color:#ff8a7a}select{background:#0c1a10;color:#f4f1e8;border:1px solid #2a4433;border-radius:10px;padding:8px;font:600 14px system-ui;flex:1}
+.aviso{background:#1b3022;border:1px dashed #d2ff3c;border-radius:12px;padding:12px;margin:12px;max-width:760px}@media(min-width:800px){.aviso{margin:12px auto}}</style></head><body>`;
+
+app.get("/admin/entrar", (req, res) => res.send(CABEZA("Entrar · Pedidos") + `<main style="max-width:380px;padding-top:15vh"><img src="/admin/icon-192.png" width="72" height="72" alt="" style="border-radius:50%"><h1>Pedidos Importcap</h1>
+<form method="post" action="/admin/entrar" class="card"><label>Clave<br><input name="clave" type="password" autocomplete="current-password" required style="width:100%;margin:8px 0 12px;padding:12px;border-radius:10px;border:1px solid #2a4433;background:#0c1a10;color:#f4f1e8;font-size:16px"></label>
+${req.query.mal ? '<p class="no">Clave incorrecta.</p>' : ""}<button class="btn" style="width:100%;padding:12px">Entrar</button></form></main></body></html>`));
+app.post("/admin/entrar", express.urlencoded({ extended: false, limit: "2kb" }), (req, res) => {
+  if (!CLAVE || !igual((req.body || {}).clave, CLAVE)) return setTimeout(() => res.redirect("/admin/entrar?mal=1"), 800);
+  res.set("Set-Cookie", `ic_panel=${SESION}; Path=/admin; HttpOnly; Secure; SameSite=Lax; Max-Age=${60 * 60 * 24 * 365}`).redirect("/admin");
+});
+app.get("/admin/salir", (req, res) => res.set("Set-Cookie", "ic_panel=; Path=/admin; Max-Age=0").redirect("/admin/entrar"));
+
+// archivos de la app (sin clave: no tienen datos)
+for (const f of ["sw.js", "manifest.webmanifest", "icon-192.png", "icon-512.png"])
+  app.get("/admin/" + f, (req, res) => { res.set("Cache-Control", "no-cache"); if (f === "sw.js") res.set("Service-Worker-Allowed", "/admin"); res.sendFile(path.join(ROOT, "admin", f)); });
 
 function leer() {
   if (!fs.existsSync(DB)) return [];
   return fs.readFileSync(DB, "utf8").split("\n").filter(Boolean).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
 }
+
+app.get("/admin/api/push-key", auth, (req, res) => res.json({ key: vapid.publicKey }));
+app.post("/admin/api/suscribir", auth, express.json({ limit: "10kb" }), (req, res) => {
+  const s = req.body;
+  if (!s || typeof s.endpoint !== "string" || !/^https:\/\//.test(s.endpoint) || !s.keys) return res.status(400).send("mal");
+  const subs = leerJSON(SUBS_F, []).filter(x => x.endpoint !== s.endpoint);
+  subs.push({ endpoint: s.endpoint, keys: { p256dh: String(s.keys.p256dh), auth: String(s.keys.auth) } });
+  fs.writeFileSync(SUBS_F, JSON.stringify(subs.slice(-20)));
+  res.json({ ok: true });
+});
+app.post("/admin/api/probar", auth, (req, res) => { avisar({ title: "🔔 Notificaciones activadas", body: "Así te avisaremos cada pedido nuevo.", url: "/admin" }).finally(() => res.json({ ok: true })); });
+const ESTADOS = ["nuevo", "pagado", "despachado", "cancelado"];
+// enlaces de cobro de Deuna por monto, editables desde el panel
+const ENL_F = path.join(DATA, "enlaces.json"), MONTOS = ["5", "45", "50"], VIGENCIA_DIAS = 30;
+// la primera vez arranca con los enlaces que fer mandó el 12 de noviembre
+if (!fs.existsSync(ENL_F)) fs.writeFileSync(ENL_F, JSON.stringify({
+  "5": { url: "https://pagar.deuna.app/H92p/U2FsdGVkX1+znLHfONc/b3rlDu3w20x6Wrj5UXo3JWvhNKzmTvATNoakXBscTqWzb0Dv1qmDEQi3HCtjjdL4Il6F2EtB1LRmCWzskEVdTTv3/7VsRIOfaFCec11WV7lBCE5Nok/T0K9LdMS3JHS13w==", fecha: "2026-11-13T00:20:00Z" },
+  "45": { url: "https://pagar.deuna.app/H92p/U2FsdGVkX188AwmzjN8DClNQD8pemTQkTtrY0Ivk5/f7HO9TYb/v4HAKTUluyASIU2N8fmF9V0w0UdV7wj8A4OcCqY7DGLWd5ztGMpyDXEkpNQ6pp9Q414AbVS0/1oCwjZfVA5S4KPm7Bb/GsDeHdA==", fecha: "2026-11-13T01:04:00Z" },
+  "50": { url: "https://pagar.deuna.app/H92p/U2FsdGVkX1+sbLWtaJ61ov9SUfUinkel8/++9D50lLDWUIBy3YUiHLleIgsBWHDldYPD2qPea+MaEo7DajONopyEHTpuYhaD6zYLP6n0J0oZVT6+iL9jewysnIMn2b/nHOUtE8ihasmR6idncD1STg==", fecha: "2026-11-13T00:20:00Z" }
+}));
+app.get("/api/enlaces", (req, res) => {
+  const e = leerJSON(ENL_F, {}), out = {};
+  for (const [m, x] of Object.entries(e)) if (x.url && Date.now() - Date.parse(x.fecha) < VIGENCIA_DIAS * 864e5) out[m] = x.url;
+  res.set("Cache-Control", "no-store").json(out);
+});
+app.post("/admin/enlaces", auth, express.urlencoded({ extended: false, limit: "10kb" }), (req, res) => {
+  const e = leerJSON(ENL_F, {});
+  for (const m of MONTOS) {
+    const v = String((req.body || {})["m" + m] || "").trim();
+    if (!v) continue;
+    if (v === "-") { delete e[m]; continue; }
+    const url = (v.match(/https:\/\/pagar\.deuna\.app\/\S+/) || [])[0];
+    if (url && (!e[m] || e[m].url !== url)) e[m] = { url, fecha: new Date().toISOString() };
+  }
+  fs.writeFileSync(ENL_F, JSON.stringify(e)); res.redirect("/admin?enlaces=ok#enlaces");
+});
+
+// "eliminar" manda el pedido a la papelera (se puede recuperar); no se borra del archivo.
+const BOR_F = path.join(DATA, "eliminados.json");
+app.post("/admin/api/eliminar", auth, express.json({ limit: "2kb" }), (req, res) => {
+  const { id, volver } = req.body || {};
+  if (typeof id !== "string" || id.length > 60) return res.status(400).send("mal");
+  const b = new Set(leerJSON(BOR_F, [])); volver ? b.delete(id) : b.add(id);
+  fs.writeFileSync(BOR_F, JSON.stringify([...b])); res.json({ ok: true });
+});
+app.post("/admin/api/estado", auth, express.json({ limit: "2kb" }), (req, res) => {
+  const { codigo, estado } = req.body || {};
+  if (!codigo || !ESTADOS.includes(estado)) return res.status(400).send("mal");
+  const e = leerJSON(EST_F, {}); e[String(codigo).slice(0, 40)] = estado; fs.writeFileSync(EST_F, JSON.stringify(e));
+  res.json({ ok: true });
+});
 
 app.get("/admin/comprobante/:f", auth, (req, res) => {
   const f = path.basename(req.params.f);
@@ -77,38 +183,97 @@ app.get("/admin/comprobante/:f", auth, (req, res) => {
 });
 
 app.get("/admin/pedidos.csv", auth, (req, res) => {
-  const rows = leer().filter(r => r.formulario === "pedido-excavadora");
-  const cols = ["fecha", "codigo", "nombre", "telefono", "ciudad", "direccion", "ubicacion", "productos", "cantidad", "total", "pago", "a_pagar_ahora", "provincia", "tarjeta_regalo", "notas", "origen"];
-  const csv = [cols.join(",")].concat(rows.map(r => cols.map(c => '"' + String(c === "fecha" ? r.fecha : r.datos[c] ?? "").replace(/"/g, '""') + '"').join(","))).join("\n");
+  const bor = new Set(leerJSON(BOR_F, []));
+  const rows = leer().filter(r => r.formulario === "pedido-excavadora" && !bor.has(r.id)), est = leerJSON(EST_F, {});
+  const cols = ["fecha", "estado", "codigo", "nombre", "telefono", "ciudad", "direccion", "ubicacion", "productos", "cantidad", "total", "pago", "a_pagar_ahora", "provincia", "tarjeta_regalo", "notas", "origen"];
+  const val = (r, c) => c === "fecha" ? r.fecha : c === "estado" ? est[r.datos.codigo] || "nuevo" : r.datos[c] ?? "";
+  const csv = [cols.join(",")].concat(rows.map(r => cols.map(c => '"' + String(val(r, c)).replace(/"/g, '""') + '"').join(","))).join("\n");
   res.type("text/csv").set("Content-Disposition", "attachment; filename=pedidos-importcap.csv").send("﻿" + csv);
 });
 
+function enlacesHTML() {
+  const e = leerJSON(ENL_F, {});
+  const fila = m => { const x = e[m]; const dias = x ? Math.floor((Date.now() - Date.parse(x.fecha)) / 864e5) : null;
+    const estado = !x ? '<span class="no">sin enlace (usa el enlace general)</span>' : dias >= VIGENCIA_DIAS ? '<span class="no">vencido, pon uno nuevo</span>' : `<span class="muted">puesto ${dias === 0 ? "hoy" : `hace ${dias} día${dias === 1 ? "" : "s"}`}, vence en ${VIGENCIA_DIAS - dias} días</span>`;
+    return `<label class="row" style="display:block"><b>$${m}</b> ${m === "5" ? "(reserva contra entrega)" : m === "45" ? "(volqueta, bulldozer, tractor)" : "(excavadora)"} · ${estado}
+<textarea name="m${m}" rows="2" placeholder="Pega aquí el mensaje o enlace de Deuna de $${m}" style="width:100%;margin-top:6px;padding:10px;border-radius:10px;border:1px solid #2a4433;background:#0c1a10;color:#f4f1e8;font-size:15px"></textarea></label>`; };
+  return `<form class="card" id="enlaces" method="post" action="/admin/enlaces"><b>💳 Enlaces de cobro Deuna</b><p class="muted" style="margin:4px 0 0">Pega el mensaje completo que te da Deuna, yo saco el enlace. Deja vacío para no cambiarlo. Se dejan de usar a los ${VIGENCIA_DIAS} días.</p>
+${MONTOS.map(fila).join("")}<button class="btn" style="width:100%;margin-top:12px;padding:12px">Guardar enlaces</button></form>`;
+}
+
 app.get("/admin", auth, (req, res) => {
-  const regs = leer();
+  const regs = leer(), est = leerJSON(EST_F, {}), bor = new Set(leerJSON(BOR_F, []));
   const comp = {};
   regs.filter(r => r.formulario === "comprobante").forEach(r => { (comp[r.datos.codigo] ||= []).push(r); });
-  const pedidos = regs.filter(r => r.formulario === "pedido-excavadora").reverse();
+  const todos = regs.filter(r => r.formulario === "pedido-excavadora").reverse();
+  const pedidos = todos.filter(r => !bor.has(r.id)), papelera = todos.filter(r => bor.has(r.id));
   const fmt = iso => new Date(iso).toLocaleString("es-EC", { timeZone: "America/Guayaquil", dateStyle: "short", timeStyle: "short" });
-  const filas = pedidos.map(r => {
-    const d = r.datos, cs = comp[d.codigo] || [];
+  const tarjetas = todos.map(r => {
+    const d = r.datos, cs = comp[d.codigo] || [], borrado = bor.has(r.id), e = borrado ? "papelera" : est[d.codigo] || "nuevo";
     const tel = String(d.telefono || "").replace(/\D/g, "").replace(/^0/, "593");
-    const comps = cs.map(c => c.archivo ? `<a href="/admin/comprobante/${esc(c.archivo)}" target="_blank">ver captura</a>` : "").join(" ");
-    return `<tr><td>${esc(fmt(r.fecha))}<br><b>${esc(d.codigo)}</b></td><td><b>${esc(d.nombre)}</b><br><a href="https://wa.me/${esc(tel)}" target="_blank">${esc(d.telefono)}</a></td><td>${esc(d.direccion)}<br>${esc(d.ciudad)}${d.provincia ? ", " + esc(d.provincia) : ""}${/^https?:\/\//.test(d.ubicacion || "") ? `<br><a href="${esc(d.ubicacion)}" target="_blank">📍 ver en Maps</a>` : d.ubicacion ? `<br>📍 ${esc(d.ubicacion)}` : ""}${d.tarjeta_regalo ? `<br>🎁 ${esc(d.tarjeta_regalo)}` : ""}${d.notas ? `<br>📝 ${esc(d.notas)}` : ""}</td><td>${esc(d.productos || d.cantidad + " × excavadora")}<br><b>${esc(d.total)}</b></td><td>${esc(d.pago)}<br>Ahora: ${esc(d.a_pagar_ahora)}<br>${comps || '<span class="no">sin comprobante</span>'}</td><td class="o">${esc(d.origen)}</td></tr>`;
+    const comps = cs.filter(c => c.archivo).map((c, i) => `<a href="/admin/comprobante/${esc(c.archivo)}" target="_blank">🧾 ver comprobante${cs.length > 1 ? " " + (i + 1) : ""}</a>`).join(" · ");
+    const maps = /^https:\/\//.test(d.ubicacion || "") ? `<a class="btn s" href="${esc(d.ubicacion)}" target="_blank">📍 Maps</a>` : "";
+    return `<div class="card" id="${esc(d.codigo)}" data-e="${e}"${borrado ? " hidden" : ""}><div class="top"><span><span class="code">${esc(d.codigo)}</span> <span class="est e-${e}">${e}</span></span><span class="muted">${esc(fmt(r.fecha))}</span></div>
+<div class="row"><b>${esc(d.nombre)}</b> · ${esc(d.telefono)}</div>
+<div class="row">${esc(d.productos || d.cantidad + " × excavadora")}<br><span class="tot">${esc(d.total)}</span> <span class="muted">· ${esc(d.pago)} · ahora ${esc(d.a_pagar_ahora)}</span></div>
+<div class="row">${esc(d.direccion)}, ${esc(d.ciudad)}${d.provincia ? ", " + esc(d.provincia) : ""}${d.ubicacion && !maps ? `<br>📍 ${esc(d.ubicacion)}` : ""}${d.notas ? `<br>📝 ${esc(d.notas)}` : ""}</div>
+<div class="row">${comps || '<span class="no">Sin comprobante todavía</span>'}</div>
+${d.origen ? `<div class="row muted">Anuncio: ${esc(d.origen)}</div>` : ""}
+<div class="acts"><a class="btn" href="https://wa.me/${esc(tel)}" target="_blank">WhatsApp</a>${maps}${borrado ? `<button class="btn s" data-del="${esc(r.id)}" data-volver="1">↩️ Recuperar</button>` : `<select data-c="${esc(d.codigo)}">${ESTADOS.map(x => `<option${x === e ? " selected" : ""}>${x}</option>`).join("")}</select><button data-del="${esc(r.id)}" class="btn s del" aria-label="Eliminar">🗑️</button>`}</div></div>`;
   }).join("");
   const sueltos = regs.filter(r => r.formulario === "comprobante" && !pedidos.some(p => p.datos.codigo === r.datos.codigo));
-  res.send(`<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Pedidos · Importcap</title>
-<style>body{font:15px system-ui,sans-serif;margin:0;background:#0c1a10;color:#f4f1e8}header{padding:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}h1{margin:0;font-size:20px}a{color:#d2ff3c}.wrap{overflow-x:auto;padding:0 16px 30px}table{border-collapse:collapse;width:100%;min-width:900px}td,th{border-bottom:1px solid #2a4433;padding:10px;text-align:left;vertical-align:top}th{color:#b9c2b5;font-size:12px;text-transform:uppercase}.no{color:#ff8a7a}.o{font-size:12px;color:#b9c2b5;max-width:180px}.btn{background:#d2ff3c;color:#14200b;border-radius:10px;padding:8px 12px;text-decoration:none;font-weight:700}</style></head><body>
-<header><h1>Pedidos (${pedidos.length})</h1><a class="btn" href="/admin/pedidos.csv">Descargar Excel (CSV)</a></header>
-<div class="wrap"><table><thead><tr><th>Fecha / código</th><th>Cliente</th><th>Dirección</th><th>Pedido</th><th>Pago</th><th>Anuncio</th></tr></thead><tbody>${filas || '<tr><td colspan="6">Todavía no hay pedidos.</td></tr>'}</tbody></table>
-${sueltos.length ? `<h2 style="font-size:16px">Comprobantes sin pedido</h2>` + sueltos.map(s => `<p>${esc(fmt(s.fecha))} · ${esc(s.datos.codigo)} · ${esc(s.datos.nombre)} · <a href="/admin/comprobante/${esc(s.archivo)}" target="_blank">ver</a></p>`).join("") : ""}
-</div></body></html>`);
+  const cuenta = x => pedidos.filter(r => (est[r.datos.codigo] || "nuevo") === x).length;
+  res.set("Cache-Control", "no-store").send(CABEZA(`Pedidos (${pedidos.length}) · Importcap`) + `
+<header><h1>Pedidos (${pedidos.length})</h1><div class="btns"><button class="btn" id="noti" hidden>🔔 Activar notificaciones</button><button class="btn s" id="inst" hidden>📲 Instalar app</button><a class="btn s" href="/admin">↻ Actualizar</a><a class="btn s" href="#enlaces">💳 Enlaces</a><a class="btn s" href="/admin/pedidos.csv">Excel</a><a class="btn s" href="/admin/salir">Salir</a></div>
+<div class="f" id="f"><button class="on" data-f="">Todos</button>${ESTADOS.map(x => `<button data-f="${x}">${x} (${cuenta(x)})</button>`).join("")}${papelera.length ? `<button data-f="papelera">🗑️ papelera (${papelera.length})</button>` : ""}</div></header>
+<div class="aviso" id="ios" hidden>En iPhone: toca <b>Compartir</b> → <b>Agregar a pantalla de inicio</b>, abre la app desde ahí y luego activa las notificaciones.</div>
+<main>${req.query.enlaces ? '<div class="card" style="border-color:#d2ff3c">✓ Enlaces guardados. La página ya usa los nuevos.</div>' : ""}${tarjetas || '<div class="card">Todavía no hay pedidos.</div>'}
+${enlacesHTML()}
+${sueltos.length ? `<div class="card"><b>Comprobantes sin pedido</b>` + sueltos.map(s => `<div class="row">${esc(fmt(s.fecha))} · ${esc(s.datos.codigo)} · ${esc(s.datos.nombre)} · <a href="/admin/comprobante/${esc(s.archivo)}" target="_blank">ver</a></div>`).join("") + `</div>` : ""}</main>
+<script>
+const $ = s => document.querySelector(s);
+document.querySelectorAll("select[data-c]").forEach(s => s.onchange = async () => {
+  const r = await fetch("/admin/api/estado", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ codigo: s.dataset.c, estado: s.value }) });
+  if (r.ok) { const c = s.closest(".card"); c.dataset.e = s.value; const b = c.querySelector(".est"); b.className = "est e-" + s.value; b.textContent = s.value; } else alert("No se pudo guardar");
+});
+$("#f").onclick = e => { const b = e.target.closest("button"); if (!b) return; document.querySelectorAll("#f button").forEach(x => x.classList.toggle("on", x === b));
+  document.querySelectorAll(".card[data-e]").forEach(c => c.hidden = b.dataset.f ? c.dataset.e !== b.dataset.f : c.dataset.e === "papelera"); };
+document.querySelectorAll("[data-del]").forEach(b => b.onclick = async () => {
+  const volver = !!b.dataset.volver;
+  if (!volver && !confirm("¿Eliminar este pedido? Queda en la papelera por si te equivocas.")) return;
+  const r = await fetch("/admin/api/eliminar", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: b.dataset.del, volver }) });
+  if (r.ok) location.reload(); else alert("No se pudo");
+});
+let ev; addEventListener("beforeinstallprompt", e => { e.preventDefault(); ev = e; $("#inst").hidden = false; });
+$("#inst").onclick = async () => { if (!ev) return; ev.prompt(); await ev.userChoice; $("#inst").hidden = true; };
+const ios = /iphone|ipad/i.test(navigator.userAgent), solo = matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+if (ios && !solo) $("#ios").hidden = false;
+const b64 = s => { const p = "=".repeat((4 - s.length % 4) % 4), r = atob((s + p).replace(/-/g, "+").replace(/_/g, "/")); return Uint8Array.from([...r].map(c => c.charCodeAt(0))); };
+async function activar() {
+  const reg = await navigator.serviceWorker.ready;
+  if ((await Notification.requestPermission()) !== "granted") { alert("Permite las notificaciones en los ajustes del navegador para recibir avisos."); return; }
+  const { key } = await (await fetch("/admin/api/push-key")).json();
+  const sub = (await reg.pushManager.getSubscription()) || await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64(key) });
+  await fetch("/admin/api/suscribir", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(sub) });
+  await fetch("/admin/api/probar", { method: "POST" });
+  $("#noti").textContent = "🔔 Notificaciones activas"; $("#noti").classList.add("s");
+}
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("/admin/sw.js", { scope: "/admin" }).then(async reg => {
+  if (!("PushManager" in window)) return;
+  $("#noti").hidden = false; $("#noti").onclick = () => activar().catch(e => alert("No se pudo activar: " + e.message));
+  const s = await reg.pushManager.getSubscription();
+  if (s && Notification.permission === "granted") { $("#noti").textContent = "🔔 Notificaciones activas"; $("#noti").classList.add("s");
+    fetch("/admin/api/suscribir", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(s) }); }
+});
+document.addEventListener("visibilitychange", () => { if (!document.hidden && Date.now() - performance.timeOrigin > 60000) location.reload(); });
+</script></body></html>`);
 });
 
 /* ---------- web estática: solo las carpetas públicas ---------- */
-const est = { maxAge: "1h", extensions: ["html"] };
+const est = { maxAge: "1h", extensions: ["html"], setHeaders: (res, f) => { if (f.endsWith(".html")) res.set("Cache-Control", "no-cache"); } };
 app.use("/img", express.static(path.join(ROOT, "img"), est));
 app.use("/excavadora", express.static(path.join(ROOT, "excavadora"), est));
-for (const f of ["index.html", "robots.txt", "sitemap.xml"]) app.get("/" + f, (req, res) => res.sendFile(path.join(ROOT, f)));
+for (const f of ["index.html", "robots.txt", "sitemap.xml"]) app.get("/" + f, (req, res) => res.set("Cache-Control", "no-cache").sendFile(path.join(ROOT, f)));
 app.get("/", (req, res) => res.sendFile(path.join(ROOT, "index.html")));
 app.use((req, res) => res.status(404).sendFile(path.join(ROOT, "index.html")));
 

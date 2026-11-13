@@ -248,6 +248,14 @@ footer a{color:var(--ink)}
 .maps{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
 .maps button{flex:1;min-height:42px;border:1.5px solid var(--line);border-radius:10px;background:transparent;color:var(--ink);font:600 14px var(--sans);cursor:pointer;white-space:nowrap}
 .maps button:active{border-color:var(--lime)}
+.mapdlg{position:fixed;inset:0;z-index:90;background:#0c1a10;display:flex;flex-direction:column}
+.mapbar{display:flex;gap:8px;padding:10px}
+.mapbar input{flex:1;min-height:44px;border-radius:10px;border:1.5px solid var(--line);background:#14281a;color:var(--ink);padding:0 12px;font:16px var(--sans)}
+.mapbar button,.mapbtns button{min-height:44px;border-radius:10px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font:700 15px var(--sans);padding:0 14px}
+#mapa{flex:1;background:#dfe7d8}
+.maphint{margin:0;padding:8px 12px;font-size:14px;color:var(--muted);text-align:center}
+.mapbtns{display:flex;gap:8px;padding:0 10px 14px}.mapbtns button{flex:1}
+.mapbtns .ok{background:var(--lime);color:#14200b;border-color:var(--lime)}
 .mapok{font-size:13px;color:var(--lime);margin-top:6px;display:none}
 .bank{background:#f2f4ee;border-radius:12px;padding:12px;margin-top:12px;text-align:left;font-size:14px}
 .bank div{display:flex;justify-content:space-between;gap:8px;padding:3px 0}
@@ -462,8 +470,8 @@ footer a{color:var(--ink)}
       <div class="field"><label for="ciudad">Ciudad</label><input id="ciudad" name="ciudad" autocomplete="address-level2" placeholder="Ej. Quito" required><div class="err">Escribe tu ciudad.</div></div>
       <div class="field"><label for="direccion">Dirección y referencia</label><textarea id="direccion" name="direccion" placeholder="Calles, número de casa y una referencia" required></textarea><div class="err">Escribe la dirección con una referencia para el courier.</div></div>
       <div class="field"><label for="ubicacion">Ubicación de Google Maps <small>(opcional, ayuda al courier)</small></label>
-        <div class="maps"><button type="button" id="btnGps">📍 Usar mi ubicación</button></div>
-        <input id="ubicacion" name="ubicacion" inputmode="url" placeholder="Toca el botón y se llena solo">
+        <div class="maps"><button type="button" id="btnGps">📍 Usar mi ubicación</button><button type="button" id="btnMapa">🗺️ Elegir en el mapa</button></div>
+        <input id="ubicacion" name="ubicacion" inputmode="url" placeholder="Toca un botón y se llena solo">
         <div class="mapok" id="mapok">✓ Ubicación agregada</div>
       </div>
 
@@ -502,6 +510,12 @@ footer a{color:var(--ink)}
   <a class="cta" href="#pedido">Pedir ahora</a>
 </div></div>
 
+<div class="mapdlg" id="mapdlg" hidden role="dialog" aria-modal="true" aria-label="Elegir ubicación">
+  <div class="mapbar"><input id="mapq" placeholder="Busca barrio, calle o lugar" enterkeyhint="search"><button type="button" id="mapbus">Buscar</button></div>
+  <div id="mapa"></div>
+  <p class="maphint">Toca el mapa o arrastra el pin hasta donde quieres recibir.</p>
+  <div class="mapbtns"><button type="button" id="mapno">Cancelar</button><button type="button" id="mapsi" class="ok">Confirmar ubicación</button></div>
+</div>
 <div class="thanks" id="thanks" role="dialog" aria-modal="true" aria-labelledby="thxT">
   <div class="wrap">
     <div class="ok">✓</div>
@@ -513,13 +527,6 @@ footer a{color:var(--ink)}
       <p id="payNota" style="margin:4px 0 12px;font-size:15px" hidden></p>
       <a class="btn" id="payFijo" target="_blank" rel="noopener" hidden style="margin:10px 0 14px"></a>
       <a class="btn" id="payLink" target="_blank" rel="noopener" hidden style="margin:10px 0 14px">Pagar en Deuna</a>
-      <img id="payQr" alt="Código QR de Deuna" hidden>
-      <a class="btn" id="payDl" download="QR-Deuna-Importcap.png">⬇️ Guardar QR en mi galería</a>
-      <ol class="steps" id="paySteps">
-        <li>Toca <b>Guardar QR en mi galería</b>.</li>
-        <li>Abre <b>Deuna</b> → <b>Pagar</b> → toca el ícono de <b>imagen/galería</b> y elige el QR que guardaste.</li>
-        <li>Escribe el monto <b id="payAmt2"></b> y paga.</li>
-      </ol>
       <div class="bank" id="payBank" hidden></div>
       <p style="font-size:14px;margin:12px 0 0" hidden>En la descripción del pago pon tu código <span class="code" id="payCode"></span></p>
       <p style="font-size:14px;margin:10px 0 0" id="payNoQr" hidden>En unos minutos te enviamos el QR de Deuna por WhatsApp.</p>
@@ -561,6 +568,7 @@ const CONFIG = {
       // enlaces de cobro con monto fijo: se usan si el monto coincide y no ha pasado la fecha "hasta"; si no, se usa el enlace general de arriba
       enlaces: [
         { monto: 50, hasta: "2026-12-11", url: "https://pagar.deuna.app/H92p/U2FsdGVkX1+sbLWtaJ61ov9SUfUinkel8/++9D50lLDWUIBy3YUiHLleIgsBWHDldYPD2qPea+MaEo7DajONopyEHTpuYhaD6zYLP6n0J0oZVT6+iL9jewysnIMn2b/nHOUtE8ihasmR6idncD1STg==" },
+        { monto: 45, hasta: "2026-12-11", url: "https://pagar.deuna.app/H92p/U2FsdGVkX188AwmzjN8DClNQD8pemTQkTtrY0Ivk5/f7HO9TYb/v4HAKTUluyASIU2N8fmF9V0w0UdV7wj8A4OcCqY7DGLWd5ztGMpyDXEkpNQ6pp9Q414AbVS0/1oCwjZfVA5S4KPm7Bb/GsDeHdA==" },
         { monto: 5, hasta: "2026-12-11", url: "https://pagar.deuna.app/H92p/U2FsdGVkX1+znLHfONc/b3rlDu3w20x6Wrj5UXo3JWvhNKzmTvATNoakXBscTqWzb0Dv1qmDEQi3HCtjjdL4Il6F2EtB1LRmCWzskEVdTTv3/7VsRIOfaFCec11WV7lBCE5Nok/T0K9LdMS3JHS13w==" }
       ] }, // datos para transferir desde cualquier banco   // qr: "img/deuna-qr.png" · link: enlace de cobro de Deuna
     contraEntrega: { activo: true, anticipo: 5 }  // anticipo por Deuna para reservar (0 = sin anticipo)
@@ -727,6 +735,47 @@ $("#btnGps").onclick = () => {
   }, () => { b.textContent = "📍 Usar mi ubicación"; $("#ubicacion").focus(); }, { enableHighAccuracy: true, timeout: 12000 });
 };
 
+/* elegir la ubicación en un mapa (Leaflet + OpenStreetMap, se carga solo al abrirlo) */
+let mapa, pin;
+function cargaLeaflet(){
+  if (window.L) return Promise.resolve();
+  return new Promise((ok, mal) => {
+    const css = document.createElement("link"); css.rel = "stylesheet"; css.href = "vendor/leaflet/leaflet.css"; document.head.appendChild(css);
+    const js = document.createElement("script"); js.src = "vendor/leaflet/leaflet.js"; js.onload = ok; js.onerror = mal; document.head.appendChild(js);
+  });
+}
+function ponPin(la, lo, z){ pin.setLatLng([la, lo]); mapa.setView([la, lo], z || mapa.getZoom()); }
+$("#btnMapa").onclick = async () => {
+  const b = $("#btnMapa"); b.textContent = "Abriendo…";
+  try { await cargaLeaflet(); } catch { b.textContent = "🗺️ Elegir en el mapa"; return; }
+  b.textContent = "🗺️ Elegir en el mapa";
+  $("#mapdlg").hidden = false; document.body.style.overflow = "hidden";
+  const m = /q=(-?[\d.]+),(-?[\d.]+)/.exec($("#ubicacion").value);
+  if (!mapa) {
+    mapa = L.map("mapa", { zoomControl: true }).setView([-1.6, -78.6], 6);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "© OpenStreetMap" }).addTo(mapa);
+    pin = L.marker([-1.6, -78.6], { draggable: true }).addTo(mapa);
+    mapa.on("click", e => pin.setLatLng(e.latlng));
+  }
+  setTimeout(() => mapa.invalidateSize(), 50);
+  if (m) ponPin(+m[1], +m[2], 17);
+  else if (navigator.geolocation) navigator.geolocation.getCurrentPosition(p => ponPin(p.coords.latitude, p.coords.longitude, 16), () => {}, { timeout: 8000 });
+};
+async function buscaMapa(){
+  const q = $("#mapq").value.trim(); if (!q) return;
+  const ciudad = $("#ciudad").value.trim();
+  try {
+    const r = await fetch("https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=ec&q=" + encodeURIComponent(q + (ciudad ? ", " + ciudad : "")));
+    const [x] = await r.json();
+    if (x) ponPin(+x.lat, +x.lon, 17); else $("#mapq").value = "", $("#mapq").placeholder = "No lo encontré, mueve el pin a mano";
+  } catch {}
+}
+$("#mapbus").onclick = buscaMapa;
+$("#mapq").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); buscaMapa(); } });
+const cierraMapa = () => { $("#mapdlg").hidden = true; document.body.style.overflow = ""; };
+$("#mapno").onclick = cierraMapa;
+$("#mapsi").onclick = () => { const { lat, lng } = pin.getLatLng(); setUbic(`https://maps.google.com/?q=${lat.toFixed(6)},${lng.toFixed(6)}`); cierraMapa(); };
+
 /* origen del anuncio (utm) para saber qué anuncio vende */
 const q = new URLSearchParams(location.search);
 $("#fOrigen").value = ["utm_campaign","utm_content","utm_term","utm_placement"].map(k => q.get(k)).filter(Boolean).join(" | ") || document.referrer || "directo";
@@ -777,6 +826,10 @@ form.addEventListener("submit", async e => {
   } finally { btn.disabled = false; btn.firstChild.textContent = "Confirmar pedido"; }
 });
 
+/* enlaces de cobro actualizados desde el panel (si el servidor los tiene) */
+let ENL = {};
+fetch("/api/enlaces").then(r => r.ok ? r.json() : {}).then(j => { if (j && typeof j === "object") ENL = j; }).catch(() => {});
+
 /* pago con Deuna después del pedido */
 function showPay(d, c){
   const box = $("#paybox"); box.hidden = !c.ahora;
@@ -784,17 +837,15 @@ function showPay(d, c){
   const hasQr = !!P.deuna.qr, hasLink = !!P.deuna.link;
   $("#payT").textContent = c.pago === "deuna" ? "Último paso: paga con Deuna" : "Último paso: reserva con Deuna";
   $("#payAmt").textContent = money(c.ahora);
-  $("#payQr").hidden = !hasQr; if (hasQr) $("#payQr").src = P.deuna.qr;
   $("#payLink").hidden = !hasLink; if (hasLink) $("#payLink").href = P.deuna.link;
   const hoy = new Date().toISOString().slice(0,10);
-  const fijo = (P.deuna.enlaces || []).find(e => e.monto === c.ahora && e.url && (!e.hasta || hoy <= e.hasta));
+  const srv = ENL[String(c.ahora)];
+  const fijo = srv ? { url: srv } : (P.deuna.enlaces || []).find(e => e.monto === c.ahora && e.url && (!e.hasta || hoy <= e.hasta));
   $("#payFijo").hidden = !fijo;
   if (fijo) { $("#payFijo").href = fijo.url; $("#payFijo").textContent = `💳 Pagar ${money(c.ahora)} en Deuna`; }
   $("#payLink").hidden = !hasLink || !!fijo; $("#payLink").textContent = `💳 Pagar ${money(c.ahora)} en Deuna`;
   $("#payNota").hidden = c.pago === "deuna";
   $("#payNota").innerHTML = `Pagas <b>solo ${money(c.ahora)}</b> ahora para confirmar tu pedido. Los <b>${money(c.alRecibir)}</b> restantes los pagas al recibirlo.`;
-  $("#payDl").hidden = $("#paySteps").hidden = !hasQr; if (hasQr) $("#payDl").href = P.deuna.qr;
-  $("#payAmt2").textContent = money(c.ahora);
   const cu = P.deuna.cuenta || {};
   $("#payBank").hidden = !cu.numero;
   if (cu.numero) $("#payBank").innerHTML = `<b>O transfiere ${money(c.ahora)} a esta cuenta</b>` + [["Banco", cu.banco], ["Cuenta " + (cu.tipo || ""), cu.numero], ["Titular", cu.titular], ["Cédula/RUC", cu.cedula]].filter(x => x[1]).map(([k,v]) => `<div><span>${k}</span><span><b>${v}</b> <button type="button" data-copy="${v}">Copiar</button></span></div>`).join("");
