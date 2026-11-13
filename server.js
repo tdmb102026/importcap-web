@@ -99,9 +99,11 @@ const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": 
 const CABEZA = t => `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex">
 <title>${t}</title><link rel="manifest" href="/admin/manifest.webmanifest"><meta name="theme-color" content="#0c1a10"><link rel="apple-touch-icon" href="/admin/icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes">
 <style>*{box-sizing:border-box}body{font:15px/1.4 system-ui,sans-serif;margin:0;background:#0c1a10;color:#f4f1e8;padding-bottom:env(safe-area-inset-bottom)}a{color:#d2ff3c}
-header{position:sticky;top:0;background:#0c1a10;padding:14px 14px 10px;border-bottom:1px solid #2a4433;z-index:2}h1{margin:0 0 8px;font-size:20px}
+header{position:sticky;top:0;background:#0c1a10;padding:10px 10px 8px;border-bottom:1px solid #2a4433;z-index:2}h1{margin:0 0 8px;font-size:20px}
 .btns{display:flex;gap:8px;flex-wrap:wrap}.btn{background:#d2ff3c;color:#14200b;border:0;border-radius:10px;padding:9px 12px;text-decoration:none;font:700 14px system-ui;cursor:pointer}.btn.s{background:#1b3022;color:#f4f1e8;border:1px solid #2a4433}
-.f{display:flex;gap:6px;margin-top:10px;overflow-x:auto}.f button{background:#14281a;color:#b9c2b5;border:1px solid #2a4433;border-radius:20px;padding:6px 12px;font:600 13px system-ui;white-space:nowrap}.f button.on{background:#d2ff3c;color:#14200b;border-color:#d2ff3c}
+.tit{display:flex;align-items:center;gap:6px;margin-bottom:8px}.tit h1{margin:0 auto 0 0;font-size:18px}.mini{font:600 11px system-ui;padding:4px 8px;border:1px solid #2a4433;border-radius:20px;text-decoration:none;color:#f4f1e8}
+header .btns{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}header .btns .btn{padding:7px 2px;font-size:12px;text-align:center;border-radius:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}header .btns .btn[hidden]{display:none}
+.f{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-top:6px}.f button{padding:5px 2px!important;font-size:11.5px!important;background:#14281a;color:#b9c2b5;border:1px solid #2a4433;border-radius:20px;padding:6px 12px;font:600 13px system-ui;white-space:nowrap}.f button.on{background:#d2ff3c;color:#14200b;border-color:#d2ff3c}
 main{padding:12px;display:grid;gap:12px;max-width:760px;margin:auto}main>.tabla{max-width:none}
 .tabla{overflow-x:auto;margin:0 -12px;padding:0 12px}table{border-collapse:collapse;width:100%;min-width:980px}td,th{border-bottom:1px solid #2a4433;padding:10px;text-align:left;vertical-align:top}th{color:#b9c2b5;font-size:12px;text-transform:uppercase}
 tr:target{background:#1b3022}.o{font-size:12px;color:#b9c2b5;max-width:180px}.nw{white-space:nowrap}.nw select{flex:none;width:120px}.card{max-width:760px;width:100%;background:#14281a;border:1px solid #2a4433;border-radius:14px;padding:14px}.card:target{outline:2px solid #d2ff3c}
@@ -110,7 +112,7 @@ tr:target{background:#1b3022}.o{font-size:12px;color:#b9c2b5;max-width:180px}.nw
 textarea{font-family:inherit}
 .est{display:inline-block;border-radius:20px;padding:2px 10px;font-size:12px;font-weight:700}.e-nuevo{background:#ffcf5a;color:#2a1c00}.e-pagado{background:#5ad2ff;color:#00222e}.e-despachado{background:#d2ff3c;color:#14200b}.e-cancelado{background:#55625a;color:#f4f1e8}
 .no{color:#ff8a7a}.ok-t{color:#d2ff3c;font-weight:700}select{background:#0c1a10;color:#f4f1e8;border:1px solid #2a4433;border-radius:10px;padding:8px;font:600 14px system-ui;flex:1}
-.aviso{background:#1b3022;border:1px dashed #d2ff3c;border-radius:12px;padding:12px;margin:12px;max-width:760px}@media(min-width:800px){.aviso{margin:12px auto}}</style></head><body>`;
+.aviso{background:#1b3022;border:1px dashed #d2ff3c;border-radius:10px;padding:6px 10px;font-size:12px;margin:8px 12px;max-width:760px}@media(min-width:800px){.aviso{margin:12px auto}}</style></head><body>`;
 
 app.get("/admin/entrar", (req, res) => res.send(CABEZA("Entrar · Pedidos") + `<main style="max-width:380px;padding-top:15vh"><img src="/admin/icon-192.png" width="72" height="72" alt="" style="border-radius:50%"><h1>Pedidos Importcap</h1>
 <form method="post" action="/admin/entrar" class="card"><label>Clave<br><input name="clave" type="password" autocomplete="current-password" required style="width:100%;margin:8px 0 12px;padding:12px;border-radius:10px;border:1px solid #2a4433;background:#0c1a10;color:#f4f1e8;font-size:16px"></label>
@@ -284,8 +286,8 @@ app.get("/admin", auth, (req, res) => {
   const sueltos = regs.filter(r => r.formulario === "comprobante" && !pedidos.some(p => p.datos.codigo === r.datos.codigo));
   const cuenta = x => pedidos.filter(r => (est[r.datos.codigo] || "nuevo") === x).length;
   res.set("Cache-Control", "no-store").send(CABEZA(`Pedidos (${pedidos.length}) · Importcap`) + `
-<header><h1>Pedidos (${pedidos.length})</h1><div class="btns"><button class="btn" id="noti" hidden>🔔 Activar notificaciones</button><button class="btn s" id="probar" hidden>🔔 Probar aviso</button><button class="btn s" id="inst" hidden>📲 Instalar app</button><a class="btn s" href="/admin">↻ Actualizar</a><a class="btn s" href="#resenas">⭐ Reseñas</a><a class="btn s" href="#enlaces">💳 Enlaces</a><a class="btn s" href="/admin/pedidos.csv">Excel</a><a class="btn s" href="/admin/salir">Salir</a></div>
-<div class="f" id="f"><button class="on" data-f="">Todos</button>${ESTADOS.map(x => `<button data-f="${x}">${x} (${cuenta(x)})</button>`).join("")}${papelera.length ? `<button data-f="papelera">🗑️ papelera (${papelera.length})</button>` : ""}</div></header>
+<header><div class="tit"><h1>Pedidos (${pedidos.length})</h1><a class="mini" href="/excavadora/" target="_blank">🛒 Ventas</a><a class="mini" href="/" target="_blank">🏠 Importcap</a></div><div class="btns"><button class="btn" id="noti" hidden>🔔 Activar avisos</button><button class="btn s" id="probar" hidden>🔔 Probar</button><button class="btn s" id="inst" hidden>📲 Instalar</button><a class="btn s" href="/admin">↻ Actualizar</a><a class="btn s" href="#resenas">⭐ Reseñas</a><a class="btn s" href="#enlaces">💳 Enlaces</a><a class="btn s" href="/admin/pedidos.csv">Excel</a><a class="btn s" href="/admin/salir">Salir</a></div>
+<div class="f" id="f"><button class="on" data-f="">Todos</button>${ESTADOS.map(x => `<button data-f="${x}">${({ nuevo: "Nuevos", pagado: "Pagados", despachado: "Enviados", cancelado: "Cancel." })[x]} ${cuenta(x)}</button>`).join("")}${papelera.length ? `<button data-f="papelera">🗑️ papelera (${papelera.length})</button>` : ""}</div></header>
 <div class="aviso" id="pushInfo" hidden></div>
 <div class="aviso" id="ios" hidden>En iPhone: toca <b>Compartir</b> → <b>Agregar a pantalla de inicio</b>, abre la app desde ahí y luego activa las notificaciones.</div>
 <main style="max-width:none">${req.query.enlaces ? '<div class="card" style="border-color:#d2ff3c">✓ Enlaces guardados. La página ya usa los nuevos.</div>' : ""}<div class="tabla"><table><thead><tr><th>Fecha / código</th><th>Cliente</th><th>Dirección</th><th>Pedido</th><th>Pago</th><th>Estado</th><th>Anuncio</th></tr></thead><tbody>${tarjetas || '<tr><td colspan="7">Todavía no hay pedidos.</td></tr>'}</tbody></table></div>
@@ -332,13 +334,13 @@ async function activar() {
   const sub = (await reg.pushManager.getSubscription()) || await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64(key) });
   await fetch("/admin/api/suscribir", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(sub) });
   await fetch("/admin/api/probar", { method: "POST" });
-  $("#noti").textContent = "🔔 Notificaciones activas"; $("#noti").classList.add("s");
+  $("#noti").textContent = "🔔 Avisos ✓"; $("#noti").classList.add("s");
 }
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("/admin/sw.js", { scope: "/admin" }).then(async reg => {
   if (!("PushManager" in window)) return;
   $("#noti").hidden = false; $("#noti").onclick = () => activar().catch(e => alert("No se pudo activar: " + e.message));
   const s = await reg.pushManager.getSubscription();
-  if (s && Notification.permission === "granted") { $("#noti").textContent = "🔔 Notificaciones activas"; $("#noti").classList.add("s");
+  if (s && Notification.permission === "granted") { $("#noti").textContent = "🔔 Avisos ✓"; $("#noti").classList.add("s");
     fetch("/admin/api/suscribir", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(s) }); }
 });
 /* con el panel abierto: revisa cada 20 s y suena si llega algo nuevo */
@@ -356,7 +358,7 @@ async function revisa() {
   } catch {}
 }
 revisa(); setInterval(revisa, 20000);
-$("#probar").onclick = async () => { $("#probar").textContent = "Enviando…"; await fetch("/admin/api/probar", { method: "POST" }); $("#probar").textContent = "🔔 Probar aviso"; };
+$("#probar").onclick = async () => { $("#probar").textContent = "Enviando…"; await fetch("/admin/api/probar", { method: "POST" }); $("#probar").textContent = "🔔 Probar"; };
 document.addEventListener("visibilitychange", () => { if (!document.hidden) revisa(); });
 </script></body></html>`);
 });
