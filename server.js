@@ -147,10 +147,10 @@ app.get("/admin/api/resumen", auth, (req, res) => {
 app.post("/admin/api/probar", auth, (req, res) => { avisar({ title: "🔔 Notificaciones activadas", body: "Así te avisaremos cada pedido nuevo.", url: "/admin" }).finally(() => res.json({ ok: true })); });
 const ESTADOS = ["nuevo", "pagado", "despachado", "cancelado"];
 // enlaces de cobro de Deuna por monto, editables desde el panel
-const ENL_F = path.join(DATA, "enlaces.json"), MONTOS = ["5", "45", "50", "90", "95"], VIGENCIA_DIAS = 30;
+const ENL_F = path.join(DATA, "enlaces.json"), MONTOS = ["5", "45", "50", "90", "95", "185"], VIGENCIA_DIAS = 30;
 // montos que se muestran en el panel: los fijos más cualquier otro que fer haya agregado
 const montosPanel = e => [...new Set(MONTOS.concat(Object.keys(e)))].sort((a, b) => a - b);
-const NOTA_MONTO = { "5": "reserva contra entrega", "45": "volqueta, bulldozer o tractor", "50": "excavadora", "90": "dos de $45", "95": "excavadora + uno de $45", "135": "los tres de $45", "140": "excavadora + dos de $45", "185": "los cuatro" };
+const NOTA_MONTO = { "5": "reserva contra entrega", "45": "volqueta, bulldozer o tractor", "50": "excavadora", "90": "dos de $45", "95": "excavadora + uno de $45", "135": "los tres de $45", "140": "excavadora + dos de $45", "185": "combo de los 4" };
 // la primera vez arranca con los enlaces que fer mandó el 12 de noviembre
 if (!fs.existsSync(ENL_F)) fs.writeFileSync(ENL_F, JSON.stringify({
   "5": { url: "https://pagar.deuna.app/H92p/U2FsdGVkX1+znLHfONc/b3rlDu3w20x6Wrj5UXo3JWvhNKzmTvATNoakXBscTqWzb0Dv1qmDEQi3HCtjjdL4Il6F2EtB1LRmCWzskEVdTTv3/7VsRIOfaFCec11WV7lBCE5Nok/T0K9LdMS3JHS13w==", fecha: "2026-11-13T00:20:00Z" },
