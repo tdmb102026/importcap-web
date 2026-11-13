@@ -139,6 +139,9 @@ app.post("/admin/api/suscribir", auth, express.json({ limit: "10kb" }), (req, re
   fs.writeFileSync(SUBS_F, JSON.stringify(subs.slice(-20)));
   res.json({ ok: true });
 });
+app.get("/admin/api/resumen", auth, (req, res) => {
+  res.set("Cache-Control", "no-store").json({ n: leer().length, subs: leerJSON(SUBS_F, []).length });
+});
 app.post("/admin/api/probar", auth, (req, res) => { avisar({ title: "🔔 Notificaciones activadas", body: "Así te avisaremos cada pedido nuevo.", url: "/admin" }).finally(() => res.json({ ok: true })); });
 const ESTADOS = ["nuevo", "pagado", "despachado", "cancelado"];
 // enlaces de cobro de Deuna por monto, editables desde el panel
@@ -281,8 +284,9 @@ app.get("/admin", auth, (req, res) => {
   const sueltos = regs.filter(r => r.formulario === "comprobante" && !pedidos.some(p => p.datos.codigo === r.datos.codigo));
   const cuenta = x => pedidos.filter(r => (est[r.datos.codigo] || "nuevo") === x).length;
   res.set("Cache-Control", "no-store").send(CABEZA(`Pedidos (${pedidos.length}) · Importcap`) + `
-<header><h1>Pedidos (${pedidos.length})</h1><div class="btns"><button class="btn" id="noti" hidden>🔔 Activar notificaciones</button><button class="btn s" id="inst" hidden>📲 Instalar app</button><a class="btn s" href="/admin">↻ Actualizar</a><a class="btn s" href="#resenas">⭐ Reseñas</a><a class="btn s" href="#enlaces">💳 Enlaces</a><a class="btn s" href="/admin/pedidos.csv">Excel</a><a class="btn s" href="/admin/salir">Salir</a></div>
+<header><h1>Pedidos (${pedidos.length})</h1><div class="btns"><button class="btn" id="noti" hidden>🔔 Activar notificaciones</button><button class="btn s" id="probar" hidden>🔔 Probar aviso</button><button class="btn s" id="inst" hidden>📲 Instalar app</button><a class="btn s" href="/admin">↻ Actualizar</a><a class="btn s" href="#resenas">⭐ Reseñas</a><a class="btn s" href="#enlaces">💳 Enlaces</a><a class="btn s" href="/admin/pedidos.csv">Excel</a><a class="btn s" href="/admin/salir">Salir</a></div>
 <div class="f" id="f"><button class="on" data-f="">Todos</button>${ESTADOS.map(x => `<button data-f="${x}">${x} (${cuenta(x)})</button>`).join("")}${papelera.length ? `<button data-f="papelera">🗑️ papelera (${papelera.length})</button>` : ""}</div></header>
+<div class="aviso" id="pushInfo" hidden></div>
 <div class="aviso" id="ios" hidden>En iPhone: toca <b>Compartir</b> → <b>Agregar a pantalla de inicio</b>, abre la app desde ahí y luego activa las notificaciones.</div>
 <main style="max-width:none">${req.query.enlaces ? '<div class="card" style="border-color:#d2ff3c">✓ Enlaces guardados. La página ya usa los nuevos.</div>' : ""}<div class="tabla"><table><thead><tr><th>Fecha / código</th><th>Cliente</th><th>Dirección</th><th>Pedido</th><th>Pago</th><th>Estado</th><th>Anuncio</th></tr></thead><tbody>${tarjetas || '<tr><td colspan="7">Todavía no hay pedidos.</td></tr>'}</tbody></table></div>
 ${resenasHTML(regs, bor, fmt)}
@@ -337,7 +341,23 @@ if ("serviceWorker" in navigator) navigator.serviceWorker.register("/admin/sw.js
   if (s && Notification.permission === "granted") { $("#noti").textContent = "🔔 Notificaciones activas"; $("#noti").classList.add("s");
     fetch("/admin/api/suscribir", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(s) }); }
 });
-document.addEventListener("visibilitychange", () => { if (!document.hidden && Date.now() - performance.timeOrigin > 60000) location.reload(); });
+/* con el panel abierto: revisa cada 20 s y suena si llega algo nuevo */
+let ctxA, ultimo = null;
+const pita = () => { try { ctxA = ctxA || new (window.AudioContext || window.webkitAudioContext)(); [0, .25, .5].forEach(t => { const o = ctxA.createOscillator(), g = ctxA.createGain(); o.frequency.value = 880; o.connect(g); g.connect(ctxA.destination); g.gain.setValueAtTime(.4, ctxA.currentTime + t); g.gain.exponentialRampToValueAtTime(.001, ctxA.currentTime + t + .2); o.start(ctxA.currentTime + t); o.stop(ctxA.currentTime + t + .22); }); } catch {} };
+document.addEventListener("pointerdown", () => { try { ctxA = ctxA || new (window.AudioContext || window.webkitAudioContext)(); ctxA.resume(); } catch {} }, { once: true });
+async function revisa() {
+  try {
+    const j = await (await fetch("/admin/api/resumen")).json();
+    const info = $("#pushInfo");
+    if (ultimo !== null && j.n > ultimo) { pita(); if (navigator.vibrate) navigator.vibrate([200, 100, 200]); setTimeout(() => location.reload(), 1500); }
+    ultimo = j.n;
+    if (Notification.permission === "granted" && j.subs) { info.hidden = false; info.innerHTML = "🔔 Avisos activos en " + j.subs + " celular" + (j.subs > 1 ? "es" : "") + ". Si no te llegan, revisa que Chrome tenga permiso de notificaciones con sonido en los ajustes del celular."; $("#probar").hidden = false; }
+    else if (Notification.permission === "denied") { info.hidden = false; info.innerHTML = "🔕 Las notificaciones están bloqueadas para esta página. Ábrelas en Ajustes → Apps → Chrome → Notificaciones, o toca el candado junto a la dirección → Permisos → Notificaciones."; }
+  } catch {}
+}
+revisa(); setInterval(revisa, 20000);
+$("#probar").onclick = async () => { $("#probar").textContent = "Enviando…"; await fetch("/admin/api/probar", { method: "POST" }); $("#probar").textContent = "🔔 Probar aviso"; };
+document.addEventListener("visibilitychange", () => { if (!document.hidden) revisa(); });
 </script></body></html>`);
 });
 
