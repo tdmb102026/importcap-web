@@ -189,7 +189,7 @@ app.post("/admin/enlaces", auth, express.urlencoded({ extended: false, limit: "1
     const url = (v.match(/https:\/\/pagar\.deuna\.app\/\S+/) || [])[0];
     if (url && (!e[m] || e[m].url !== url)) e[m] = { url, fecha: new Date().toISOString() };
   }
-  fs.writeFileSync(ENL_F, JSON.stringify(e)); res.redirect("/admin?enlaces=ok#enlaces");
+  fs.writeFileSync(ENL_F, JSON.stringify(e)); res.redirect("/admin?enlaces=ok");
 });
 
 // reseñas que dejan los clientes: se publican solo cuando fer las aprueba en el panel
@@ -265,12 +265,14 @@ function enlacesHTML() {
     const estado = !x ? `<span class="no">falta pegar el enlace. Mientras tanto, quien pague $${m} verá el enlace general de Deuna y tendrá que escribir $${m} a mano</span>` : `<span class="cd" data-vence="${vence}">⏳</span>`;
     return `<label class="row" style="display:block"><b>$${m}</b> ${NOTA_MONTO[m] ? "(" + NOTA_MONTO[m] + ")" : ""} · ${estado}${x ? ' <span class="muted" style="font-size:12px">· escribe - para quitarlo</span>' : ""}
 <textarea name="m${m}" rows="2" placeholder="Pega aquí el mensaje o enlace de Deuna de $${m}" style="width:100%;margin-top:6px;padding:10px;border-radius:10px;border:1px solid #2a4433;background:#0c1a10;color:#f4f1e8;font-size:15px"></textarea></label>`; };
-  return `<form class="card" id="enlaces" method="post" action="/admin/enlaces"><b>💳 Enlaces de cobro Deuna</b><p class="muted" style="margin:4px 0 0">Pega el mensaje completo que te da Deuna, yo saco el enlace. Deja vacío para no cambiarlo. Se dejan de usar a los ${VIGENCIA_DIAS} días.</p>
+  // ventana plegada: solo se abre al tocarla, o sola si algún enlace de $5, $45 o $50 falta o vence en menos de 3 días
+  const urgente = ["5", "45", "50"].some(m => !e[m] || Date.parse(e[m].fecha) + VIGENCIA_DIAS * 864e5 - Date.now() < 3 * 864e5);
+  return `<details class="card" id="enlaces"${urgente ? " open" : ""}><summary style="cursor:pointer;font-weight:700">💳 Enlaces de cobro Deuna ${urgente ? '<span class="no">· revisa, hay uno por vencer o sin poner</span>' : '<span class="muted" style="font-weight:400">· toca para actualizar</span>'}</summary><form method="post" action="/admin/enlaces"><p class="muted" style="margin:4px 0 0">Pega el mensaje completo que te da Deuna, yo saco el enlace. Deja vacío para no cambiarlo. Se dejan de usar a los ${VIGENCIA_DIAS} días.</p>
 ${montosPanel(e).map(fila).join("")}
 <label class="row" style="display:block"><b>➕ Otro monto</b> <span class="muted">(por ejemplo 135 o 140 para pedidos de 3 o 4 juguetes)</span>
 <input name="otroMonto" inputmode="decimal" placeholder="Monto, ej. 135" style="width:100%;margin-top:6px;padding:10px;border-radius:10px;border:1px solid #2a4433;background:#0c1a10;color:#f4f1e8;font-size:15px">
 <textarea name="otro" rows="2" placeholder="Pega aquí el mensaje o enlace de Deuna de ese monto" style="width:100%;margin-top:6px;padding:10px;border-radius:10px;border:1px solid #2a4433;background:#0c1a10;color:#f4f1e8;font-size:15px"></textarea></label>
-<p class="muted" style="margin:8px 0 0">Si un cliente pide un monto que no tiene enlace, la página le muestra el enlace general de Deuna y le dice qué monto escribir, junto con la transferencia.</p><button class="btn" style="width:100%;margin-top:12px;padding:12px">Guardar enlaces</button></form>`;
+<p class="muted" style="margin:8px 0 0">Si un cliente pide un monto que no tiene enlace, la página le muestra el enlace general de Deuna y le dice qué monto escribir, junto con la transferencia.</p><button class="btn" style="width:100%;margin-top:12px;padding:12px">Guardar enlaces</button></form></details>`;
 }
 
 app.get("/admin", auth, (req, res) => {
@@ -294,17 +296,17 @@ app.get("/admin", auth, (req, res) => {
 <td>${esc(d.pago)}<br>Ahora: ${esc(d.a_pagar_ahora)}<br>${comps || '<span class="no">sin comprobante</span>'}</td>
 <td class="nw">${accion}</td><td class="o">${esc(d.origen)}</td></tr>`;
   }).join("");
-  const sueltos = regs.filter(r => r.formulario === "comprobante" && !pedidos.some(p => p.datos.codigo === r.datos.codigo));
+  const sueltos = regs.filter(r => r.formulario === "comprobante" && !bor.has(r.id) && !todos.some(p => p.datos.codigo === r.datos.codigo));
   const cuenta = x => pedidos.filter(r => (est[r.datos.codigo] || "nuevo") === x).length;
   res.set("Cache-Control", "no-store").send(CABEZA(`Pedidos (${pedidos.length}) · Importcap`) + `
 <header><div class="tit"><h1>Pedidos (${pedidos.length})</h1><a class="mini" href="/excavadora/" target="_blank">🛒 Ventas</a><a class="mini" href="/" target="_blank">🏠 Importcap</a></div><div class="btns"><button class="btn" id="noti" hidden>🔔 Activar avisos</button><button class="btn s" id="probar" hidden>🔔 Probar</button><button class="btn s" id="inst" hidden>📲 Instalar</button><a class="btn s" href="/admin">↻ Actualizar</a><a class="btn s" href="#resenas">⭐ Reseñas</a><a class="btn s" href="#enlaces">💳 Enlaces</a><a class="btn s" href="/admin/pedidos.csv">Excel</a><a class="btn s" href="/admin/salir">Salir</a></div>
 <div class="f" id="f"><button class="on" data-f="">Todos</button>${ESTADOS.map(x => `<button data-f="${x}">${({ nuevo: "Nuevos", pagado: "Pagados", despachado: "Enviados", cancelado: "Cancel." })[x]} ${cuenta(x)}</button>`).join("")}${papelera.length ? `<button data-f="papelera">🗑️ papelera (${papelera.length})</button>` : ""}</div></header>
-<div class="aviso" id="pushInfo" hidden></div>
+<div id="pushInfo" hidden style="display:flex;gap:8px;align-items:center;margin:6px 12px 0;font-size:12px;color:#b9c2b5"><span id="pushTxt" style="flex:1"></span><button type="button" id="pushX" aria-label="Cerrar" style="background:none;border:0;color:#b9c2b5;font-size:16px;cursor:pointer;padding:2px 6px">✕</button></div>
 <div class="aviso" id="ios" hidden>En iPhone: toca <b>Compartir</b> → <b>Agregar a pantalla de inicio</b>, abre la app desde ahí y luego activa las notificaciones.</div>
-<main style="max-width:none">${req.query.enlaces ? '<div class="card" style="border-color:#d2ff3c">✓ Enlaces guardados. La página ya usa los nuevos.</div>' : ""}<div class="tabla"><table><thead><tr><th>Fecha / código</th><th>Cliente</th><th>Dirección</th><th>Pedido</th><th>Pago</th><th>Estado</th><th>Anuncio</th></tr></thead><tbody>${tarjetas || '<tr><td colspan="7">Todavía no hay pedidos.</td></tr>'}</tbody></table></div>
+<main style="max-width:none">${req.query.enlaces ? '<div class="card" id="guardado" style="border-color:#d2ff3c;padding:10px 14px">✓ Enlaces guardados. La página ya usa los nuevos.</div>' : ""}<div class="tabla"><table><thead><tr><th>Fecha / código</th><th>Cliente</th><th>Dirección</th><th>Pedido</th><th>Pago</th><th>Estado</th><th>Anuncio</th></tr></thead><tbody>${tarjetas || '<tr><td colspan="7">Todavía no hay pedidos.</td></tr>'}</tbody></table></div>
 ${resenasHTML(regs, bor, fmt)}
 ${enlacesHTML()}
-${sueltos.length ? `<div class="card"><b>Comprobantes sin pedido</b>` + sueltos.map(s => `<div class="row">${esc(fmt(s.fecha))} · ${esc(s.datos.codigo)} · ${esc(s.datos.nombre)} · <a href="/admin/comprobante/${esc(s.archivo)}" target="_blank">ver</a></div>`).join("") + `</div>` : ""}</main>
+${sueltos.length ? `<div class="card"><b>Comprobantes sin pedido</b><p class="muted" style="margin:4px 0 0">Capturas que llegaron con un código que no está en la lista. Bórralas con 🗑️ si no sirven.</p>` + sueltos.map(s => `<div class="row">${esc(fmt(s.fecha))} · ${esc(s.datos.codigo)} · ${esc(s.datos.nombre)} · <a href="/admin/comprobante/${esc(s.archivo)}" target="_blank">ver</a> <button data-del="${esc(s.id)}" class="btn s del" aria-label="Borrar">🗑️</button></div>`).join("") + `</div>` : ""}</main>
 <script>
 const $ = s => document.querySelector(s);
 document.querySelectorAll("select[data-c]").forEach(s => s.onchange = async () => {
@@ -329,7 +331,7 @@ document.querySelectorAll("[data-apr]").forEach(b => b.onclick = async () => {
 });
 document.querySelectorAll("[data-del]").forEach(b => b.onclick = async () => {
   const volver = !!b.dataset.volver;
-  if (!volver && !confirm("¿Eliminar este pedido? Queda en la papelera por si te equivocas.")) return;
+  if (!volver && !confirm("¿Eliminar? Queda en la papelera por si te equivocas.")) return;
   const r = await fetch("/admin/api/eliminar", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: b.dataset.del, volver }) });
   if (r.ok) location.reload(); else alert("No se pudo");
 });
@@ -364,11 +366,17 @@ async function revisa() {
     const info = $("#pushInfo");
     if (ultimo !== null && j.n > ultimo) { pita(); if (navigator.vibrate) navigator.vibrate([200, 100, 200]); setTimeout(() => location.reload(), 1500); }
     ultimo = j.n;
-    if (Notification.permission === "granted" && j.subs) { info.hidden = false; info.innerHTML = "🔔 Avisos activos en " + j.subs + " celular" + (j.subs > 1 ? "es" : "") + ". Si no te llegan, revisa que Chrome tenga permiso de notificaciones con sonido en los ajustes del celular."; $("#probar").hidden = false; }
-    else if (Notification.permission === "denied") { info.hidden = false; info.innerHTML = "🔕 Las notificaciones están bloqueadas para esta página. Ábrelas en Ajustes → Apps → Chrome → Notificaciones, o toca el candado junto a la dirección → Permisos → Notificaciones."; }
+    const cerrado = localStorage.getItem("ic_pushX");
+    if (Notification.permission === "granted" && j.subs) { $("#probar").hidden = false; info.hidden = cerrado === "ok"; $("#pushTxt").textContent = "🔔 Avisos activos en " + j.subs + " celular" + (j.subs > 1 ? "es" : ""); info.dataset.k = "ok"; }
+    else if (Notification.permission === "denied") { info.hidden = cerrado === "no"; $("#pushTxt").textContent = "🔕 Notificaciones bloqueadas: candado junto a la dirección → Permisos → Notificaciones"; info.dataset.k = "no"; }
   } catch {}
 }
 revisa(); setInterval(revisa, 20000);
+const abreEnl = () => { if (location.hash === "#enlaces") { $("#enlaces").open = true; $("#enlaces").scrollIntoView(); } };
+addEventListener("hashchange", abreEnl); abreEnl();
+document.querySelector('a[href="#enlaces"]').addEventListener("click", () => { $("#enlaces").open = true; });
+$("#pushX").onclick = () => { localStorage.setItem("ic_pushX", $("#pushInfo").dataset.k || "ok"); $("#pushInfo").hidden = true; };
+if ($("#guardado")) { setTimeout(() => $("#guardado").remove(), 4000); history.replaceState(null, "", "/admin" + location.hash); }
 $("#probar").onclick = async () => { $("#probar").textContent = "Enviando…"; await fetch("/admin/api/probar", { method: "POST" }); $("#probar").textContent = "🔔 Probar"; };
 document.addEventListener("visibilitychange", () => { if (!document.hidden) revisa(); });
 </script></body></html>`);
