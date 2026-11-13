@@ -207,6 +207,9 @@ footer a{color:var(--ink)}
 .socials{display:grid;gap:10px;margin-top:18px}
 .soc{display:flex;gap:12px;align-items:center;text-decoration:none;background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:10px}
 .soc img{width:64px;height:84px;border-radius:10px;object-fit:cover}
+.soc .th{position:relative;flex:0 0 64px}.soc .th .lg{position:absolute;right:-6px;bottom:-6px;width:28px;height:28px;border-radius:8px;box-shadow:0 0 0 2px var(--bg2)}
+.soc>.lg{width:44px;height:44px;border-radius:12px;flex:0 0 44px}
+.redlogos{display:flex;gap:10px;margin-top:14px}.redlogos a{display:flex;align-items:center;gap:8px;text-decoration:none;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:8px 12px;font-weight:700;font-size:14px}.redlogos svg{width:26px;height:26px;border-radius:7px}
 .soc .t{flex:1}.soc .t b{display:block;font:900 20px/1.1 var(--head);font-stretch:125%;color:var(--lime)}.soc .t span{font-size:13px;color:var(--muted)}
 .soc .go{font-weight:700;font-size:14px;white-space:nowrap}
 /* pago */
@@ -344,6 +347,7 @@ footer a{color:var(--ink)}
   <div class="wrap">
     <p class="eyebrow">Ya es tendencia</p>
     <h2 style="margin-top:8px" id="redesT">Miles ya la vieron <span class="hl">en redes</span></h2>
+    <div class="redlogos" id="redlogos"></div>
     <div class="socials" id="socials"></div>
   </div>
 </section>
@@ -649,7 +653,13 @@ reels.querySelectorAll(".reel").forEach((r,i) => r.onclick = () => {
 if (CONFIG.redes.length) {
   $("#redes").hidden = false;
   if (CONFIG.redesTitulo) $("#redesT").innerHTML = CONFIG.redesTitulo;
-  $("#socials").innerHTML = CONFIG.redes.map(r => `<a class="soc" href="${r.url}" target="_blank" rel="noopener">${r.portada ? `<img src="${r.portada}" alt="" loading="lazy">` : ""}<span class="t"><b>${r.titulo || (r.vistas ? r.vistas + " vistas" : r.red)}</b><span>${r.sub || [r.likes ? r.likes + " me gusta" : "", r.red].filter(Boolean).join(" · ")}</span></span><span class="go">Ver →</span></a>`).join("");
+  const LOGO = {
+    Instagram: `<svg class="lg" viewBox="0 0 32 32" aria-label="Instagram"><defs><linearGradient id="igg" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#feda75"/><stop offset=".35" stop-color="#fa7e1e"/><stop offset=".6" stop-color="#d62976"/><stop offset=".8" stop-color="#962fbf"/><stop offset="1" stop-color="#4f5bd5"/></linearGradient></defs><rect width="32" height="32" rx="8" fill="url(#igg)"/><rect x="7.5" y="7.5" width="17" height="17" rx="5" fill="none" stroke="#fff" stroke-width="2.2"/><circle cx="16" cy="16" r="4.2" fill="none" stroke="#fff" stroke-width="2.2"/><circle cx="21.3" cy="10.7" r="1.3" fill="#fff"/></svg>`,
+    TikTok: `<svg class="lg" viewBox="0 0 32 32" aria-label="TikTok"><rect width="32" height="32" rx="8" fill="#000"/><path d="M18 7v12.2a3.6 3.6 0 1 1-3.6-3.6" fill="none" stroke="#25f4ee" stroke-width="2.6" transform="translate(-1 -.6)"/><path d="M18 7c.4 2.6 2.2 4.4 4.8 4.7" fill="none" stroke="#25f4ee" stroke-width="2.6" transform="translate(-1 -.6)"/><path d="M18 7v12.2a3.6 3.6 0 1 1-3.6-3.6" fill="none" stroke="#fe2c55" stroke-width="2.6" transform="translate(1 .6)"/><path d="M18 7c.4 2.6 2.2 4.4 4.8 4.7" fill="none" stroke="#fe2c55" stroke-width="2.6" transform="translate(1 .6)"/><path d="M18 7v12.2a3.6 3.6 0 1 1-3.6-3.6" fill="none" stroke="#fff" stroke-width="2.6"/><path d="M18 7c.4 2.6 2.2 4.4 4.8 4.7" fill="none" stroke="#fff" stroke-width="2.6"/></svg>`
+  };
+  const cuentas = CONFIG.redes.filter(r => r.titulo && r.titulo.startsWith("@"));
+  $("#redlogos").innerHTML = cuentas.map(r => `<a href="${r.url}" target="_blank" rel="noopener">${LOGO[r.red] || ""}<span>${r.titulo}</span></a>`).join("");
+  $("#socials").innerHTML = CONFIG.redes.map(r => `<a class="soc" href="${r.url}" target="_blank" rel="noopener">${r.portada ? `<span class="th"><img src="${r.portada}" alt="" loading="lazy">${LOGO[r.red] || ""}</span>` : LOGO[r.red] || ""}<span class="t"><b>${r.titulo || (r.vistas ? r.vistas + " vistas" : r.red)}</b><span>${r.sub || [r.likes ? r.likes + " me gusta" : "", r.red].filter(Boolean).join(" · ")}</span></span><span class="go">Ver →</span></a>`).join("");
 }
 
 /* mensajes de clientes: solo capturas reales */
