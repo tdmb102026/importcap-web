@@ -612,7 +612,7 @@ const CONFIG = {
   envio: { costo: 0, texto: "Envío incluido a todo Ecuador" }, // costo: 0 = incluido
   pagos: {
     deuna: { activo: true, qr: "", /* QR quitado a pedido de fer: confundía. Para volver: "img/deuna-qr.png" */ link: "https://pagar.deuna.app/H92p/merchant?id=6964a0ead4ee6a238e89b599cb040b6d556ecd22",
-      cuenta: { banco: "Banco Pichincha", tipo: "de ahorros", numero: "2207286479", titular: "Fernando Benítez", cedula: "" },
+      cuenta: { banco: "Banco Pichincha", tipo: "de ahorros", numero: "2207286479", titular: "Fernando Benítez", cedula: "1804770830" },
       // enlaces de cobro con monto fijo: se usan si el monto coincide y no ha pasado la fecha "hasta"; si no, se usa el enlace general de arriba
       enlaces: [
         { monto: 50, hasta: "2026-12-11", url: "https://pagar.deuna.app/H92p/U2FsdGVkX1+sbLWtaJ61ov9SUfUinkel8/++9D50lLDWUIBy3YUiHLleIgsBWHDldYPD2qPea+MaEo7DajONopyEHTpuYhaD6zYLP6n0J0oZVT6+iL9jewysnIMn2b/nHOUtE8ihasmR6idncD1STg==" },
@@ -989,7 +989,7 @@ function showPay(d, c){
   $("#payNota").innerHTML = `Pagas <b>solo ${money(c.ahora)}</b> ahora para confirmar tu pedido. Los <b>${money(c.alRecibir)}</b> restantes los pagas al recibirlo.`;
   const cu = P.deuna.cuenta || {};
   $("#payBank").hidden = !cu.numero;
-  if (cu.numero) $("#payBank").innerHTML = `<b>O transfiere ${money(c.ahora)} a esta cuenta</b>` + [["Banco", cu.banco], ["Cuenta " + (cu.tipo || ""), cu.numero], ["Titular", cu.titular], ["Cédula/RUC", cu.cedula]].filter(x => x[1]).map(([k,v]) => `<div><span>${k}</span><span><b>${v}</b> <button type="button" data-copy="${v}">Copiar</button></span></div>`).join("");
+  if (cu.numero) $("#payBank").innerHTML = `<b>O transfiere ${money(c.ahora)} a esta cuenta</b>` + [["Banco", cu.banco], ["Cuenta " + (cu.tipo || ""), cu.numero], ["Titular", cu.titular], ["Cédula", cu.cedula]].filter(x => x[1]).map(([k,v]) => `<div><span>${k}</span><span><b>${v}</b> <button type="button" data-copy="${v}">Copiar</button></span></div>`).join("");
   $("#payCode").textContent = d.codigo;
   $("#upCodigo").value = d.codigo; $("#upTel").value = d.telefono; $("#upNombre").value = d.nombre;
   $("#upForm").hidden = !(hasQr || hasLink); $("#upOk").style.display = "none";
