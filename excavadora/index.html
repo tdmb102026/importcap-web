@@ -462,8 +462,8 @@ footer a{color:var(--ink)}
       <div class="field"><label for="ciudad">Ciudad</label><input id="ciudad" name="ciudad" autocomplete="address-level2" placeholder="Ej. Quito" required><div class="err">Escribe tu ciudad.</div></div>
       <div class="field"><label for="direccion">Dirección y referencia</label><textarea id="direccion" name="direccion" placeholder="Calles, número de casa y una referencia" required></textarea><div class="err">Escribe la dirección con una referencia para el courier.</div></div>
       <div class="field"><label for="ubicacion">Ubicación de Google Maps <small>(opcional, ayuda al courier)</small></label>
-        <input id="ubicacion" name="ubicacion" inputmode="url" placeholder="Pega aquí el enlace de Maps">
-        <div class="maps"><button type="button" id="btnPegar">📋 Pegar enlace</button><button type="button" id="btnGps">📍 Usar mi ubicación</button></div>
+        <div class="maps"><button type="button" id="btnGps">📍 Usar mi ubicación</button></div>
+        <input id="ubicacion" name="ubicacion" inputmode="url" placeholder="Toca el botón y se llena solo">
         <div class="mapok" id="mapok">✓ Ubicación agregada</div>
       </div>
 
@@ -510,6 +510,7 @@ footer a{color:var(--ink)}
     <div class="paybox" id="paybox" hidden>
       <p style="margin:0;font-weight:700" id="payT">Paga con Deuna</p>
       <div class="amt" id="payAmt"></div>
+      <a class="btn" id="payFijo" target="_blank" rel="noopener" hidden style="margin:10px 0 14px"></a>
       <img id="payQr" alt="Código QR de Deuna" hidden>
       <a class="btn" id="payDl" download="QR-Deuna-Importcap.png">⬇️ Guardar QR en mi galería</a>
       <ol class="steps" id="paySteps">
@@ -555,7 +556,12 @@ const CONFIG = {
   envio: { costo: 0, texto: "Envío incluido a todo Ecuador" }, // costo: 0 = incluido
   pagos: {
     deuna: { activo: true, qr: "img/deuna-qr.png", link: "https://pagar.deuna.app/H92p/merchant?id=6964a0ead4ee6a238e89b599cb040b6d556ecd22",
-      cuenta: { banco: "", tipo: "", numero: "", titular: "", cedula: "" } }, // datos para transferir desde cualquier banco   // qr: "img/deuna-qr.png" · link: enlace de cobro de Deuna
+      cuenta: { banco: "Banco Pichincha", tipo: "de ahorros", numero: "2207286479", titular: "Fernando Benítez", cedula: "" },
+      // enlaces de cobro con monto fijo: se usan si el monto coincide y no ha pasado la fecha "hasta"; si no, se usa el enlace general de arriba
+      enlaces: [
+        { monto: 50, hasta: "2026-12-11", url: "https://pagar.deuna.app/H92p/U2FsdGVkX1+sbLWtaJ61ov9SUfUinkel8/++9D50lLDWUIBy3YUiHLleIgsBWHDldYPD2qPea+MaEo7DajONopyEHTpuYhaD6zYLP6n0J0oZVT6+iL9jewysnIMn2b/nHOUtE8ihasmR6idncD1STg==" },
+        { monto: 5, hasta: "2026-12-11", url: "https://pagar.deuna.app/H92p/U2FsdGVkX1+znLHfONc/b3rlDu3w20x6Wrj5UXo3JWvhNKzmTvATNoakXBscTqWzb0Dv1qmDEQi3HCtjjdL4Il6F2EtB1LRmCWzskEVdTTv3/7VsRIOfaFCec11WV7lBCE5Nok/T0K9LdMS3JHS13w==" }
+      ] }, // datos para transferir desde cualquier banco   // qr: "img/deuna-qr.png" · link: enlace de cobro de Deuna
     contraEntrega: { activo: true, anticipo: 5 }  // anticipo por Deuna para reservar (0 = sin anticipo)
   },
   garantia: "60 días",                       // POR CONFIRMAR si aplica a la excavadora sola
@@ -678,7 +684,7 @@ $("#cart").addEventListener("click", e => { const b = e.target.closest("button")
 
 /* forma de pago */
 const PAYS = [
-  P.deuna.activo ? { id: "deuna", t: "Pago con Deuna", s: "Pagas ahora con el QR y despachamos apenas se acredite.", tag: "Más rápido" } : null,
+  P.deuna.activo ? { id: "deuna", t: "Deuna o transferencia", s: "Pagas ahora y despachamos apenas se acredite.", tag: "Más rápido" } : null,
   P.contraEntrega.activo ? { id: "contra", t: "Contra entrega", s: ANT ? `Reservas con ${money(ANT)} por Deuna y pagas el resto al recibir.` : "Pagas en efectivo cuando la recibes." } : null
 ].filter(Boolean);
 $("#pays").innerHTML = PAYS.map((o,i) => `<label class="pay">${o.tag ? `<span class="tag">${o.tag}</span>` : ""}<input type="radio" name="pago" value="${o.t}" data-id="${o.id}" ${i ? "" : "checked"}><span><b>${o.t}</b><span>${o.s}</span></span></label>`).join("");
@@ -711,10 +717,6 @@ renderCart();
 /* ubicación de Google Maps: pegar o usar GPS */
 function setUbic(v){ $("#ubicacion").value = v; $("#mapok").style.display = v ? "block" : "none"; }
 $("#ubicacion").addEventListener("input", e => $("#mapok").style.display = /maps|goo\.gl|google/.test(e.target.value) ? "block" : "none");
-$("#btnPegar").onclick = async () => {
-  try { const t = (await navigator.clipboard.readText()).trim(); if (t) setUbic(t); else $("#ubicacion").focus(); }
-  catch { $("#ubicacion").focus(); }
-};
 $("#btnGps").onclick = () => {
   if (!navigator.geolocation) return $("#ubicacion").focus();
   const b = $("#btnGps"); b.textContent = "Buscando…";
@@ -783,11 +785,16 @@ function showPay(d, c){
   $("#payAmt").textContent = money(c.ahora);
   $("#payQr").hidden = !hasQr; if (hasQr) $("#payQr").src = P.deuna.qr;
   $("#payLink").hidden = !hasLink; if (hasLink) $("#payLink").href = P.deuna.link;
+  const hoy = new Date().toISOString().slice(0,10);
+  const fijo = (P.deuna.enlaces || []).find(e => e.monto === c.ahora && e.url && (!e.hasta || hoy <= e.hasta));
+  $("#payFijo").hidden = !fijo;
+  if (fijo) { $("#payFijo").href = fijo.url; $("#payFijo").textContent = `💳 Pagar ${money(c.ahora)} en Deuna`; }
+  $("#payLink").textContent = fijo ? "¿No abre? Usa el enlace general de Deuna" : "Abrir enlace de Deuna";
   $("#payDl").hidden = $("#paySteps").hidden = !hasQr; if (hasQr) $("#payDl").href = P.deuna.qr;
   $("#payAmt2").textContent = money(c.ahora);
   const cu = P.deuna.cuenta || {};
   $("#payBank").hidden = !cu.numero;
-  if (cu.numero) $("#payBank").innerHTML = `<b>¿Prefieres transferir desde tu banco?</b>` + [["Banco", cu.banco], ["Cuenta " + (cu.tipo || ""), cu.numero], ["Titular", cu.titular], ["Cédula/RUC", cu.cedula]].filter(x => x[1]).map(([k,v]) => `<div><span>${k}</span><span><b>${v}</b> <button type="button" data-copy="${v}">Copiar</button></span></div>`).join("");
+  if (cu.numero) $("#payBank").innerHTML = `<b>¿Prefieres transferencia bancaria?</b>` + [["Banco", cu.banco], ["Cuenta " + (cu.tipo || ""), cu.numero], ["Titular", cu.titular], ["Cédula/RUC", cu.cedula]].filter(x => x[1]).map(([k,v]) => `<div><span>${k}</span><span><b>${v}</b> <button type="button" data-copy="${v}">Copiar</button></span></div>`).join("");
   $("#payCode").textContent = d.codigo;
   $("#upCodigo").value = d.codigo; $("#upTel").value = d.telefono; $("#upNombre").value = d.nombre;
   $("#upForm").hidden = !(hasQr || hasLink); $("#upOk").style.display = "none";
