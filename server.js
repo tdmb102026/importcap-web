@@ -74,6 +74,8 @@ app.post("/", express.urlencoded({ extended: false, limit: "50kb" }), upload.sin
   res.status(200).send("ok");
   if (b["form-name"] === "pedido-excavadora")
     avisar({ title: `🛒 Nuevo pedido ${datos.codigo || ""}`, body: `${datos.nombre || ""} · ${datos.productos || ""} · ${datos.total || ""}\n${datos.pago || ""} · ${datos.ciudad || ""}`, tag: datos.codigo, url: "/admin#" + (datos.codigo || "") }).catch(() => {});
+  else if (b["form-name"] === "resena")
+    avisar({ title: `⭐ Nueva reseña (${datos.estrellas || "?"} estrellas)`, body: `${datos.nombre || ""}: ${(datos.texto || "").slice(0, 90)}`, url: "/admin#resenas" }).catch(() => {});
   else if (b["form-name"] === "comprobante")
     avisar({ title: `💸 Comprobante ${datos.codigo || ""}`, body: `${datos.nombre || ""} subió la captura del pago`, tag: "c" + datos.codigo, url: "/admin#" + (datos.codigo || "") }).catch(() => {});
 });
@@ -100,12 +102,14 @@ const CABEZA = t => `<!doctype html><html lang="es"><head><meta charset="utf-8">
 header{position:sticky;top:0;background:#0c1a10;padding:14px 14px 10px;border-bottom:1px solid #2a4433;z-index:2}h1{margin:0 0 8px;font-size:20px}
 .btns{display:flex;gap:8px;flex-wrap:wrap}.btn{background:#d2ff3c;color:#14200b;border:0;border-radius:10px;padding:9px 12px;text-decoration:none;font:700 14px system-ui;cursor:pointer}.btn.s{background:#1b3022;color:#f4f1e8;border:1px solid #2a4433}
 .f{display:flex;gap:6px;margin-top:10px;overflow-x:auto}.f button{background:#14281a;color:#b9c2b5;border:1px solid #2a4433;border-radius:20px;padding:6px 12px;font:600 13px system-ui;white-space:nowrap}.f button.on{background:#d2ff3c;color:#14200b;border-color:#d2ff3c}
-main{padding:12px;display:grid;gap:12px;max-width:760px;margin:auto}.card{background:#14281a;border:1px solid #2a4433;border-radius:14px;padding:14px}.card:target{outline:2px solid #d2ff3c}
+main{padding:12px;display:grid;gap:12px;max-width:760px;margin:auto}main>.tabla{max-width:none}
+.tabla{overflow-x:auto;margin:0 -12px;padding:0 12px}table{border-collapse:collapse;width:100%;min-width:980px}td,th{border-bottom:1px solid #2a4433;padding:10px;text-align:left;vertical-align:top}th{color:#b9c2b5;font-size:12px;text-transform:uppercase}
+tr:target{background:#1b3022}.o{font-size:12px;color:#b9c2b5;max-width:180px}.nw{white-space:nowrap}.nw select{flex:none;width:120px}.card{max-width:760px;width:100%;background:#14281a;border:1px solid #2a4433;border-radius:14px;padding:14px}.card:target{outline:2px solid #d2ff3c}
 .top{display:flex;justify-content:space-between;gap:8px;align-items:baseline}.code{font-weight:800;color:#d2ff3c}.muted{color:#b9c2b5;font-size:13px}.tot{font-size:18px;font-weight:800}
 .row{margin-top:8px}.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.acts a,.acts button{flex:1 1 100px;text-align:center}.acts select{flex:1 1 140px}.acts .del{flex:0 0 52px}
 textarea{font-family:inherit}
 .est{display:inline-block;border-radius:20px;padding:2px 10px;font-size:12px;font-weight:700}.e-nuevo{background:#ffcf5a;color:#2a1c00}.e-pagado{background:#5ad2ff;color:#00222e}.e-despachado{background:#d2ff3c;color:#14200b}.e-cancelado{background:#55625a;color:#f4f1e8}
-.no{color:#ff8a7a}select{background:#0c1a10;color:#f4f1e8;border:1px solid #2a4433;border-radius:10px;padding:8px;font:600 14px system-ui;flex:1}
+.no{color:#ff8a7a}.ok-t{color:#d2ff3c;font-weight:700}select{background:#0c1a10;color:#f4f1e8;border:1px solid #2a4433;border-radius:10px;padding:8px;font:600 14px system-ui;flex:1}
 .aviso{background:#1b3022;border:1px dashed #d2ff3c;border-radius:12px;padding:12px;margin:12px;max-width:760px}@media(min-width:800px){.aviso{margin:12px auto}}</style></head><body>`;
 
 app.get("/admin/entrar", (req, res) => res.send(CABEZA("Entrar · Pedidos") + `<main style="max-width:380px;padding-top:15vh"><img src="/admin/icon-192.png" width="72" height="72" alt="" style="border-radius:50%"><h1>Pedidos Importcap</h1>
@@ -150,6 +154,20 @@ app.get("/api/enlaces", (req, res) => {
   for (const [m, x] of Object.entries(e)) if (x.url && Date.now() - Date.parse(x.fecha) < VIGENCIA_DIAS * 864e5) out[m] = x.url;
   res.set("Cache-Control", "no-store").json(out);
 });
+// aviso al celular 2 días antes de que venza un enlace
+function revisarVencimientos() {
+  const e = leerJSON(ENL_F, {}); let cambio = false;
+  for (const [m, x] of Object.entries(e)) {
+    const falta = Date.parse(x.fecha) + VIGENCIA_DIAS * 864e5 - Date.now();
+    if (falta < 2 * 864e5 && !x.avisado) {
+      x.avisado = true; cambio = true;
+      avisar({ title: `⏳ El enlace de Deuna de $${m} ${falta > 0 ? "vence en " + Math.ceil(falta / 36e5) + " horas" : "ya venció"}`, body: "Crea uno nuevo en Deuna y pégalo en el panel (💳 Enlaces).", tag: "enl" + m, url: "/admin#enlaces" }).catch(() => {});
+    }
+  }
+  if (cambio) fs.writeFileSync(ENL_F, JSON.stringify(e));
+}
+setInterval(revisarVencimientos, 60 * 60 * 1000); setTimeout(revisarVencimientos, 60 * 1000);
+
 app.post("/admin/enlaces", auth, express.urlencoded({ extended: false, limit: "10kb" }), (req, res) => {
   const e = leerJSON(ENL_F, {});
   for (const m of MONTOS) {
@@ -161,6 +179,43 @@ app.post("/admin/enlaces", auth, express.urlencoded({ extended: false, limit: "1
   }
   fs.writeFileSync(ENL_F, JSON.stringify(e)); res.redirect("/admin?enlaces=ok#enlaces");
 });
+
+// reseñas que dejan los clientes: se publican solo cuando fer las aprueba en el panel
+const APR_F = path.join(DATA, "resenas-aprobadas.json");
+function resenasPublicas() {
+  const apr = new Set(leerJSON(APR_F, [])), bor = new Set(leerJSON(BOR_F, []));
+  return leer().filter(r => r.formulario === "resena" && apr.has(r.id) && !bor.has(r.id)).reverse();
+}
+app.get("/api/resenas", (req, res) => {
+  res.set("Cache-Control", "no-cache").json(resenasPublicas().map(r => ({
+    nombre: r.datos.nombre, ciudad: r.datos.ciudad, titulo: r.datos.titulo, texto: r.datos.texto,
+    estrellas: Math.min(5, Math.max(1, parseInt(r.datos.estrellas) || 5)),
+    fecha: new Date(r.fecha).toLocaleDateString("es-EC", { timeZone: "America/Guayaquil" }),
+    foto: r.archivo ? "/resena-foto/" + r.archivo : null
+  })));
+});
+app.get("/resena-foto/:f", (req, res) => {
+  const f = path.basename(req.params.f);
+  if (!resenasPublicas().some(r => r.archivo === f)) return res.status(404).end();
+  res.set("Cache-Control", "public, max-age=86400").sendFile(path.join(FILES, f), err => err && res.status(404).end());
+});
+app.post("/admin/api/aprobar", auth, express.json({ limit: "2kb" }), (req, res) => {
+  const { id, quitar } = req.body || {};
+  if (typeof id !== "string" || id.length > 60) return res.status(400).send("mal");
+  const a = new Set(leerJSON(APR_F, [])); quitar ? a.delete(id) : a.add(id);
+  fs.writeFileSync(APR_F, JSON.stringify([...a])); res.json({ ok: true });
+});
+function resenasHTML(regs, bor, fmt) {
+  const apr = new Set(leerJSON(APR_F, []));
+  const l = regs.filter(r => r.formulario === "resena" && !bor.has(r.id)).reverse();
+  if (!l.length) return "";
+  return `<div class="card" id="resenas"><b>⭐ Reseñas de clientes (${l.length})</b><p class="muted" style="margin:4px 0 0">Solo aparecen en la página las que apruebas.</p>` + l.map(r => {
+    const d = r.datos, ok = apr.has(r.id), n = Math.min(5, Math.max(1, parseInt(d.estrellas) || 5));
+    return `<div class="row" style="border-top:1px solid #2a4433;padding-top:10px"><span style="color:#ffc93c">${"★".repeat(n)}${"☆".repeat(5 - n)}</span> <b>${esc(d.nombre)}</b> <span class="muted">${esc(d.ciudad)} · ${esc(fmt(r.fecha))}</span>${ok ? ' <span class="est e-despachado">publicada</span>' : ' <span class="est e-nuevo">por aprobar</span>'}
+${d.titulo ? `<div><b>${esc(d.titulo)}</b></div>` : ""}<div>${esc(d.texto)}</div>${r.archivo ? `<a href="/admin/comprobante/${esc(r.archivo)}" target="_blank">📷 ver foto</a>` : ""}
+<div class="acts"><button class="btn${ok ? " s" : ""}" data-apr="${esc(r.id)}"${ok ? ' data-quitar="1"' : ""}>${ok ? "Ocultar" : "✓ Publicar"}</button><button class="btn s del" data-del="${esc(r.id)}" aria-label="Eliminar">🗑️</button></div></div>`;
+  }).join("") + `</div>`;
+}
 
 // "eliminar" manda el pedido a la papelera (se puede recuperar); no se borra del archivo.
 const BOR_F = path.join(DATA, "eliminados.json");
@@ -194,7 +249,8 @@ app.get("/admin/pedidos.csv", auth, (req, res) => {
 function enlacesHTML() {
   const e = leerJSON(ENL_F, {});
   const fila = m => { const x = e[m]; const dias = x ? Math.floor((Date.now() - Date.parse(x.fecha)) / 864e5) : null;
-    const estado = !x ? '<span class="no">sin enlace (usa el enlace general)</span>' : dias >= VIGENCIA_DIAS ? '<span class="no">vencido, pon uno nuevo</span>' : `<span class="muted">puesto ${dias === 0 ? "hoy" : `hace ${dias} día${dias === 1 ? "" : "s"}`}, vence en ${VIGENCIA_DIAS - dias} días</span>`;
+    const vence = x ? new Date(Date.parse(x.fecha) + VIGENCIA_DIAS * 864e5).toISOString() : "";
+    const estado = !x ? '<span class="no">sin enlace (usa el enlace general)</span>' : `<span class="cd" data-vence="${vence}">⏳</span>`;
     return `<label class="row" style="display:block"><b>$${m}</b> ${m === "5" ? "(reserva contra entrega)" : m === "45" ? "(volqueta, bulldozer, tractor)" : "(excavadora)"} · ${estado}
 <textarea name="m${m}" rows="2" placeholder="Pega aquí el mensaje o enlace de Deuna de $${m}" style="width:100%;margin-top:6px;padding:10px;border-radius:10px;border:1px solid #2a4433;background:#0c1a10;color:#f4f1e8;font-size:15px"></textarea></label>`; };
   return `<form class="card" id="enlaces" method="post" action="/admin/enlaces"><b>💳 Enlaces de cobro Deuna</b><p class="muted" style="margin:4px 0 0">Pega el mensaje completo que te da Deuna, yo saco el enlace. Deja vacío para no cambiarlo. Se dejan de usar a los ${VIGENCIA_DIAS} días.</p>
@@ -211,33 +267,49 @@ app.get("/admin", auth, (req, res) => {
   const tarjetas = todos.map(r => {
     const d = r.datos, cs = comp[d.codigo] || [], borrado = bor.has(r.id), e = borrado ? "papelera" : est[d.codigo] || "nuevo";
     const tel = String(d.telefono || "").replace(/\D/g, "").replace(/^0/, "593");
-    const comps = cs.filter(c => c.archivo).map((c, i) => `<a href="/admin/comprobante/${esc(c.archivo)}" target="_blank">🧾 ver comprobante${cs.length > 1 ? " " + (i + 1) : ""}</a>`).join(" · ");
-    const maps = /^https:\/\//.test(d.ubicacion || "") ? `<a class="btn s" href="${esc(d.ubicacion)}" target="_blank">📍 Maps</a>` : "";
-    return `<div class="card" id="${esc(d.codigo)}" data-e="${e}"${borrado ? " hidden" : ""}><div class="top"><span><span class="code">${esc(d.codigo)}</span> <span class="est e-${e}">${e}</span></span><span class="muted">${esc(fmt(r.fecha))}</span></div>
-<div class="row"><b>${esc(d.nombre)}</b> · ${esc(d.telefono)}</div>
-<div class="row">${esc(d.productos || d.cantidad + " × excavadora")}<br><span class="tot">${esc(d.total)}</span> <span class="muted">· ${esc(d.pago)} · ahora ${esc(d.a_pagar_ahora)}</span></div>
-<div class="row">${esc(d.direccion)}, ${esc(d.ciudad)}${d.provincia ? ", " + esc(d.provincia) : ""}${d.ubicacion && !maps ? `<br>📍 ${esc(d.ubicacion)}` : ""}${d.notas ? `<br>📝 ${esc(d.notas)}` : ""}</div>
-<div class="row">${comps || '<span class="no">Sin comprobante todavía</span>'}</div>
-${d.origen ? `<div class="row muted">Anuncio: ${esc(d.origen)}</div>` : ""}
-<div class="acts"><a class="btn" href="https://wa.me/${esc(tel)}" target="_blank">WhatsApp</a>${maps}${borrado ? `<button class="btn s" data-del="${esc(r.id)}" data-volver="1">↩️ Recuperar</button>` : `<select data-c="${esc(d.codigo)}">${ESTADOS.map(x => `<option${x === e ? " selected" : ""}>${x}</option>`).join("")}</select><button data-del="${esc(r.id)}" class="btn s del" aria-label="Eliminar">🗑️</button>`}</div></div>`;
+    const comps = cs.filter(c => c.archivo).map((c, i) => `<a href="/admin/comprobante/${esc(c.archivo)}" target="_blank">🧾 comprobante${cs.length > 1 ? " " + (i + 1) : ""}</a>`).join("<br>");
+    const maps = /^https:\/\//.test(d.ubicacion || "") ? `<br><a href="${esc(d.ubicacion)}" target="_blank">📍 ver en Maps</a>` : d.ubicacion ? `<br>📍 ${esc(d.ubicacion)}` : "";
+    const accion = borrado ? `<button class="btn s" data-del="${esc(r.id)}" data-volver="1">↩️ Recuperar</button>`
+      : `<select data-c="${esc(d.codigo)}">${ESTADOS.map(x => `<option${x === e ? " selected" : ""}>${x}</option>`).join("")}</select> <button data-del="${esc(r.id)}" class="btn s del" aria-label="Eliminar">🗑️</button>`;
+    return `<tr id="${esc(d.codigo)}" data-e="${e}"${borrado ? " hidden" : ""}><td>${esc(fmt(r.fecha))}<br><b class="code">${esc(d.codigo)}</b><br><span class="est e-${e}">${e}</span></td>
+<td><b>${esc(d.nombre)}</b><br><a href="https://wa.me/${esc(tel)}" target="_blank">${esc(d.telefono)}</a></td>
+<td>${esc(d.direccion)}<br>${esc(d.ciudad)}${d.provincia ? ", " + esc(d.provincia) : ""}${maps}${d.notas ? `<br>📝 ${esc(d.notas)}` : ""}</td>
+<td>${esc(d.productos || d.cantidad + " × excavadora")}<br><b>${esc(d.total)}</b></td>
+<td>${esc(d.pago)}<br>Ahora: ${esc(d.a_pagar_ahora)}<br>${comps || '<span class="no">sin comprobante</span>'}</td>
+<td class="nw">${accion}</td><td class="o">${esc(d.origen)}</td></tr>`;
   }).join("");
   const sueltos = regs.filter(r => r.formulario === "comprobante" && !pedidos.some(p => p.datos.codigo === r.datos.codigo));
   const cuenta = x => pedidos.filter(r => (est[r.datos.codigo] || "nuevo") === x).length;
   res.set("Cache-Control", "no-store").send(CABEZA(`Pedidos (${pedidos.length}) · Importcap`) + `
-<header><h1>Pedidos (${pedidos.length})</h1><div class="btns"><button class="btn" id="noti" hidden>🔔 Activar notificaciones</button><button class="btn s" id="inst" hidden>📲 Instalar app</button><a class="btn s" href="/admin">↻ Actualizar</a><a class="btn s" href="#enlaces">💳 Enlaces</a><a class="btn s" href="/admin/pedidos.csv">Excel</a><a class="btn s" href="/admin/salir">Salir</a></div>
+<header><h1>Pedidos (${pedidos.length})</h1><div class="btns"><button class="btn" id="noti" hidden>🔔 Activar notificaciones</button><button class="btn s" id="inst" hidden>📲 Instalar app</button><a class="btn s" href="/admin">↻ Actualizar</a><a class="btn s" href="#resenas">⭐ Reseñas</a><a class="btn s" href="#enlaces">💳 Enlaces</a><a class="btn s" href="/admin/pedidos.csv">Excel</a><a class="btn s" href="/admin/salir">Salir</a></div>
 <div class="f" id="f"><button class="on" data-f="">Todos</button>${ESTADOS.map(x => `<button data-f="${x}">${x} (${cuenta(x)})</button>`).join("")}${papelera.length ? `<button data-f="papelera">🗑️ papelera (${papelera.length})</button>` : ""}</div></header>
 <div class="aviso" id="ios" hidden>En iPhone: toca <b>Compartir</b> → <b>Agregar a pantalla de inicio</b>, abre la app desde ahí y luego activa las notificaciones.</div>
-<main>${req.query.enlaces ? '<div class="card" style="border-color:#d2ff3c">✓ Enlaces guardados. La página ya usa los nuevos.</div>' : ""}${tarjetas || '<div class="card">Todavía no hay pedidos.</div>'}
+<main style="max-width:none">${req.query.enlaces ? '<div class="card" style="border-color:#d2ff3c">✓ Enlaces guardados. La página ya usa los nuevos.</div>' : ""}<div class="tabla"><table><thead><tr><th>Fecha / código</th><th>Cliente</th><th>Dirección</th><th>Pedido</th><th>Pago</th><th>Estado</th><th>Anuncio</th></tr></thead><tbody>${tarjetas || '<tr><td colspan="7">Todavía no hay pedidos.</td></tr>'}</tbody></table></div>
+${resenasHTML(regs, bor, fmt)}
 ${enlacesHTML()}
 ${sueltos.length ? `<div class="card"><b>Comprobantes sin pedido</b>` + sueltos.map(s => `<div class="row">${esc(fmt(s.fecha))} · ${esc(s.datos.codigo)} · ${esc(s.datos.nombre)} · <a href="/admin/comprobante/${esc(s.archivo)}" target="_blank">ver</a></div>`).join("") + `</div>` : ""}</main>
 <script>
 const $ = s => document.querySelector(s);
 document.querySelectorAll("select[data-c]").forEach(s => s.onchange = async () => {
   const r = await fetch("/admin/api/estado", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ codigo: s.dataset.c, estado: s.value }) });
-  if (r.ok) { const c = s.closest(".card"); c.dataset.e = s.value; const b = c.querySelector(".est"); b.className = "est e-" + s.value; b.textContent = s.value; } else alert("No se pudo guardar");
+  if (r.ok) { const c = s.closest("tr"); c.dataset.e = s.value; const b = c.querySelector(".est"); b.className = "est e-" + s.value; b.textContent = s.value; } else alert("No se pudo guardar");
 });
 $("#f").onclick = e => { const b = e.target.closest("button"); if (!b) return; document.querySelectorAll("#f button").forEach(x => x.classList.toggle("on", x === b));
-  document.querySelectorAll(".card[data-e]").forEach(c => c.hidden = b.dataset.f ? c.dataset.e !== b.dataset.f : c.dataset.e === "papelera"); };
+  document.querySelectorAll("tr[data-e]").forEach(c => c.hidden = b.dataset.f ? c.dataset.e !== b.dataset.f : c.dataset.e === "papelera"); };
+function cuentaAtras() {
+  document.querySelectorAll(".cd[data-vence]").forEach(el => {
+    const ms = Date.parse(el.dataset.vence) - Date.now();
+    if (ms <= 0) { el.className = "cd no"; el.textContent = "⛔ vencido, pon uno nuevo"; return; }
+    const d = Math.floor(ms / 864e5), h = Math.floor(ms % 864e5 / 36e5), m = Math.floor(ms % 36e5 / 6e4);
+    el.className = "cd " + (ms < 3 * 864e5 ? "no" : "ok-t");
+    el.textContent = "⏳ vence en " + d + " d " + h + " h " + m + " min";
+  });
+}
+cuentaAtras(); setInterval(cuentaAtras, 30000);
+document.querySelectorAll("[data-apr]").forEach(b => b.onclick = async () => {
+  const r = await fetch("/admin/api/aprobar", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: b.dataset.apr, quitar: !!b.dataset.quitar }) });
+  if (r.ok) location.reload(); else alert("No se pudo");
+});
 document.querySelectorAll("[data-del]").forEach(b => b.onclick = async () => {
   const volver = !!b.dataset.volver;
   if (!volver && !confirm("¿Eliminar este pedido? Queda en la papelera por si te equivocas.")) return;

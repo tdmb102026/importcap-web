@@ -196,11 +196,18 @@ footer a{color:var(--ink)}
 .reel .cap span{color:var(--lime)}
 .hint{font-size:13px;color:var(--muted);text-align:center;margin-top:10px}
 /* mensajes */
-.msgs{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;margin:18px -18px 0;padding:0 18px}
+.msgs{display:flex;align-items:flex-start;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;margin:18px -18px 0;padding:0 18px}
 .msgs::-webkit-scrollbar{display:none}
 .msg{flex:0 0 70%;max-width:280px;scroll-snap-align:start;background:var(--bg2);border:1px solid var(--line);border-radius:16px;overflow:hidden;cursor:zoom-in}
 .msg img{width:100%;aspect-ratio:3/4;object-fit:cover;object-position:top}
-.msg div{padding:10px 12px;font-size:14px}.msg .st{color:var(--warn);letter-spacing:2px}
+.msg>div{padding:10px 12px;font-size:14px}.msg .st{color:var(--warn);letter-spacing:2px}
+.stars{display:flex;flex-direction:row-reverse;justify-content:flex-end;gap:4px;margin:6px 0 14px}
+.stars input{position:absolute;opacity:0;pointer-events:none}
+.stars label{font-size:38px;line-height:1;color:#3a5a44;cursor:pointer}
+.stars input:checked~label,.stars label:hover,.stars label:hover~label{color:#ffc93c}
+.resform{margin-top:16px;background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:16px}
+.resform .ok{color:var(--lime);font-weight:700;margin:10px 0 0}
+.msg .st{color:#ffc93c}#resList .msg img{aspect-ratio:1;object-position:center}
 .lb{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.92);display:none;place-items:center;padding:20px}
 .lb.on{display:grid}.lb img{max-height:90vh;border-radius:12px}
 /* redes */
@@ -450,6 +457,36 @@ footer a{color:var(--ink)}
     <a class="cta" href="#pedido" style="margin-top:18px">La quiero</a>
   </div>
 </section>
+<!-- Reseñas: las de CONFIG + las que dejan los clientes y fer aprueba en el panel -->
+<section id="resenas">
+  <div class="wrap">
+    <p class="eyebrow">⭐ Reseñas</p>
+    <h2 style="margin-top:8px">Lo que dicen <span class="hl">las familias</span></h2>
+    <p class="muted" id="resProm" hidden></p>
+    <div class="msgs" id="resList"></div>
+    <p class="hint">Desliza · Toca para ampliar</p>
+    <button type="button" class="cta" id="resAbrir" style="margin-top:18px;background:transparent;color:var(--ink);border:1.5px solid var(--lime);box-shadow:none">⭐ Deja tu reseña</button>
+    <form id="resForm" class="resform" name="resena" method="POST" enctype="multipart/form-data" hidden>
+      <input type="hidden" name="form-name" value="resena">
+      <p class="hp"><label>No llenar: <input name="bot-field"></label></p>
+      <p class="legend" style="margin-top:0">¿Cuántas estrellas nos das?</p>
+      <div class="stars" id="stars">
+        <input type="radio" name="estrellas" id="s5" value="5" required><label for="s5" title="5">★</label>
+        <input type="radio" name="estrellas" id="s4" value="4"><label for="s4" title="4">★</label>
+        <input type="radio" name="estrellas" id="s3" value="3"><label for="s3" title="3">★</label>
+        <input type="radio" name="estrellas" id="s2" value="2"><label for="s2" title="2">★</label>
+        <input type="radio" name="estrellas" id="s1" value="1"><label for="s1" title="1">★</label>
+      </div>
+      <div class="field"><label for="rNombre">Tu nombre</label><input id="rNombre" name="nombre" maxlength="60" required></div>
+      <div class="field"><label for="rCiudad">Ciudad</label><input id="rCiudad" name="ciudad" maxlength="40"></div>
+      <div class="field"><label for="rTitulo">Título <small>(opcional)</small></label><input id="rTitulo" name="titulo" maxlength="80"></div>
+      <div class="field"><label for="rTexto">Tu reseña</label><textarea id="rTexto" name="texto" maxlength="600" required placeholder="¿Qué le pareció a tu hijo?"></textarea></div>
+      <div class="field"><label for="rFoto">Foto <small>(opcional)</small></label><input id="rFoto" type="file" name="captura" accept="image/*"></div>
+      <button type="submit" class="cta" style="margin-top:6px">Enviar reseña</button>
+      <p class="ok" id="resOk" hidden>¡Gracias! Tu reseña aparecerá cuando la revisemos.</p>
+    </form>
+  </div>
+</section>
 <div class="lb" id="lb" onclick="this.classList.remove('on')"><img alt=""></div>
 
 <!-- Formulario -->
@@ -602,6 +639,17 @@ const CONFIG = {
     { red: "TikTok", url: "https://www.tiktok.com/@importcap_ec", titulo: "@importcap_ec", sub: "Míranos en TikTok", portada: "vid/v1.jpg" }
   ],
   // Reseñas reales de clientes: { img: "msg/cliente-1.jpg", nombre: "María R.", fecha: "22/10/2026", titulo: "Llegó perfecta", texto: "..." }
+  resenas: [ // reseñas de clientes con su foto (solo nombre y estrellas cuando se conocen)
+    { img: "resenas/r1.jpg", titulo: "El camión volquete tiene mucho trabajo", texto: "Los niños disfrutan llenando la cama, conduciendo hasta un nuevo lugar, descargando y regresando para la siguiente entrega." },
+    { img: "resenas/r2.jpg", titulo: "Todos los primos encontraron un favorito", texto: "Cada niño eligió una máquina diferente y trabajaron juntos en un gran proyecto de simulación." },
+    { img: "resenas/r3.jpg", titulo: "Hizo que el arenero volviera a ser emocionante", texto: "Ahora, los niños crean nuevas misiones de construcción en lugar de repetir el mismo juego sencillo de arena." },
+    { img: "resenas/r4.jpg", titulo: "Un regalo con verdadera variedad", texto: "En lugar de cuatro versiones del mismo juguete, cada vehículo tiene una función diferente. Esa variedad hace que la colección resulte mucho más útil." },
+    { img: "resenas/r5.jpg", titulo: "Una actividad divertida para hacer en interiores también", texto: "En un día lluvioso, usamos bloques ligeros y trozos de papel. Aun así, los niños crearon una auténtica obra de construcción en la sala de juegos." },
+    { img: "resenas/r6.jpg", titulo: "El tipo de regalo que usan", texto: "Esto no se olvidó después del cumpleaños. Los camiones siguen saliendo varias veces por semana para nuevos juegos de construcción." },
+    { img: "resenas/r7.jpg", titulo: "Un conjunto divertido con una curva de aprendizaje pequeña", texto: "Los niños necesitaron ayuda para emparejar y comprender qué controles activaban cada función. Una vez que lo entendieron, jugaron de forma independiente." },
+    { img: "resenas/r8.jpg", titulo: "Una buena tarde sin pantallas", texto: "Los niños se entretuvieron construyendo caminos y transportando bloques de madera en lugar de pedir tabletas. Solo por eso, el set ya valió la pena.", nombre: "Mateo Martín", fecha: "19/08/2026", estrellas: 5 },
+    { img: "resenas/r9.jpg", titulo: "Buena variedad de funciones del camión", texto: "Las piezas móviles hacen que cada vehículo se sienta como algo más que un simple coche teledirigido. La caja basculante y el brazo excavador son especialmente divertidos." }
+  ],
   mensajes: [ // capturas de clientes de Importcap (datos personales difuminados)
     { img: "msg/cliente-1.jpg", titulo: "Pago confirmado", texto: "Depósito recibido y atendido el mismo día." },
     { img: "msg/cliente-2.jpg", titulo: "Transferencia confirmada", texto: "Pagó por transferencia y quedó atendido en minutos." }
@@ -671,6 +719,34 @@ if (CONFIG.mensajes.length) {
   $("#msgs").innerHTML = CONFIG.mensajes.map(m => `<div class="msg">${m.img ? `<img src="${m.img}" alt="Foto de cliente" loading="lazy">` : ""}<div>${m.estrellas ? `<div class="st">${"★".repeat(m.estrellas)}</div>` : ""}${m.nombre ? `<b>${m.nombre}</b>` : ""}${m.fecha ? ` <span class="muted" style="font-size:12px">${m.fecha}</span>` : ""}${m.titulo ? `<p style="margin:6px 0 2px;font-weight:700">${m.titulo}</p>` : ""}${m.texto ? `<p style="margin:2px 0;color:var(--muted)">${m.texto}</p>` : ""}</div></div>`).join("");
   $("#msgs").querySelectorAll("img").forEach(im => im.parentElement.onclick = () => { $("#lb img").src = im.src; $("#lb").classList.add("on"); });
 }
+
+/* reseñas */
+function resCard(m){
+  const e = String(m.estrellas || "").replace(/\D/g, "");
+  const t = x => String(x || "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  return `<div class="msg">${m.img ? `<img src="${t(m.img)}" alt="Foto de cliente" loading="lazy">` : ""}<div>${e ? `<div class="st">${"★".repeat(+e)}${"☆".repeat(5 - e)}</div>` : ""}${m.nombre ? `<b>${t(m.nombre)}</b>` : ""}${m.ciudad ? ` <span class="muted" style="font-size:12px">${t(m.ciudad)}</span>` : ""}${m.fecha ? ` <span class="muted" style="font-size:12px">${t(m.fecha)}</span>` : ""}${m.titulo ? `<p style="margin:6px 0 2px;font-weight:700">${t(m.titulo)}</p>` : ""}${m.texto ? `<p style="margin:2px 0;color:var(--muted)">${t(m.texto)}</p>` : ""}</div></div>`;
+}
+function pintaRes(extra){
+  const todas = extra.concat(CONFIG.resenas || []);
+  $("#resList").innerHTML = todas.map(resCard).join("");
+  $("#resList").querySelectorAll("img").forEach(im => im.parentElement.onclick = () => { $("#lb img").src = im.src; $("#lb").classList.add("on"); });
+  const con = todas.filter(m => m.estrellas);
+  if (con.length >= 3) { const p = con.reduce((a, m) => a + +m.estrellas, 0) / con.length; $("#resProm").hidden = false; $("#resProm").textContent = `★ ${p.toFixed(1)} de 5 · ${con.length} calificaciones`; }
+}
+pintaRes([]);
+fetch("/api/resenas").then(r => r.ok ? r.json() : []).then(l => { if (Array.isArray(l) && l.length) pintaRes(l.map(x => ({ ...x, img: x.foto }))); }).catch(() => {});
+$("#resAbrir").onclick = () => { $("#resForm").hidden = false; $("#resAbrir").hidden = true; $("#resForm").scrollIntoView({ behavior: "smooth", block: "start" }); };
+if (location.hash === "#resena") { $("#resForm").hidden = false; $("#resAbrir").hidden = true; setTimeout(() => $("#resForm").scrollIntoView(), 300); }
+$("#resForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const f = e.target, b = f.querySelector("button[type=submit]");
+  b.disabled = true; b.textContent = "Enviando…";
+  try {
+    const r = await fetch("/", { method: "POST", body: new FormData(f) });
+    if (!r.ok) throw new Error(r.status);
+    f.querySelectorAll(".field,.stars,.legend").forEach(x => x.hidden = true); b.hidden = true; $("#resOk").hidden = false;
+  } catch { b.disabled = false; b.textContent = "No se pudo enviar. Toca para intentar otra vez"; }
+});
 
 /* preguntas */
 const FAQ = [
