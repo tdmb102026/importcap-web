@@ -6,7 +6,7 @@ self.addEventListener("push", e => {
   try { d = e.data.json(); } catch { d = { title: "Importcap", body: e.data ? e.data.text() : "" }; }
   e.waitUntil(self.registration.showNotification(d.title || "Nuevo pedido", {
     body: d.body || "", icon: "/admin/icon-192.png", badge: "/admin/icon-192.png",
-    tag: d.tag || undefined, renotify: true, vibrate: [200, 100, 200], data: { url: d.url || "/admin" }
+    tag: d.tag || undefined, renotify: !d.silent, silent: !!d.silent, vibrate: d.silent ? undefined : [200, 100, 200], data: { url: d.url || "/admin" }
   }));
 });
 self.addEventListener("notificationclick", e => {

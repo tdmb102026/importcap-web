@@ -481,7 +481,7 @@ footer a{color:var(--ink)}
       <div class="field"><label for="telefono">Celular (WhatsApp)</label><input id="telefono" name="telefono" type="tel" inputmode="numeric" placeholder="09XXXXXXXX" autocomplete="tel" required><div class="err">Escribe un celular de 10 dígitos que empiece con 09.</div></div>
       <div class="field"><label for="cedula">Cédula</label><input id="cedula" name="cedula" type="text" inputmode="numeric" maxlength="13" placeholder="10 dígitos" autocomplete="off" required><div class="err">Revisa tu cédula: son 10 dígitos (o 13 si es RUC).</div></div>
       <div class="field"><label for="ciudad">Ciudad</label><input id="ciudad" name="ciudad" autocomplete="address-level2" placeholder="Ej. Quito" required><div class="err">Escribe tu ciudad.</div></div>
-      <div class="field"><label for="direccion">Dirección y referencia</label><textarea id="direccion" name="direccion" placeholder="Calles, número de casa y una referencia" required></textarea><div class="err">Escribe la dirección con una referencia para el courier.</div></div>
+      <div class="field"><label for="direccion">Dirección y referencia <span class="muted" style="font-weight:400">(opcional si marcas tu ubicación abajo)</span></label><textarea id="direccion" name="direccion" placeholder="Calles, número de casa y una referencia"></textarea><div class="err">Escribe la dirección con una referencia, o marca tu ubicación en el mapa aquí abajo.</div></div>
       <div class="field"><label for="ubicacion">Ubicación de Google Maps <small>(opcional, ayuda al courier)</small></label>
         <div class="maps"><button type="button" id="btnGps">📍 Usar mi ubicación</button><button type="button" id="btnMapa">🗺️ Elegir en el mapa</button></div>
         <input id="ubicacion" name="ubicacion" inputmode="url" placeholder="Toca un botón y se llena solo">
@@ -543,6 +543,8 @@ footer a{color:var(--ink)}
       <a class="btn" id="payLink" target="_blank" rel="noopener" hidden style="margin:10px 0 4px">Pagar en Deuna</a>
       <p id="payMonto" hidden style="margin:0 0 14px;font-size:14px"></p>
       <div class="bank" id="payBank" hidden></div>
+      <button type="button" class="btn" id="yaTransf" hidden style="margin-top:10px;width:100%">✅ Ya hice mi transferencia</button>
+      <p id="yaOk" hidden style="margin:8px 0 0;font-size:14px;font-weight:700">¡Gracias! Ahora sube aquí abajo la captura de la transferencia 👇</p>
       <p style="font-size:14px;margin:12px 0 0" hidden>En la descripción del pago pon tu código <span class="code" id="payCode"></span></p>
       <p style="font-size:14px;margin:10px 0 0" id="payNoQr" hidden>En unos minutos te enviamos el QR de Deuna por WhatsApp.</p>
       <form class="up" name="comprobante" method="POST" data-netlify="true" netlify-honeypot="bot-field" enctype="multipart/form-data" id="upForm">
@@ -816,7 +818,7 @@ function total(){
 renderCart();
 
 /* ubicación de Google Maps: pegar o usar GPS */
-function setUbic(v){ $("#ubicacion").value = v; $("#mapok").style.display = v ? "block" : "none"; }
+function setUbic(v){ $("#ubicacion").value = v; $("#mapok").style.display = v ? "block" : "none"; if (v) check("direccion"); }
 $("#ubicacion").addEventListener("input", e => $("#mapok").style.display = /maps|goo\.gl|google/.test(e.target.value) ? "block" : "none");
 $("#btnGps").onclick = () => {
   if (!navigator.geolocation) return $("#ubicacion").focus();
@@ -886,7 +888,7 @@ const rules = {
   nombre: v => v.trim().split(/\s+/).length >= 2 || v.trim().length >= 4,
   telefono: v => /^09\d{8}$/.test(v.replace(/\D/g,"").replace(/^5939/,"09")),
   cedula: v => cedulaOk(v.replace(/\D/g, "")),
-  ciudad: v => v.trim().length >= 3, direccion: v => v.trim().length >= 8
+  ciudad: v => v.trim().length >= 3, direccion: v => v.trim().length >= 8 || !!$("#ubicacion").value.trim()
 };
 function check(name){ const el = form.elements[name], ok = rules[name](el.value); el.closest(".field").classList.toggle("bad", !ok); return ok; }
 Object.keys(rules).forEach(n => {
@@ -916,7 +918,7 @@ form.addEventListener("submit", async e => {
     if (!r.ok) throw new Error(r.status);
     if (window.fbq) fbq("track", "Purchase", { value: c.tot, currency: "USD", content_name: "Excavadora RC", num_items: c.cant });
     $("#thxMsg").innerHTML = `Gracias, <b>${d.nombre.split(" ")[0]}</b>. Te contactaremos al <b>${d.telefono}</b> para confirmar la entrega.`;
-    $("#thxSum").innerHTML = sumHTML(c) + `<div style="margin-top:8px;color:var(--muted);font-size:14px;display:block">${d.direccion}, ${d.ciudad}</div>`;
+    $("#thxSum").innerHTML = sumHTML(c) + `<div style="margin-top:8px;color:var(--muted);font-size:14px;display:block">${d.direccion ? d.direccion + ", " : (d.ubicacion ? "📍 Ubicación marcada en el mapa · " : "")}${d.ciudad}</div>`;
     $("#thxWa").href = `https://wa.me/${CONFIG.whatsapp}?text=` + waText(d, c);
     showPay(d, c);
     $("#thanks").classList.add("on"); document.body.style.overflow = "hidden"; onScroll(); marca("thx");
@@ -971,8 +973,9 @@ function showPay(d, c){
   const srv = ENL[String(c.ahora)];
   const fijo = srv ? { url: srv } : (P.deuna.enlaces || []).find(e => e.monto === c.ahora && e.url && (!e.hasta || hoy <= e.hasta));
   $("#payFijo").hidden = !fijo;
-  if (fijo) { $("#payFijo").href = fijo.url; $("#payFijo").textContent = `💳 Pagar ${money(c.ahora)} en Deuna`; }
-  $("#payLink").hidden = !hasLink || !!fijo; $("#payLink").textContent = `💳 Pagar ${money(c.ahora)} en Deuna`;
+  if (fijo) { $("#payFijo").href = fijo.url; $("#payFijo").textContent = `💳 Pagar ${money(c.ahora)} con Deuna`; }
+  $("#payLink").hidden = !hasLink || !!fijo; $("#payLink").textContent = `💳 Pagar ${money(c.ahora)} con Deuna`;
+  $("#yaTransf").hidden = !(P.deuna.cuenta || {}).numero; $("#yaTransf").disabled = false; $("#yaTransf").textContent = "✅ Ya hice mi transferencia"; $("#yaOk").hidden = true;
   $("#payMonto").hidden = !hasLink || !!fijo; $("#payMonto").innerHTML = `Al abrir Deuna escribe el monto: <b>${money(c.ahora)}</b>`;
   $("#payNota").hidden = c.pago === "deuna";
   $("#payNota").innerHTML = `Pagas <b>solo ${money(c.ahora)}</b> ahora para confirmar tu pedido. Los <b>${money(c.alRecibir)}</b> restantes los pagas al recibirlo.`;
@@ -1041,6 +1044,18 @@ function flechas(el){
 }
 ["#reels", "#resList"].forEach(q => flechas($(q)));
 document.querySelectorAll(".prod .ph").forEach(flechas);
+
+/* avisa al panel cuando el cliente va a pagar: así te llega la notificación del pedido */
+function avisaPago(via){
+  const cod = $("#upCodigo").value; if (!cod) return;
+  try { fetch("/", { method: "POST", keepalive: true, headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: new URLSearchParams({ "form-name": "pago-iniciado", codigo: cod, via }).toString() }); } catch {}
+}
+["#payFijo", "#payLink"].forEach(q => $(q).addEventListener("click", () => avisaPago("deuna")));
+$("#yaTransf").onclick = () => {
+  avisaPago("transferencia");
+  $("#yaTransf").disabled = true; $("#yaTransf").textContent = "✅ Recibido, gracias"; $("#yaOk").hidden = false;
+  $("#upForm").scrollIntoView({ behavior: "smooth", block: "center" });
+};
 </script>
 </body>
 </html>

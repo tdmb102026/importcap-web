@@ -64,6 +64,14 @@ app.post("/", express.urlencoded({ extended: false, limit: "50kb" }), upload.sin
   if (b["bot-field"]) return res.status(200).send("ok"); // trampa para robots
   const datos = {};
   for (const [k, v] of Object.entries(b)) if (k !== "bot-field") datos[k] = String(v).slice(0, 1000);
+  let pedido = null;
+  if (b["form-name"] === "pago-iniciado") {
+    const regs = leer();
+    // un aviso por pedido y forma de pago, aunque toque el botón varias veces
+    if (regs.some(r => r.formulario === "pago-iniciado" && r.datos.codigo === datos.codigo && r.datos.via === datos.via)) return res.status(200).send("ok");
+    pedido = regs.find(r => r.formulario === "pedido-excavadora" && r.datos.codigo === datos.codigo);
+    if (!pedido) return res.status(200).send("ok");
+  }
   guardar({
     id: crypto.randomUUID(),
     fecha: new Date().toISOString(),
@@ -72,8 +80,12 @@ app.post("/", express.urlencoded({ extended: false, limit: "50kb" }), upload.sin
     archivo: req.file ? req.file.filename : null
   });
   res.status(200).send("ok");
-  if (b["form-name"] === "pedido-excavadora")
-    avisar({ title: `🛒 Nuevo pedido ${datos.codigo || ""}`, body: `${datos.nombre || ""} · ${datos.productos || ""} · ${datos.total || ""}\n${datos.pago || ""} · ${datos.ciudad || ""}`, tag: datos.codigo, url: "/admin#" + (datos.codigo || "") }).catch(() => {});
+  if (b["form-name"] === "pedido-excavadora") // aviso suave, sin sonido: confirmó pero aún no paga
+    avisar({ title: `📝 ${datos.codigo || ""}: confirmó un pedido, aún sin pagar`, body: `${datos.nombre || ""} · ${datos.productos || ""} · ${datos.total || ""} · ${datos.ciudad || ""}`, tag: datos.codigo, silent: true, url: "/admin#" + (datos.codigo || "") }).catch(() => {});
+  else if (pedido) {
+    const p = pedido.datos, como = datos.via === "transferencia" ? "dice que ya transfirió" : "tocó Pagar con Deuna";
+    avisar({ title: `🛒 Pedido ${p.codigo}: ${como}`, body: `${p.nombre || ""} · ${p.productos || ""} · ${p.total || ""}\nA pagar ahora: ${p.a_pagar_ahora || ""} · ${p.ciudad || ""}`, tag: p.codigo, url: "/admin#" + p.codigo }).catch(() => {});
+  }
   else if (b["form-name"] === "resena")
     avisar({ title: `⭐ Nueva reseña (${datos.estrellas || "?"} estrellas)`, body: `${datos.nombre || ""}: ${(datos.texto || "").slice(0, 90)}`, url: "/admin#resenas" }).catch(() => {});
   else if (b["form-name"] === "comprobante")
@@ -142,7 +154,7 @@ app.post("/admin/api/suscribir", auth, express.json({ limit: "10kb" }), (req, re
   res.json({ ok: true });
 });
 app.get("/admin/api/resumen", auth, (req, res) => {
-  res.set("Cache-Control", "no-store").json({ n: leer().length, subs: leerJSON(SUBS_F, []).length });
+  res.set("Cache-Control", "no-store").json({ n: leer().filter(r => r.formulario !== "pedido-excavadora").length, subs: leerJSON(SUBS_F, []).length });
 });
 app.post("/admin/api/probar", auth, (req, res) => { avisar({ title: "🔔 Notificaciones activadas", body: "Así te avisaremos cada pedido nuevo.", url: "/admin" }).finally(() => res.json({ ok: true })); });
 const ESTADOS = ["nuevo", "pagado", "despachado", "cancelado"];
@@ -277,7 +289,8 @@ ${montosPanel(e).map(fila).join("")}
 
 app.get("/admin", auth, (req, res) => {
   const regs = leer(), est = leerJSON(EST_F, {}), bor = new Set(leerJSON(BOR_F, []));
-  const comp = {};
+  const comp = {}, intento = {};
+  regs.filter(r => r.formulario === "pago-iniciado").forEach(r => { (intento[r.datos.codigo] ||= []).push(r.datos.via); });
   regs.filter(r => r.formulario === "comprobante").forEach(r => { (comp[r.datos.codigo] ||= []).push(r); });
   const todos = regs.filter(r => r.formulario === "pedido-excavadora").reverse();
   const pedidos = todos.filter(r => !bor.has(r.id)), papelera = todos.filter(r => bor.has(r.id));
@@ -300,7 +313,7 @@ app.get("/admin", auth, (req, res) => {
 <td><b>${esc(d.nombre)}</b>${d.cedula ? `<br><span class="muted">CI ${esc(d.cedula)}</span>` : ""}<br><a href="https://wa.me/${esc(tel)}" target="_blank">${esc(d.telefono)}</a><div class="wab"><a class="btn s" href="${esc(wa(msgRecibido))}" target="_blank">📲 Recibido</a><a class="btn s" href="${esc(wa(msgAprobado))}" target="_blank" data-aprobar="${esc(d.codigo)}">✅ Aprobado</a></div></td>
 <td>${esc(d.direccion)}<br>${esc(d.ciudad)}${d.provincia ? ", " + esc(d.provincia) : ""}${maps}${d.notas ? `<br>📝 ${esc(d.notas)}` : ""}</td>
 <td>${esc(d.productos || d.cantidad + " × excavadora")}<br><b>${esc(d.total)}</b></td>
-<td>${esc(d.pago)}<br>Ahora: ${esc(d.a_pagar_ahora)}<br>${comps || '<span class="no">sin comprobante</span>'}</td>
+<td>${esc(d.pago)}<br>Ahora: ${esc(d.a_pagar_ahora)}<br>${(intento[d.codigo] || []).map(v => `<span class="ok-t">👉 ${v === "transferencia" ? "dice que transfirió" : "tocó Pagar con Deuna"}</span><br>`).join("")}${comps || '<span class="no">sin comprobante</span>'}</td>
 <td class="nw">${accion}</td><td class="o">${esc(d.origen)}</td></tr>`;
   }).join("");
   const sueltos = regs.filter(r => r.formulario === "comprobante" && !bor.has(r.id) && !todos.some(p => p.datos.codigo === r.datos.codigo));
