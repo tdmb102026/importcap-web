@@ -262,7 +262,7 @@ function enlacesHTML() {
   const e = leerJSON(ENL_F, {});
   const fila = m => { const x = e[m]; const dias = x ? Math.floor((Date.now() - Date.parse(x.fecha)) / 864e5) : null;
     const vence = x ? new Date(Date.parse(x.fecha) + VIGENCIA_DIAS * 864e5).toISOString() : "";
-    const estado = !x ? '<span class="no">sin enlace (usa el enlace general)</span>' : `<span class="cd" data-vence="${vence}">⏳</span>`;
+    const estado = !x ? `<span class="no">falta pegar el enlace. Mientras tanto, quien pague $${m} verá el enlace general de Deuna y tendrá que escribir $${m} a mano</span>` : `<span class="cd" data-vence="${vence}">⏳</span>`;
     return `<label class="row" style="display:block"><b>$${m}</b> ${NOTA_MONTO[m] ? "(" + NOTA_MONTO[m] + ")" : ""} · ${estado}${x ? ' <span class="muted" style="font-size:12px">· escribe - para quitarlo</span>' : ""}
 <textarea name="m${m}" rows="2" placeholder="Pega aquí el mensaje o enlace de Deuna de $${m}" style="width:100%;margin-top:6px;padding:10px;border-radius:10px;border:1px solid #2a4433;background:#0c1a10;color:#f4f1e8;font-size:15px"></textarea></label>`; };
   return `<form class="card" id="enlaces" method="post" action="/admin/enlaces"><b>💳 Enlaces de cobro Deuna</b><p class="muted" style="margin:4px 0 0">Pega el mensaje completo que te da Deuna, yo saco el enlace. Deja vacío para no cambiarlo. Se dejan de usar a los ${VIGENCIA_DIAS} días.</p>
