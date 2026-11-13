@@ -147,7 +147,10 @@ app.get("/admin/api/resumen", auth, (req, res) => {
 app.post("/admin/api/probar", auth, (req, res) => { avisar({ title: "🔔 Notificaciones activadas", body: "Así te avisaremos cada pedido nuevo.", url: "/admin" }).finally(() => res.json({ ok: true })); });
 const ESTADOS = ["nuevo", "pagado", "despachado", "cancelado"];
 // enlaces de cobro de Deuna por monto, editables desde el panel
-const ENL_F = path.join(DATA, "enlaces.json"), MONTOS = ["5", "45", "50"], VIGENCIA_DIAS = 30;
+const ENL_F = path.join(DATA, "enlaces.json"), MONTOS = ["5", "45", "50", "90", "95"], VIGENCIA_DIAS = 30;
+// montos que se muestran en el panel: los fijos más cualquier otro que fer haya agregado
+const montosPanel = e => [...new Set(MONTOS.concat(Object.keys(e)))].sort((a, b) => a - b);
+const NOTA_MONTO = { "5": "reserva contra entrega", "45": "volqueta, bulldozer o tractor", "50": "excavadora", "90": "dos de $45", "95": "excavadora + uno de $45", "135": "los tres de $45", "140": "excavadora + dos de $45", "185": "los cuatro" };
 // la primera vez arranca con los enlaces que fer mandó el 12 de noviembre
 if (!fs.existsSync(ENL_F)) fs.writeFileSync(ENL_F, JSON.stringify({
   "5": { url: "https://pagar.deuna.app/H92p/U2FsdGVkX1+znLHfONc/b3rlDu3w20x6Wrj5UXo3JWvhNKzmTvATNoakXBscTqWzb0Dv1qmDEQi3HCtjjdL4Il6F2EtB1LRmCWzskEVdTTv3/7VsRIOfaFCec11WV7lBCE5Nok/T0K9LdMS3JHS13w==", fecha: "2026-11-13T00:20:00Z" },
@@ -175,8 +178,12 @@ setInterval(revisarVencimientos, 60 * 60 * 1000); setTimeout(revisarVencimientos
 
 app.post("/admin/enlaces", auth, express.urlencoded({ extended: false, limit: "10kb" }), (req, res) => {
   const e = leerJSON(ENL_F, {});
-  for (const m of MONTOS) {
-    const v = String((req.body || {})["m" + m] || "").trim();
+  const b = req.body || {};
+  const nuevo = String(b.otroMonto || "").replace(",", ".").trim();
+  if (/^\d{1,4}(\.\d{1,2})?$/.test(nuevo) && +nuevo > 0) b["m" + String(+nuevo)] = b.otro;
+  for (const m of montosPanel(e).concat(String(+nuevo || ""))) {
+    if (!m) continue;
+    const v = String(b["m" + m] || "").trim();
     if (!v) continue;
     if (v === "-") { delete e[m]; continue; }
     const url = (v.match(/https:\/\/pagar\.deuna\.app\/\S+/) || [])[0];
@@ -256,10 +263,14 @@ function enlacesHTML() {
   const fila = m => { const x = e[m]; const dias = x ? Math.floor((Date.now() - Date.parse(x.fecha)) / 864e5) : null;
     const vence = x ? new Date(Date.parse(x.fecha) + VIGENCIA_DIAS * 864e5).toISOString() : "";
     const estado = !x ? '<span class="no">sin enlace (usa el enlace general)</span>' : `<span class="cd" data-vence="${vence}">⏳</span>`;
-    return `<label class="row" style="display:block"><b>$${m}</b> ${m === "5" ? "(reserva contra entrega)" : m === "45" ? "(volqueta, bulldozer, tractor)" : "(excavadora)"} · ${estado}
+    return `<label class="row" style="display:block"><b>$${m}</b> ${NOTA_MONTO[m] ? "(" + NOTA_MONTO[m] + ")" : ""} · ${estado}${x ? ' <span class="muted" style="font-size:12px">· escribe - para quitarlo</span>' : ""}
 <textarea name="m${m}" rows="2" placeholder="Pega aquí el mensaje o enlace de Deuna de $${m}" style="width:100%;margin-top:6px;padding:10px;border-radius:10px;border:1px solid #2a4433;background:#0c1a10;color:#f4f1e8;font-size:15px"></textarea></label>`; };
   return `<form class="card" id="enlaces" method="post" action="/admin/enlaces"><b>💳 Enlaces de cobro Deuna</b><p class="muted" style="margin:4px 0 0">Pega el mensaje completo que te da Deuna, yo saco el enlace. Deja vacío para no cambiarlo. Se dejan de usar a los ${VIGENCIA_DIAS} días.</p>
-${MONTOS.map(fila).join("")}<button class="btn" style="width:100%;margin-top:12px;padding:12px">Guardar enlaces</button></form>`;
+${montosPanel(e).map(fila).join("")}
+<label class="row" style="display:block"><b>➕ Otro monto</b> <span class="muted">(por ejemplo 135 o 140 para pedidos de 3 o 4 juguetes)</span>
+<input name="otroMonto" inputmode="decimal" placeholder="Monto, ej. 135" style="width:100%;margin-top:6px;padding:10px;border-radius:10px;border:1px solid #2a4433;background:#0c1a10;color:#f4f1e8;font-size:15px">
+<textarea name="otro" rows="2" placeholder="Pega aquí el mensaje o enlace de Deuna de ese monto" style="width:100%;margin-top:6px;padding:10px;border-radius:10px;border:1px solid #2a4433;background:#0c1a10;color:#f4f1e8;font-size:15px"></textarea></label>
+<p class="muted" style="margin:8px 0 0">Si un cliente pide un monto que no tiene enlace, la página le muestra el enlace general de Deuna y le dice qué monto escribir, junto con la transferencia.</p><button class="btn" style="width:100%;margin-top:12px;padding:12px">Guardar enlaces</button></form>`;
 }
 
 app.get("/admin", auth, (req, res) => {

@@ -58,6 +58,8 @@ header.brand{display:flex;justify-content:space-between;align-items:center;paddi
 .price{display:flex;align-items:baseline;gap:12px;margin:14px 0 4px}
 .price b{font:900 44px/1 var(--head);font-stretch:125%;color:var(--lime)}
 .price s{color:var(--muted);font-size:18px}
+.antes{margin:14px 0 -8px;color:var(--muted);font-size:16px}.antes s{font-size:20px;font-weight:700;text-decoration-thickness:2px}
+.prod .an{font-size:12px;color:var(--muted);margin-top:auto;padding-top:6px}.prod .an+.pr{margin-top:0;padding-top:2px}.prod .an s{font-weight:700}
 .cta{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;min-height:62px;border:0;border-radius:16px;background:var(--lime);color:var(--lime-ink);font:900 18px/1.1 var(--head);font-stretch:125%;text-transform:uppercase;text-decoration:none;cursor:pointer;padding:12px;box-shadow:0 6px 0 #8fb21f;transition:transform .08s}
 .cta small{font:600 13px/1.3 var(--sans);text-transform:none;margin-top:4px}
 .cta:active{transform:translateY(3px);box-shadow:0 3px 0 #8fb21f}
@@ -278,6 +280,27 @@ footer a{color:var(--ink)}
 .steps li{margin:4px 0}
 @media(min-width:760px){.coll{grid-template-columns:repeat(4,1fr)}}
 @media(min-width:760px){.gift{grid-template-columns:1fr 1fr}.reel{flex-basis:23%}}
+/* flechas de los carruseles (en computadora no se puede deslizar con el mouse) */
+.carr{position:relative}
+.flecha{position:absolute;top:50%;transform:translateY(-50%);z-index:3;width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:rgba(12,26,16,.85);color:#fff;font-size:24px;line-height:1;cursor:pointer;display:none;place-items:center;padding:0 0 3px}
+.flecha.izq{left:-6px}.flecha.der{right:-6px}
+.flecha:hover{background:var(--lime);color:var(--lime-ink)}
+@media(hover:hover){.flecha{display:grid}.flecha[disabled]{opacity:0;pointer-events:none}}
+.prod .carr .flecha{width:30px;height:30px;font-size:18px;margin:0;min-height:0;border-radius:50%;background:rgba(12,26,16,.75);color:#fff;font-weight:400}.prod .carr .flecha.izq{left:4px}.prod .carr .flecha.der{right:4px}
+/* computadora: la página usa el ancho de la pantalla */
+@media(min-width:1000px){
+  .wrap,header.brand,.sticky .in{max-width:1180px;padding-left:32px;padding-right:32px}
+  .hero{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:48px;align-items:start;padding-top:10px}
+  .hcol1{position:sticky;top:16px}
+  h1{font-size:46px}h2{font-size:40px}
+  .reels,.msgs{margin-left:0;margin-right:0;padding:0}
+  .reel{flex:0 0 calc(25% - 8px);max-width:none}
+  #resList .msg{flex:0 0 calc(20% - 10px);max-width:none}
+  .trust{grid-template-columns:1fr 1fr}
+  .coll{gap:18px}
+  #pedido .wrap,.resform{max-width:720px}
+  .thanks .wrap{max-width:600px}
+}
 </style>
 </head>
 <body>
@@ -290,7 +313,8 @@ footer a{color:var(--ink)}
 </header>
 
 <main>
-<div class="wrap">
+<div class="wrap hero">
+  <div class="hcol1">
   <!-- Galería -->
   <div class="gal">
     <div class="slides" id="slides">
@@ -306,6 +330,8 @@ footer a{color:var(--ink)}
     <button class="nav next" aria-label="Foto siguiente" onclick="go(1)">›</button>
   </div>
   <div class="thumbs" id="thumbs"></div>
+  </div>
+  <div class="hcol2">
 
   <div class="chips">
     <span class="chip">Cuchara metálica</span><span class="chip">Luces LED</span><span class="chip">Sonido</span><span class="chip">Orugas de goma</span>
@@ -316,7 +342,8 @@ footer a{color:var(--ink)}
   <p class="muted">Cava, levanta, gira y descarga como una de verdad. Tu hijo la maneja con un control de 11 canales, un botón para cada movimiento.</p>
 
   <span class="bf" id="bfHero" hidden>BLACK FRIDAY</span>
-  <div class="price"><b id="precioHero">$50</b><s id="antesHero"></s></div>
+  <div class="antes" id="antesWrap" hidden>Precio normal <s id="antesHero"></s></div>
+  <div class="price"><b id="precioHero">$50</b></div>
   <p style="margin:0 0 16px" class="muted" id="envioHero"></p>
 
   <a class="cta" href="#pedido">Quiero mi excavadora<small id="ctaSub">Pídela en 1 minuto, sin chatear</small></a>
@@ -328,6 +355,7 @@ footer a{color:var(--ink)}
     <li><span class="ic">💡</span><div><b>Luces LED y sonido</b><span>Para jugar también cuando oscurece.</span></div></li>
     <li><span class="ic">🔋</span><div><b>Batería recargable por USB</b><span>Se carga con el cable que viene en la caja. El control usa pilas AA.</span></div></li>
   </ul>
+  </div>
 </div>
 
 <!-- Videos -->
@@ -573,7 +601,8 @@ footer a{color:var(--ink)}
       <div class="amt" id="payAmt"></div>
       <p id="payNota" style="margin:4px 0 12px;font-size:15px" hidden></p>
       <a class="btn" id="payFijo" target="_blank" rel="noopener" hidden style="margin:10px 0 14px"></a>
-      <a class="btn" id="payLink" target="_blank" rel="noopener" hidden style="margin:10px 0 14px">Pagar en Deuna</a>
+      <a class="btn" id="payLink" target="_blank" rel="noopener" hidden style="margin:10px 0 4px">Pagar en Deuna</a>
+      <p id="payMonto" hidden style="margin:0 0 14px;font-size:14px"></p>
       <div class="bank" id="payBank" hidden></div>
       <p style="font-size:14px;margin:12px 0 0" hidden>En la descripción del pago pon tu código <span class="code" id="payCode"></span></p>
       <p style="font-size:14px;margin:10px 0 0" id="payNoQr" hidden>En unos minutos te enviamos el QR de Deuna por WhatsApp.</p>
@@ -601,10 +630,10 @@ footer a{color:var(--ink)}
 const CONFIG = {
   whatsapp: "593968428316",
   productos: [
-    { id: "excavadora", nombre: "Excavadora RC 11 canales", corto: "Excavadora", precio: 50, specs: "11 canales · gira 680° · luces y sonido", fotos: ["img/estudio.jpg", "../img/excavadora-1.jpg", "img/excava.jpg"] },
-    { id: "volqueta", nombre: "Volqueta RC", corto: "Volqueta", precio: 45, specs: "Volteo real · batería recargable", fotos: ["../img/volquete-1.jpg", "../img/volquete-2.jpg", "../img/volquete-3.jpg"] },
-    { id: "bulldozer", nombre: "Bulldozer RC", corto: "Bulldozer", precio: 45, specs: "9 canales · aleación · luces y sonido", fotos: ["../img/topadora-2.jpg", "../img/topadora-1.jpg", "../img/topadora-3.jpg"] },
-    { id: "tractor", nombre: "Tractor cargador RC", corto: "Tractor cargador", precio: 45, specs: "Pala que sube y baja · aleación", fotos: ["../img/pala-2.jpg", "../img/pala-1.jpg", "../img/pala-4.jpg"] }
+    { id: "excavadora", nombre: "Excavadora RC 11 canales", corto: "Excavadora", precio: 50, antes: null, specs: "11 canales · gira 680° · luces y sonido", fotos: ["img/estudio.jpg", "../img/excavadora-1.jpg", "img/excava.jpg"] },
+    { id: "volqueta", nombre: "Volqueta RC", corto: "Volqueta", precio: 45, antes: null, specs: "Volteo real · batería recargable", fotos: ["../img/volquete-1.jpg", "../img/volquete-2.jpg", "../img/volquete-3.jpg"] },
+    { id: "bulldozer", nombre: "Bulldozer RC", corto: "Bulldozer", precio: 45, antes: null, specs: "9 canales · aleación · luces y sonido", fotos: ["../img/topadora-2.jpg", "../img/topadora-1.jpg", "../img/topadora-3.jpg"] },
+    { id: "tractor", nombre: "Tractor cargador RC", corto: "Tractor cargador", precio: 45, antes: null, specs: "Pala que sube y baja · aleación", fotos: ["../img/pala-2.jpg", "../img/pala-1.jpg", "../img/pala-4.jpg"] }
   ],
   maxCantidad: 10,
   oferta: { activa: true, nombre: "Black Friday" }, // sello de oferta en la barra, el precio y la colección
@@ -676,7 +705,8 @@ if (CONFIG.oferta && CONFIG.oferta.activa) {
   $("#topbar").innerHTML = `🖤 <b>${n.toUpperCase()}</b> · Precios especiales en toda la colección · Envío incluido`;
   $("#bfHero").hidden = false; $("#bfHero").textContent = n.toUpperCase();
 }
-if (CONFIG.precioAntes) $("#antesHero").textContent = money(CONFIG.precioAntes);
+const antesBase = base.antes || CONFIG.precioAntes;
+if (antesBase) { $("#antesHero").textContent = money(antesBase); $("#antesWrap").hidden = false; }
 $("#envioHero").innerHTML = envioGratis ? "<b style='color:var(--ink)'>Envío incluido</b> a todo Ecuador" : CONFIG.envio.texto;
 $("#ctaSub").textContent = "Paga con " + pagoCorto + " · Pídela en 1 minuto";
 $("#underHero").innerHTML = [envioGratis ? "Envío gratis" : "Envíos a todo Ecuador", CONFIG.garantia ? "Garantía " + CONFIG.garantia : "", "Tienda en Ambato"].filter(Boolean).map(t => `<span>${t}</span>`).join("");
@@ -702,21 +732,26 @@ const vo = new IntersectionObserver(es => {
   let mejor = -1, r = .5;
   vids.forEach((v, i) => { const q = vista.get(v) || 0; if (q > r + .05) { r = q; mejor = i; } });
   vids.forEach((v, i) => { if (i === mejor) { v.preload = "auto"; v.play().catch(()=>{}); } else v.pause(); });
-  if (mejor >= 0 && mejor !== activo) { activo = mejor; aplicaSonido(); }
+  if (mejor >= 0) activo = mejor;
+  aplicaSonido();
 }, { threshold: [0, .25, .5, .6, .75, .9, 1] });
 // sonido: suena un video a la vez. El navegador solo deja sonar después del primer toque en la página;
 // desde ahí suena el video que se ve, y al tocar otro el sonido pasa a ese.
 let activo = 0, gesto = false, callado = false;
+// un video "se ve" si más de la mitad está en la pantalla; si bajas o subes y ya no se ve, se calla y se pausa
+const seVe = v => (vista.get(v) || 0) > .5 && !document.hidden;
 function aplicaSonido(){
-  vids.forEach((o, i) => { o.muted = !(gesto && !callado && i === activo); o.nextElementSibling.textContent = o.muted ? "🔇" : "🔊"; });
-  if (gesto && !callado) vids[activo].play().catch(() => {});
+  vids.forEach((o, i) => { o.muted = !(gesto && !callado && i === activo && seVe(o)); o.nextElementSibling.textContent = o.muted ? "🔇" : "🔊"; if (!seVe(o)) o.pause(); });
+  if (gesto && !callado && seVe(vids[activo])) vids[activo].play().catch(() => {});
 }
+document.addEventListener("visibilitychange", aplicaSonido);
 const primerToque = () => { if (gesto) return; gesto = true; aplicaSonido(); };
 ["pointerdown", "touchend", "keydown"].forEach(ev => document.addEventListener(ev, primerToque, { passive: true }));
 vids.forEach(v => vo.observe(v));
 reels.querySelectorAll(".reel").forEach((r,i) => r.onclick = () => {
   gesto = true;
   if (i === activo && !vids[i].muted) callado = true; else { callado = false; activo = i; }
+  vista.set(vids[i], Math.max(vista.get(vids[i]) || 0, .51));
   aplicaSonido(); vids[i].play().catch(()=>{});
 });
 
@@ -802,7 +837,7 @@ $("#pains").addEventListener("change", () => { $("#painmsg").textContent = painM
 /* colección */
 let touched = false;
 const qty = Object.fromEntries(PRODS.map((p,i) => [p.id, i ? 0 : 1]));
-$("#coll").innerHTML = PRODS.map(p => `<div class="prod"><div class="ph">${p.fotos.map((f,i) => `<img src="${f}" alt="${p.nombre}" loading="lazy">`).join("")}</div><div class="dots">${p.fotos.map(() => "<i></i>").join("")}</div><div class="in">${CONFIG.oferta && CONFIG.oferta.activa ? `<span class="bf">${CONFIG.oferta.nombre.toUpperCase()}</span>` : ""}<b>${p.nombre}</b><span class="sp">${p.specs}</span><span class="pr">${money(p.precio)}<small>${envioGratis ? "envío incluido" : ""}</small></span><button type="button" data-add="${p.id}">La quiero</button></div></div>`).join("");
+$("#coll").innerHTML = PRODS.map(p => `<div class="prod"><div class="ph">${p.fotos.map((f,i) => `<img src="${f}" alt="${p.nombre}" loading="lazy">`).join("")}</div><div class="dots">${p.fotos.map(() => "<i></i>").join("")}</div><div class="in">${CONFIG.oferta && CONFIG.oferta.activa ? `<span class="bf">${CONFIG.oferta.nombre.toUpperCase()}</span>` : ""}<b>${p.nombre}</b><span class="sp">${p.specs}</span>${p.antes ? `<span class="an">Precio normal <s>${money(p.antes)}</s></span>` : ""}<span class="pr">${money(p.precio)}<small>${envioGratis ? "envío incluido" : ""}</small></span><button type="button" data-add="${p.id}">La quiero</button></div></div>`).join("");
 $("#coll").addEventListener("click", e => { const id = e.target.dataset && e.target.dataset.add; if (!id) return; if (!touched) PRODS.forEach(p => qty[p.id] = 0); touched = true; if (!qty[id]) qty[id] = 1; renderCart(); irA($("#pedido")); });
 function renderCart(){
   $("#cart").innerHTML = PRODS.map(p => `<div class="ci ${qty[p.id] ? "on" : ""}"><img src="${p.fotos[0]}" alt=""><div class="t"><b>${p.nombre}</b><span>${money(p.precio)}</span></div><div class="ctrl"><button type="button" data-d="-1" data-id="${p.id}" aria-label="Menos ${p.corto}">−</button><output>${qty[p.id]}</output><button type="button" data-d="1" data-id="${p.id}" aria-label="Más ${p.corto}">+</button></div></div>`).join("");
@@ -985,6 +1020,7 @@ function showPay(d, c){
   $("#payFijo").hidden = !fijo;
   if (fijo) { $("#payFijo").href = fijo.url; $("#payFijo").textContent = `💳 Pagar ${money(c.ahora)} en Deuna`; }
   $("#payLink").hidden = !hasLink || !!fijo; $("#payLink").textContent = `💳 Pagar ${money(c.ahora)} en Deuna`;
+  $("#payMonto").hidden = !hasLink || !!fijo; $("#payMonto").innerHTML = `Al abrir Deuna escribe el monto: <b>${money(c.ahora)}</b>`;
   $("#payNota").hidden = c.pago === "deuna";
   $("#payNota").innerHTML = `Pagas <b>solo ${money(c.ahora)}</b> ahora para confirmar tu pedido. Los <b>${money(c.alRecibir)}</b> restantes los pagas al recibirlo.`;
   const cu = P.deuna.cuenta || {};
@@ -1038,6 +1074,20 @@ if (CONFIG.metaPixel) {
   $("#thanks").classList.add("on"); document.body.style.overflow = "hidden"; onScroll(); marca("thx");
 })();
 $("#thxCerrar").onclick = () => { try { localStorage.removeItem("ic_pedido"); } catch {} history.back(); };
+
+/* flechas para los carruseles: en computadora no se puede deslizar con el mouse */
+function flechas(el){
+  if (!el || el.dataset.fl) return; el.dataset.fl = 1;
+  const caja = document.createElement("div"); caja.className = "carr";
+  el.parentNode.insertBefore(caja, el); caja.appendChild(el);
+  const mk = (cls, txt, dir) => { const b = document.createElement("button"); b.type = "button"; b.className = "flecha " + cls; b.textContent = txt; b.setAttribute("aria-label", dir > 0 ? "Siguiente" : "Anterior");
+    b.onclick = e => { e.stopPropagation(); const paso = el.firstElementChild ? Math.max(el.firstElementChild.offsetWidth, el.clientWidth * .8) : el.clientWidth; el.scrollBy({ left: dir * paso, behavior: "smooth" }); }; caja.appendChild(b); return b; };
+  const izq = mk("izq", "‹", -1), der = mk("der", "›", 1);
+  const est = () => { izq.disabled = el.scrollLeft < 4; der.disabled = el.scrollLeft + el.clientWidth >= el.scrollWidth - 4; };
+  el.addEventListener("scroll", est, { passive: true }); addEventListener("resize", est); setTimeout(est, 300); est();
+}
+["#reels", "#resList"].forEach(q => flechas($(q)));
+document.querySelectorAll(".prod .ph").forEach(flechas);
 </script>
 </body>
 </html>
