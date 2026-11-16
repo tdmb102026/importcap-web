@@ -590,9 +590,12 @@ const CONFIG = {
   pagos: {
     deuna: { activo: true, qr: "", /* QR quitado a pedido de fer: confundía. Para volver: "img/deuna-qr.png" */ link: "https://pagar.deuna.app/H92p/merchant?id=6964a0ead4ee6a238e89b599cb040b6d556ecd22",
       // PayPal: tu usuario de paypal.me (lo que va después de paypal.me/). Vacío = no se muestra
-      paypal: { usuario: "" },
+      paypal: { usuario: "", recargo: 3 }, // recargo: lo que se suma por la comisión de PayPal
       // USDT: dirección de tu billetera y la red (TRC20, BEP20, ERC20...). Vacío = no se muestra
-      usdt: { direccion: "", red: "TRC20" },
+      usdt: [
+        { red: "TRC20 (Tron)", direccion: "TTqUwbZJ6tk7JS71tKJZwa24svfx44PQg3" },
+        { red: "BEP20 (BNB Smart Chain)", direccion: "0xb87a8bc5bb475d6304cace13c9bb49ccdd27235c" }
+      ],
       cuenta: { banco: "Banco Pichincha", tipo: "de ahorros", numero: "2207286479", titular: "Fernando Benítez", cedula: "1804770830" },
       // enlaces de cobro con monto fijo: se usan si el monto coincide y no ha pasado la fecha "hasta"; si no, se usa el enlace general de arriba
       enlaces: [
@@ -990,11 +993,11 @@ function showPay(d, c){
   $("#payFijo").hidden = !fijo;
   if (fijo) { $("#payFijo").href = fijo.url; $("#payFijo").textContent = `💳 Pagar ${money(c.ahora)} con Deuna`; }
   $("#payLink").hidden = !hasLink || !!fijo; $("#payLink").textContent = `💳 Pagar ${money(c.ahora)} con Deuna`;
-  const pp = (P.deuna.paypal || {}).usuario, ut = P.deuna.usdt || {};
-  $("#payPaypal").hidden = !pp; if (pp) { $("#payPaypal").href = `https://www.paypal.me/${encodeURIComponent(pp)}/${c.ahora}USD`; $("#payPaypal").textContent = `🅿️ Pagar ${money(c.ahora)} con PayPal`; }
-  $("#payUsdt").hidden = !ut.direccion; $("#yaUsdt").hidden = !ut.direccion; $("#yaUsdt").disabled = false; $("#yaUsdt").textContent = "✅ Ya envié los USDT";
-  if (ut.direccion) $("#payUsdt").innerHTML = `<b>Envía ${c.ahora} USDT</b><div><span>Red</span><span><b>${ut.red}</b></span></div><div><span>Dirección</span><span><b style="word-break:break-all;font-size:12px">${ut.direccion}</b> <button type="button" data-copy="${ut.direccion}">Copiar</button></span></div><p style="margin:6px 0 0;font-size:12px">Usa solo la red ${ut.red}. Si envías por otra red, el pago se pierde.</p>`;
-  $("#payOtros").hidden = !pp && !ut.direccion;
+  const PPc = P.deuna.paypal || {}, pp = PPc.usuario, ppMonto = c.ahora + (+PPc.recargo || 0), ut = (P.deuna.usdt || []).filter(x => x.direccion);
+  $("#payPaypal").hidden = !pp; if (pp) { $("#payPaypal").href = `https://www.paypal.me/${encodeURIComponent(pp)}/${ppMonto}USD`; $("#payPaypal").innerHTML = `🅿️ Pagar ${money(ppMonto)} con PayPal` + (PPc.recargo ? `<small style="display:block;font-weight:500;font-size:12px">incluye ${money(+PPc.recargo)} de comisión de PayPal</small>` : ""); }
+  $("#payUsdt").hidden = !ut.length; $("#yaUsdt").hidden = !ut.length; $("#yaUsdt").disabled = false; $("#yaUsdt").textContent = "✅ Ya envié los USDT";
+  if (ut.length) $("#payUsdt").innerHTML = `<b>Envía ${c.ahora} USDT</b> <span style="font-size:12px">(elige una red)</span>` + ut.map(x => `<div style="display:block;border-top:1px solid #dde3d6;margin-top:8px;padding-top:8px"><span style="font-weight:700">Red ${x.red}</span><div style="display:flex;gap:8px;align-items:center;justify-content:space-between;padding:4px 0 0"><b style="word-break:break-all;font-size:12px">${x.direccion}</b><button type="button" data-copy="${x.direccion}">Copiar</button></div></div>`).join("") + `<p style="margin:8px 0 0;font-size:12px">Envía por la misma red de la dirección que copiaste. No envíes por ERC20 ni otra red: el pago se pierde.</p>`;
+  $("#payOtros").hidden = !pp && !ut.length;
   $("#yaTransf").hidden = !(P.deuna.cuenta || {}).numero; $("#yaTransf").disabled = false; $("#yaTransf").textContent = "✅ Ya hice mi transferencia"; $("#yaOk").hidden = true;
   $("#payMonto").hidden = !hasLink || !!fijo; $("#payMonto").innerHTML = `Al abrir Deuna escribe el monto: <b>${money(c.ahora)}</b>`;
   $("#payNota").hidden = c.pago === "deuna";
