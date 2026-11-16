@@ -273,6 +273,19 @@ footer a{color:var(--ink)}
 .mapbtns{display:flex;gap:8px;padding:0 10px 14px}.mapbtns button{flex:1}
 .mapbtns .ok{background:var(--lime);color:#14200b;border-color:var(--lime)}
 .mapok{font-size:13px;color:var(--lime);margin-top:6px;display:none}
+.m-t{margin:14px 0 10px;font-weight:800;font-size:17px}
+.metodos{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.metodos button{display:flex;flex-direction:column;align-items:center;gap:3px;background:#f2f4ee;border:2px solid #dde3d6;border-radius:16px;padding:14px 8px;cursor:pointer;color:#14200b;font:inherit;transition:border-color .15s,transform .15s}
+.metodos button:hover,.metodos button:focus-visible{border-color:#14200b;transform:translateY(-2px)}
+.metodos button[hidden]{display:none}
+.metodos .m-i{font-size:28px;line-height:1}
+.metodos b{font-size:16px}
+.metodos small{font-size:12px;color:#55604a;line-height:1.25}
+.m-panel{margin-top:14px;animation:mIn .25s ease}
+@keyframes mIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.m-h{margin:0;font-weight:800;font-size:17px}
+#mCambiar{display:block;margin:12px auto 0;background:none;border:0;color:#14200b;text-decoration:underline;font:inherit;font-size:14px;cursor:pointer}
+#mCambiar[hidden]{display:none}
 .bank{background:#f2f4ee;border-radius:12px;padding:12px;margin-top:12px;text-align:left;font-size:14px}
 .bank div{display:flex;justify-content:space-between;gap:8px;padding:3px 0}
 .bank button{border:0;background:#14200b;color:#d2ff3c;border-radius:8px;padding:4px 10px;font-weight:700;cursor:pointer}
@@ -540,19 +553,39 @@ footer a{color:var(--ink)}
       <p style="margin:0;font-weight:700" id="payT">Paga con Deuna</p>
       <div class="amt" id="payAmt"></div>
       <p id="payNota" style="margin:4px 0 12px;font-size:15px" hidden></p>
-      <a class="btn" id="payFijo" target="_blank" rel="noopener" hidden style="margin:10px 0 14px"></a>
-      <a class="btn" id="payLink" target="_blank" rel="noopener" hidden style="margin:10px 0 4px">Pagar en Deuna</a>
-      <p id="payMonto" hidden style="margin:0 0 14px;font-size:14px"></p>
-      <div class="bank" id="payBank" hidden></div>
-      <button type="button" class="btn" id="yaTransf" hidden style="margin-top:10px;width:100%">✅ Ya hice mi transferencia</button>
-      <p id="yaOk" hidden style="margin:8px 0 0;font-size:14px;font-weight:700">¡Gracias! Ahora sube aquí abajo la captura de la transferencia 👇</p>
-      <div id="payOtros" hidden style="margin-top:14px">
-        <p style="margin:0 0 6px;font-weight:700;font-size:14px">O paga con</p>
-        <a class="btn" id="payPaypal" target="_blank" rel="noopener" hidden style="margin:0 0 8px;background:#ffc439;color:#14200b"></a>
-        <div class="bank" id="payPpMail" hidden style="margin-bottom:8px"></div>
+      <div id="metodos">
+        <p class="m-t">¿Cómo quieres pagar?</p>
+        <div class="metodos">
+          <button type="button" data-m="deuna" id="mDeuna"><span class="m-i">📲</span><b>Deuna</b><small>Al instante, desde tu celular</small></button>
+          <button type="button" data-m="banco" id="mBanco"><span class="m-i">🏦</span><b>Transferencia</b><small>Desde cualquier banco</small></button>
+          <button type="button" data-m="usdt" id="mUsdt"><span class="m-i">🪙</span><b>Cripto</b><small>USDT · TRC20 o BEP20</small></button>
+          <button type="button" data-m="paypal" id="mPaypal"><span class="m-i">🅿️</span><b>PayPal</b><small>Cuenta PayPal o tarjeta</small></button>
+        </div>
+      </div>
+      <div class="m-panel" id="pmDeuna" hidden>
+        <p class="m-h">📲 Pagar con Deuna</p>
+        <a class="btn" id="payFijo" target="_blank" rel="noopener" hidden style="margin:10px 0 14px"></a>
+        <a class="btn" id="payLink" target="_blank" rel="noopener" hidden style="margin:10px 0 4px">Pagar en Deuna</a>
+        <p id="payMonto" hidden style="margin:0 0 6px;font-size:14px"></p>
+      </div>
+      <div class="m-panel" id="pmBanco" hidden>
+        <p class="m-h">🏦 Transferencia bancaria</p>
+        <div class="bank" id="payBank" hidden></div>
+        <button type="button" class="btn" id="yaTransf" hidden style="margin-top:10px;width:100%">✅ Ya hice mi transferencia</button>
+        <p id="yaOk" hidden style="margin:8px 0 0;font-size:14px;font-weight:700">¡Gracias! Ahora sube aquí abajo la captura de la transferencia 👇</p>
+      </div>
+      <div class="m-panel" id="pmUsdt" hidden>
+        <p class="m-h">🪙 Pagar con cripto (USDT)</p>
         <div class="bank" id="payUsdt" hidden></div>
         <button type="button" class="btn" id="yaUsdt" hidden style="margin-top:10px;width:100%">✅ Ya envié los USDT</button>
       </div>
+      <div class="m-panel" id="pmPaypal" hidden>
+        <p class="m-h">🅿️ Pagar con PayPal</p>
+        <a class="btn" id="payPaypal" target="_blank" rel="noopener" hidden style="margin:10px 0 8px;background:#ffc439;color:#14200b;flex-direction:column"></a>
+        <div class="bank" id="payPpMail" hidden style="margin-bottom:8px"></div>
+        <p style="margin:6px 0 0;font-size:13px;text-align:left">Se abre PayPal con el monto ya puesto. Puedes pagar con tu cuenta PayPal o con tarjeta. Cuando termines, vuelve aquí y sube la captura.</p>
+      </div>
+      <button type="button" id="mCambiar" hidden>← Elegir otra forma de pago</button>
       <p style="font-size:14px;margin:12px 0 0" hidden>En la descripción del pago pon tu código <span class="code" id="payCode"></span></p>
       <p style="font-size:14px;margin:10px 0 0" id="payNoQr" hidden>En unos minutos te enviamos el QR de Deuna por WhatsApp.</p>
       <form class="up" name="comprobante" method="POST" data-netlify="true" netlify-honeypot="bot-field" enctype="multipart/form-data" id="upForm">
@@ -819,7 +852,7 @@ function calc(){
 function sumHTML(c){
   const envTxt = CONFIG.envio.costo === 0 ? "Incluido" : CONFIG.envio.costo ? money(CONFIG.envio.costo) : "Por confirmar";
   return c.items.map(p => `<div><span>${p.corto} × ${p.n}</span><span>${money(p.precio * p.n)}</span></div>`).join("") + `<div><span>Envío</span><span>${envTxt}</span></div><div class="tot"><span>Total</span><span>${money(c.tot)}</span></div>` +
-    (c.ahora ? `<div><span>Pagas ahora por Deuna</span><span>${money(c.ahora)}</span></div>` : "") +
+    (c.ahora ? `<div><span>Pagas ahora</span><span>${money(c.ahora)}</span></div>` : "") +
     (c.alRecibir ? `<div><span>Pagas al recibir</span><span>${money(c.alRecibir)}</span></div>` : "");
 }
 function total(){
@@ -985,7 +1018,7 @@ function showPay(d, c){
   const box = $("#paybox"); box.hidden = !c.ahora;
   if (!c.ahora) return;
   const hasQr = !!P.deuna.qr, hasLink = !!P.deuna.link;
-  $("#payT").textContent = c.pago === "deuna" ? "Último paso: paga con Deuna" : "Último paso: reserva con Deuna";
+  $("#payT").textContent = c.pago === "deuna" ? "Último paso: paga tu pedido" : "Último paso: paga la reserva";
   $("#payAmt").textContent = money(c.ahora);
   $("#payLink").hidden = !hasLink; if (hasLink) $("#payLink").href = P.deuna.link;
   const hoy = new Date().toISOString().slice(0,10);
@@ -1000,18 +1033,20 @@ function showPay(d, c){
   if (ut.length) $("#payUsdt").innerHTML = `<b>Envía ${c.ahora} USDT</b> <span style="font-size:12px">(elige una red)</span>` + ut.map(x => `<div style="display:block;border-top:1px solid #dde3d6;margin-top:8px;padding-top:8px"><span style="font-weight:700">Red ${x.red}</span><div style="display:flex;gap:8px;align-items:center;justify-content:space-between;padding:4px 0 0"><b style="word-break:break-all;font-size:12px">${x.direccion}</b><button type="button" data-copy="${x.direccion}">Copiar</button></div></div>`).join("") + `<p style="margin:8px 0 0;font-size:12px">Envía por la misma red de la dirección que copiaste. No envíes por ERC20 ni otra red: el pago se pierde.</p>`;
   const ppm = !pp && PPc.correo;
   $("#payPpMail").hidden = !ppm;
-  if (ppm) $("#payPpMail").innerHTML = `<b>🅿️ O envía ${money(ppMonto)} por PayPal</b>${PPc.recargo ? ` <span style="font-size:12px">(incluye ${money(+PPc.recargo)} de comisión)</span>` : ""}<div><span>A</span><span><b style="word-break:break-all">${PPc.correo}</b> <button type="button" data-copy="${PPc.correo}">Copiar</button></span></div><a href="https://www.paypal.com/myaccount/transfer/homepage/pay" target="_blank" rel="noopener" id="ppAbrir" style="display:block;margin-top:8px;font-weight:700">Abrir PayPal →</a>`;
-  $("#payOtros").hidden = !pp && !ppm && !ut.length;
+  if (ppm) $("#payPpMail").innerHTML = `<b>🅿️ Envía ${money(ppMonto)} por PayPal</b>${PPc.recargo ? ` <span style="font-size:12px">(incluye ${money(+PPc.recargo)} de comisión)</span>` : ""}<div><span>A</span><span><b style="word-break:break-all">${PPc.correo}</b> <button type="button" data-copy="${PPc.correo}">Copiar</button></span></div><a href="https://www.paypal.com/myaccount/transfer/homepage/pay" target="_blank" rel="noopener" id="ppAbrir" style="display:block;margin-top:8px;font-weight:700">Abrir PayPal →</a>`;
+  $("#mPaypal").hidden = !pp && !ppm; $("#mUsdt").hidden = !ut.length; $("#mBanco").hidden = !(P.deuna.cuenta || {}).numero; $("#mDeuna").hidden = !hasLink && !fijo;
   $("#yaTransf").hidden = !(P.deuna.cuenta || {}).numero; $("#yaTransf").disabled = false; $("#yaTransf").textContent = "✅ Ya hice mi transferencia"; $("#yaOk").hidden = true;
   $("#payMonto").hidden = !hasLink || !!fijo; $("#payMonto").innerHTML = `Al abrir Deuna escribe el monto: <b>${money(c.ahora)}</b>`;
   $("#payNota").hidden = c.pago === "deuna";
   $("#payNota").innerHTML = `Pagas <b>solo ${money(c.ahora)}</b> ahora para confirmar tu pedido. Los <b>${money(c.alRecibir)}</b> restantes los pagas al recibirlo.`;
   const cu = P.deuna.cuenta || {};
   $("#payBank").hidden = !cu.numero;
-  if (cu.numero) $("#payBank").innerHTML = `<b>O transfiere ${money(c.ahora)} a esta cuenta</b>` + [["Banco", cu.banco], ["Cuenta " + (cu.tipo || ""), cu.numero], ["Titular", cu.titular], ["Cédula", cu.cedula]].filter(x => x[1]).map(([k,v]) => `<div><span>${k}</span><span><b>${v}</b> <button type="button" data-copy="${v}">Copiar</button></span></div>`).join("");
+  if (cu.numero) $("#payBank").innerHTML = `<b>Transfiere ${money(c.ahora)} a esta cuenta</b>` + [["Banco", cu.banco], ["Cuenta " + (cu.tipo || ""), cu.numero], ["Titular", cu.titular], ["Cédula", cu.cedula]].filter(x => x[1]).map(([k,v]) => `<div><span>${k}</span><span><b>${v}</b> <button type="button" data-copy="${v}">Copiar</button></span></div>`).join("");
   $("#payCode").textContent = d.codigo;
   $("#upCodigo").value = d.codigo; $("#upTel").value = d.telefono; $("#upNombre").value = d.nombre;
-  $("#upForm").hidden = !(hasQr || hasLink); $("#upOk").style.display = "none";
+  $("#upForm").hidden = true; $("#upOk").style.display = "none";
+  let via = null; try { via = (pedidoGuardado() || {}).via; } catch {}
+  eligeMetodo(via || null, true);
   $("#payNoQr").hidden = hasQr || hasLink;
   $("#thxMsg").innerHTML = `Gracias, <b>${d.nombre.split(" ")[0]}</b>. Tu pedido <b>${d.codigo}</b> quedó registrado. ` + (c.pago === "deuna" ? "Apenas se acredite el pago lo despachamos." : `Con el anticipo lo despachamos y pagas ${money(c.alRecibir)} al recibir.`);
 }
@@ -1092,14 +1127,26 @@ $("#payPaypal").addEventListener("click", () => { avisaPago("paypal"); marcaPago
 $("#payPpMail").addEventListener("click", e => { if (e.target.id === "ppAbrir" || e.target.dataset.copy) { avisaPago("paypal"); marcaPago(); } });
 $("#yaUsdt").onclick = () => {
   avisaPago("usdt"); marcaPago();
-  $("#yaUsdt").disabled = true; $("#yaUsdt").textContent = "✅ Recibido, gracias";
+  $("#yaUsdt").disabled = true; $("#yaUsdt").textContent = "✅ Listo, ahora sube tu captura 👇";
   $("#upForm").scrollIntoView({ behavior: "smooth", block: "center" });
 };
 $("#yaTransf").onclick = () => {
   avisaPago("transferencia");
-  $("#yaTransf").disabled = true; $("#yaTransf").textContent = "✅ Recibido, gracias"; $("#yaOk").hidden = false;
+  $("#yaTransf").disabled = true; $("#yaTransf").textContent = "✅ Listo, ahora sube tu captura 👇";
   $("#upForm").scrollIntoView({ behavior: "smooth", block: "center" });
 };
+/* elegir forma de pago: 4 opciones, se abre solo la elegida */
+
+function eligeMetodo(m, sinScroll){
+  if (m && $("#m" + m[0].toUpperCase() + m.slice(1)).hidden) m = null;
+  $("#metodos").hidden = !!m; $("#mCambiar").hidden = !m;
+  for (const [k, q] of Object.entries({ deuna: "#pmDeuna", banco: "#pmBanco", usdt: "#pmUsdt", paypal: "#pmPaypal" })) $(q).hidden = k !== m;
+  if (!$("#upOk").style.display || $("#upOk").style.display === "none") $("#upForm").hidden = !m;
+  try { const g = pedidoGuardado(); if (g) { if (m) g.via = m; else delete g.via; localStorage.setItem("ic_pedido", JSON.stringify(g)); } } catch {}
+  if (!sinScroll) $("#paybox").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+$(".metodos").addEventListener("click", e => { const b = e.target.closest("button[data-m]"); if (b) eligeMetodo(b.dataset.m); });
+$("#mCambiar").onclick = () => eligeMetodo(null);
 </script>
 </body>
 </html>
