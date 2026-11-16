@@ -278,12 +278,14 @@ footer a{color:var(--ink)}
 .metodos button{display:flex;flex-direction:column;align-items:center;gap:3px;background:#f2f4ee;border:2px solid #dde3d6;border-radius:16px;padding:14px 8px;cursor:pointer;color:#14200b;font:inherit;transition:border-color .15s,transform .15s}
 .metodos button:hover,.metodos button:focus-visible{border-color:#14200b;transform:translateY(-2px)}
 .metodos button[hidden]{display:none}
-.metodos .m-i{font-size:28px;line-height:1}
+.metodos .m-i{display:grid;place-items:center;width:52px;height:52px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-bottom:4px}
+.metodos .m-i svg{width:28px;height:28px}.metodos .m-i img{width:44px;height:44px;border-radius:50%}
+.m-l{display:inline-grid;place-items:center;width:30px;height:30px;vertical-align:middle;margin-right:8px}.m-l svg{width:22px;height:22px}.m-l img{width:30px;height:30px;border-radius:50%}
 .metodos b{font-size:16px}
 .metodos small{font-size:12px;color:#55604a;line-height:1.25}
 .m-panel{margin-top:14px;animation:mIn .25s ease}
 @keyframes mIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-.m-h{margin:0;font-weight:800;font-size:17px}
+.m-h{margin:0;font-weight:800;font-size:17px;display:flex;align-items:center;justify-content:center}
 #mCambiar{display:block;margin:12px auto 0;background:none;border:0;color:#14200b;text-decoration:underline;font:inherit;font-size:14px;cursor:pointer}
 #mCambiar[hidden]{display:none}
 .bank{background:#f2f4ee;border-radius:12px;padding:12px;margin-top:12px;text-align:left;font-size:14px}
@@ -556,31 +558,31 @@ footer a{color:var(--ink)}
       <div id="metodos">
         <p class="m-t">¿Cómo quieres pagar?</p>
         <div class="metodos">
-          <button type="button" data-m="deuna" id="mDeuna"><span class="m-i">📲</span><b>Deuna</b><small>Al instante, desde tu celular</small></button>
-          <button type="button" data-m="banco" id="mBanco"><span class="m-i">🏦</span><b>Transferencia</b><small>Desde cualquier banco</small></button>
-          <button type="button" data-m="usdt" id="mUsdt"><span class="m-i">🪙</span><b>Cripto</b><small>USDT · TRC20 o BEP20</small></button>
-          <button type="button" data-m="paypal" id="mPaypal"><span class="m-i">🅿️</span><b>PayPal</b><small>Cuenta PayPal o tarjeta</small></button>
+          <button type="button" data-m="deuna" id="mDeuna"><span class="m-i"><img src="img/deuna-logo.png" alt="" width="40" height="40"></span><b>Deuna</b><small>Al instante, desde tu celular</small></button>
+          <button type="button" data-m="banco" id="mBanco"><span class="m-i"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#14200b" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M3 9.5 12 4l9 5.5"/><path d="M4 10h16"/><path d="M6 10v8M10 10v8M14 10v8M18 10v8"/><path d="M3 20.5h18"/></svg></span><b>Transferencia</b><small>Desde cualquier banco</small></button>
+          <button type="button" data-m="usdt" id="mUsdt"><span class="m-i"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#50AF95" d="M18.7538 10.5176c0 .6251-2.2379 1.1483-5.2381 1.2812l.0028.0007c-.0848.0064-.5233.0325-1.5012.0325-.7778 0-1.33-.0233-1.5237-.0325-3.0059-.1322-5.2495-.6555-5.2495-1.2819s2.2436-1.149 5.2495-1.2834v2.0442c.1965.0142.7594.0474 1.5372.0474.9334 0 1.4008-.0389 1.4849-.0466V9.2356c2.9994.1337 5.2381.657 5.2381 1.282zm5.19.5466L12.1248 22.389a.1803.1803 0 0 1-.2496 0L.0562 11.0635a.1781.1781 0 0 1-.0382-.2079l4.3762-9.1921a.1767.1767 0 0 1 .1626-.1026h14.8878a.1768.1768 0 0 1 .1612.1032l4.3762 9.1922a.1782.1782 0 0 1-.0382.2079zm-4.478-.4038c0-.8068-2.5515-1.4799-5.9473-1.6369V7.195h4.186V4.4055H6.3076V7.195h4.1852v1.8286c-3.4018.1562-5.9601.83-5.9601 1.6376 0 .8075 2.5583 1.4806 5.9601 1.6376v5.8618h3.025v-5.8639c3.394-.1563 5.948-.8295 5.948-1.6363z"/></svg></span><b>Cripto</b><small>USDT · TRC20 o BEP20</small></button>
+          <button type="button" data-m="paypal" id="mPaypal"><span class="m-i"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#003087" d="M15.607 4.653H8.941L6.645 19.251H1.82L4.862 0h7.995c3.754 0 6.375 2.294 6.473 5.513-.648-.478-2.105-.86-3.722-.86m6.57 5.546c0 3.41-3.01 6.853-6.958 6.853h-2.493L11.595 24H6.74l1.845-11.538h3.592c4.208 0 7.346-3.634 7.153-6.949a5.24 5.24 0 0 1 2.848 4.686M9.653 5.546h6.408c.907 0 1.942.222 2.363.541-.195 2.741-2.655 5.483-6.441 5.483H8.714Z"/></svg></span><b>PayPal</b><small>Cuenta PayPal o tarjeta</small></button>
         </div>
       </div>
       <div class="m-panel" id="pmDeuna" hidden>
-        <p class="m-h">📲 Pagar con Deuna</p>
+        <p class="m-h"><span class="m-l"><img src="img/deuna-logo.png" alt="" width="40" height="40"></span>Pagar con Deuna</p>
         <a class="btn" id="payFijo" target="_blank" rel="noopener" hidden style="margin:10px 0 14px"></a>
         <a class="btn" id="payLink" target="_blank" rel="noopener" hidden style="margin:10px 0 4px">Pagar en Deuna</a>
         <p id="payMonto" hidden style="margin:0 0 6px;font-size:14px"></p>
       </div>
       <div class="m-panel" id="pmBanco" hidden>
-        <p class="m-h">🏦 Transferencia bancaria</p>
+        <p class="m-h"><span class="m-l"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#14200b" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M3 9.5 12 4l9 5.5"/><path d="M4 10h16"/><path d="M6 10v8M10 10v8M14 10v8M18 10v8"/><path d="M3 20.5h18"/></svg></span>Transferencia bancaria</p>
         <div class="bank" id="payBank" hidden></div>
         <button type="button" class="btn" id="yaTransf" hidden style="margin-top:10px;width:100%">✅ Ya hice mi transferencia</button>
         <p id="yaOk" hidden style="margin:8px 0 0;font-size:14px;font-weight:700">¡Gracias! Ahora sube aquí abajo la captura de la transferencia 👇</p>
       </div>
       <div class="m-panel" id="pmUsdt" hidden>
-        <p class="m-h">🪙 Pagar con cripto (USDT)</p>
+        <p class="m-h"><span class="m-l"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#50AF95" d="M18.7538 10.5176c0 .6251-2.2379 1.1483-5.2381 1.2812l.0028.0007c-.0848.0064-.5233.0325-1.5012.0325-.7778 0-1.33-.0233-1.5237-.0325-3.0059-.1322-5.2495-.6555-5.2495-1.2819s2.2436-1.149 5.2495-1.2834v2.0442c.1965.0142.7594.0474 1.5372.0474.9334 0 1.4008-.0389 1.4849-.0466V9.2356c2.9994.1337 5.2381.657 5.2381 1.282zm5.19.5466L12.1248 22.389a.1803.1803 0 0 1-.2496 0L.0562 11.0635a.1781.1781 0 0 1-.0382-.2079l4.3762-9.1921a.1767.1767 0 0 1 .1626-.1026h14.8878a.1768.1768 0 0 1 .1612.1032l4.3762 9.1922a.1782.1782 0 0 1-.0382.2079zm-4.478-.4038c0-.8068-2.5515-1.4799-5.9473-1.6369V7.195h4.186V4.4055H6.3076V7.195h4.1852v1.8286c-3.4018.1562-5.9601.83-5.9601 1.6376 0 .8075 2.5583 1.4806 5.9601 1.6376v5.8618h3.025v-5.8639c3.394-.1563 5.948-.8295 5.948-1.6363z"/></svg></span>Pagar con cripto (USDT)</p>
         <div class="bank" id="payUsdt" hidden></div>
         <button type="button" class="btn" id="yaUsdt" hidden style="margin-top:10px;width:100%">✅ Ya envié los USDT</button>
       </div>
       <div class="m-panel" id="pmPaypal" hidden>
-        <p class="m-h">🅿️ Pagar con PayPal</p>
+        <p class="m-h"><span class="m-l"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#003087" d="M15.607 4.653H8.941L6.645 19.251H1.82L4.862 0h7.995c3.754 0 6.375 2.294 6.473 5.513-.648-.478-2.105-.86-3.722-.86m6.57 5.546c0 3.41-3.01 6.853-6.958 6.853h-2.493L11.595 24H6.74l1.845-11.538h3.592c4.208 0 7.346-3.634 7.153-6.949a5.24 5.24 0 0 1 2.848 4.686M9.653 5.546h6.408c.907 0 1.942.222 2.363.541-.195 2.741-2.655 5.483-6.441 5.483H8.714Z"/></svg></span>Pagar con PayPal</p>
         <a class="btn" id="payPaypal" target="_blank" rel="noopener" hidden style="margin:10px 0 8px;background:#ffc439;color:#14200b;flex-direction:column"></a>
         <div class="bank" id="payPpMail" hidden style="margin-bottom:8px"></div>
         <p style="margin:6px 0 0;font-size:13px;text-align:left">Se abre PayPal con el monto ya puesto. Puedes pagar con tu cuenta PayPal o con tarjeta. Cuando termines, vuelve aquí y sube la captura.</p>
@@ -1028,7 +1030,7 @@ function showPay(d, c){
   if (fijo) { $("#payFijo").href = fijo.url; $("#payFijo").textContent = `💳 Pagar ${money(c.ahora)} con Deuna`; }
   $("#payLink").hidden = !hasLink || !!fijo; $("#payLink").textContent = `💳 Pagar ${money(c.ahora)} con Deuna`;
   const PPc = P.deuna.paypal || {}, pp = PPc.usuario, ppMonto = c.ahora + (+PPc.recargo || 0), ut = (P.deuna.usdt || []).filter(x => x.direccion);
-  $("#payPaypal").hidden = !pp; if (pp) { $("#payPaypal").href = `https://www.paypal.me/${encodeURIComponent(pp)}/${ppMonto}USD`; $("#payPaypal").innerHTML = `🅿️ Pagar ${money(ppMonto)} con PayPal` + (PPc.recargo ? `<small style="display:block;font-weight:500;font-size:12px">incluye ${money(+PPc.recargo)} de comisión de PayPal</small>` : ""); }
+  $("#payPaypal").hidden = !pp; if (pp) { $("#payPaypal").href = `https://www.paypal.me/${encodeURIComponent(pp)}/${ppMonto}USD`; $("#payPaypal").innerHTML = `<span style="display:flex;align-items:center;gap:8px"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:20px;height:20px"><path fill="#003087" d="M15.607 4.653H8.941L6.645 19.251H1.82L4.862 0h7.995c3.754 0 6.375 2.294 6.473 5.513-.648-.478-2.105-.86-3.722-.86m6.57 5.546c0 3.41-3.01 6.853-6.958 6.853h-2.493L11.595 24H6.74l1.845-11.538h3.592c4.208 0 7.346-3.634 7.153-6.949a5.24 5.24 0 0 1 2.848 4.686M9.653 5.546h6.408c.907 0 1.942.222 2.363.541-.195 2.741-2.655 5.483-6.441 5.483H8.714Z"/></svg> Pagar ${money(ppMonto)} con PayPal</span>` + (PPc.recargo ? `<small style="display:block;font-weight:500;font-size:12px">incluye ${money(+PPc.recargo)} de comisión de PayPal</small>` : ""); }
   $("#payUsdt").hidden = !ut.length; $("#yaUsdt").hidden = !ut.length; $("#yaUsdt").disabled = false; $("#yaUsdt").textContent = "✅ Ya envié los USDT";
   if (ut.length) $("#payUsdt").innerHTML = `<b>Envía ${c.ahora} USDT</b> <span style="font-size:12px">(elige una red)</span>` + ut.map(x => `<div style="display:block;border-top:1px solid #dde3d6;margin-top:8px;padding-top:8px"><span style="font-weight:700">Red ${x.red}</span><div style="display:flex;gap:8px;align-items:center;justify-content:space-between;padding:4px 0 0"><b style="word-break:break-all;font-size:12px">${x.direccion}</b><button type="button" data-copy="${x.direccion}">Copiar</button></div></div>`).join("") + `<p style="margin:8px 0 0;font-size:12px">Envía por la misma red de la dirección que copiaste. No envíes por ERC20 ni otra red: el pago se pierde.</p>`;
   const ppm = !pp && PPc.correo;
