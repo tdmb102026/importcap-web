@@ -650,7 +650,7 @@ const CONFIG = {
   precioAntes: null,                       // ej. 60 para mostrar $60 tachado (solo si es real)
   envio: { costo: 0, texto: "Envío incluido a todo Ecuador" }, // costo: 0 = incluido
   // enlace para ventas fuera de Ecuador: /excavadora/?int · envio: costo fijo en USD, o null = se cotiza por WhatsApp
-  internacional: { envio: null, texto: "Enviamos desde Ecuador a tu país. El costo del envío te lo cotizamos por WhatsApp según tu ciudad." },
+  internacional: { extra: 10, envio: null, texto: "Enviamos desde Ecuador a tu país. El costo del envío te lo cotizamos por WhatsApp según tu ciudad." },
   pagos: {
     deuna: { activo: true, qr: "", /* QR quitado a pedido de fer: confundía. Para volver: "img/deuna-qr.png" */ link: "https://pagar.deuna.app/H92p/merchant?id=6964a0ead4ee6a238e89b599cb040b6d556ecd22",
       // PayPal: tu usuario de paypal.me (lo que va después de paypal.me/). Vacío = no se muestra
@@ -710,6 +710,8 @@ const CONFIG = {
 const $ = s => document.querySelector(s);
 const money = n => "$" + (Math.round(n * 100) / 100).toFixed(n % 1 ? 2 : 0);
 const envioGratis = CONFIG.envio.costo === 0;
+// ventas internacionales: cada juguete cuesta "extra" dólares más
+if (new URLSearchParams(location.search).has("int")) CONFIG.productos.forEach(p => { p.precio += CONFIG.internacional.extra || 0; if (p.antes) p.antes += CONFIG.internacional.extra || 0; });
 const PRODS = CONFIG.productos, base = PRODS[0];
 /* enlaces directos: ?pedir = solo el formulario · ?int = formulario para ventas internacionales */
 const MODO = new URLSearchParams(location.search), INTL = MODO.has("int"), SOLO = INTL || MODO.has("pedir");
