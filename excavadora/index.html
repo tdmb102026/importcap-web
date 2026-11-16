@@ -650,7 +650,7 @@ const CONFIG = {
   precioAntes: null,                       // ej. 60 para mostrar $60 tachado (solo si es real)
   envio: { costo: 0, texto: "Envío incluido a todo Ecuador" }, // costo: 0 = incluido
   // enlace para ventas fuera de Ecuador: /excavadora/?int · envio: costo fijo en USD, o null = se cotiza por WhatsApp
-  internacional: { extra: 10, envio: null, texto: "Enviamos desde Ecuador a tu país. El costo del envío te lo cotizamos por WhatsApp según tu ciudad." },
+  internacional: { extra: 10, envio: 0, texto: "Envío incluido desde Ecuador hasta tu puerta." },
   pagos: {
     deuna: { activo: true, qr: "", /* QR quitado a pedido de fer: confundía. Para volver: "img/deuna-qr.png" */ link: "https://pagar.deuna.app/H92p/merchant?id=6964a0ead4ee6a238e89b599cb040b6d556ecd22",
       // PayPal: tu usuario de paypal.me (lo que va después de paypal.me/). Vacío = no se muestra
@@ -885,7 +885,7 @@ function calc(){
   return { items, sub, env, tot, cant: items.reduce((a, p) => a + p.n, 0), ahora, alRecibir: tot - ahora, pago: id, intl: INTL, envCotiza: INTL && CONFIG.internacional.envio == null };
 }
 function sumHTML(c){
-  const envTxt = c.intl ? (c.envCotiza ? "Te lo cotizamos" : money(c.env)) : CONFIG.envio.costo === 0 ? "Incluido" : CONFIG.envio.costo ? money(CONFIG.envio.costo) : "Por confirmar";
+  const envTxt = c.intl ? (c.envCotiza ? "Te lo cotizamos" : c.env ? money(c.env) : "Incluido") : CONFIG.envio.costo === 0 ? "Incluido" : CONFIG.envio.costo ? money(CONFIG.envio.costo) : "Por confirmar";
   return c.items.map(p => `<div><span>${p.corto} × ${p.n}</span><span>${money(p.precio * p.n)}</span></div>`).join("") + `<div><span>Envío</span><span>${envTxt}</span></div><div class="tot"><span>Total</span><span>${money(c.tot)}</span></div>` +
     (c.ahora ? `<div><span>Pagas ahora</span><span>${money(c.ahora)}</span></div>` : "") +
     (c.alRecibir ? `<div><span>Pagas al recibir</span><span>${money(c.alRecibir)}</span></div>` : "");
@@ -1235,7 +1235,7 @@ $(".metodos").addEventListener("click", e => { const b = e.target.closest("butto
 $("#mCambiar").onclick = () => eligeMetodo(null);
 /* modo internacional: textos y campos para clientes fuera de Ecuador */
 if (INTL) {
-  $("#topbar").innerHTML = "🌎 Envíos internacionales desde Ecuador";
+  $("#topbar").innerHTML = "🌎 Envíos internacionales desde Ecuador · Envío incluido";
   $("#fOrigen").value = "internacional | " + $("#fOrigen").value;
   $("#fPais").hidden = false; $("#pais").required = true;
   const lab = (id, t) => { const l = document.querySelector(`label[for=${id}]`); if (l) l.innerHTML = t; };
