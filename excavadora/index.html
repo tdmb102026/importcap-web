@@ -717,8 +717,8 @@ const PRODS = CONFIG.productos, base = PRODS[0];
 const MODO = new URLSearchParams(location.search), INTL = MODO.has("int"), SOLO = INTL || MODO.has("pedir");
 if (SOLO) document.body.classList.add("solo");
 const P = CONFIG.pagos, ANT = P.contraEntrega.activo ? (P.contraEntrega.anticipo || 0) : 0;
-const pagoTxt = [P.deuna.activo ? "con Deuna" : "", P.contraEntrega.activo ? (ANT ? `contra entrega (reservas con ${money(ANT)} por Deuna y el resto lo pagas al recibir)` : "contra entrega, en efectivo al recibir") : ""].filter(Boolean).join(" o ");
-const pagoCorto = [P.deuna.activo ? "Deuna" : "", P.contraEntrega.activo ? "contra entrega" : ""].filter(Boolean).join(" o ");
+const pagoTxt = [P.deuna.activo ? "en línea (tarjeta, Deuna, transferencia, PayPal o USDT)" : "", P.contraEntrega.activo ? (ANT ? `contra entrega (reservas con ${money(ANT)} y el resto lo pagas al recibir)` : "contra entrega, en efectivo al recibir") : ""].filter(Boolean).join(" o ");
+const pagoCorto = [P.deuna.activo ? "en línea" : "", P.contraEntrega.activo ? "contra entrega" : ""].filter(Boolean).join(" o ");
 
 /* textos que dependen de la configuración */
 $("#precioHero").textContent = money(base.precio);
@@ -732,7 +732,7 @@ if (CONFIG.oferta && CONFIG.oferta.activa) {
 const antesBase = base.antes || CONFIG.precioAntes;
 if (antesBase) { $("#antesHero").textContent = money(antesBase); $("#antesWrap").hidden = false; }
 $("#envioHero").innerHTML = envioGratis ? "<b style='color:var(--ink)'>Envío incluido</b> a todo Ecuador" : CONFIG.envio.texto;
-$("#ctaSub").textContent = "Paga con " + pagoCorto + " · Pídela en 1 minuto";
+$("#ctaSub").textContent = "Paga " + pagoCorto + " · Pídela en 1 minuto";
 $("#underHero").innerHTML = [envioGratis ? "Envío gratis" : "Envíos a todo Ecuador", CONFIG.garantia ? "Garantía " + CONFIG.garantia : "", "Tienda en Ambato"].filter(Boolean).map(t => `<span>${t}</span>`).join("");
 $("#pedidoSub").textContent = "Te escribimos solo para confirmar la entrega. Pagas " + pagoTxt + ".";
 $("#fine").textContent = CONFIG.envio.texto;
@@ -827,8 +827,8 @@ $("#resForm").addEventListener("submit", async e => {
 
 /* preguntas */
 const FAQ = [
-  ["¿Cómo pago?", "Pagas " + pagoTxt + ". Al terminar tu pedido te mostramos el código QR de Deuna y el monto exacto."],
-  ANT ? ["¿Por qué piden un anticipo en contra entrega?", `Para reservar tu excavadora y cubrir el envío. Son ${money(ANT)} por Deuna y el resto lo pagas al recibir. Así despachamos más rápido a quien de verdad la espera.`] : null,
+  ["¿Cómo pago?", "Pagas " + pagoTxt + ". Al terminar tu pedido eliges cómo pagar y te mostramos el monto exacto."],
+  ANT ? ["¿Por qué piden un anticipo en contra entrega?", `Para reservar tu excavadora y cubrir el envío. Son ${money(ANT)} (con tarjeta, Deuna, transferencia, PayPal o USDT) y el resto lo pagas al recibir. Así despachamos más rápido a quien de verdad la espera.`] : null,
   ["¿Cuánto cuesta el envío y cuánto tarda?", CONFIG.envio.texto],
   ["¿Tengo que escribir por WhatsApp para pedir?", "No. Llenas el formulario y nosotros te contactamos para confirmar la entrega. Si prefieres, también puedes escribirnos al 096 842 8316."],
   ["¿Qué trae la caja?", "La excavadora con luces y sonido, el control de 11 canales y la batería recargable con su cable USB. El control usa pilas AA, que no vienen incluidas."],
@@ -870,7 +870,7 @@ $("#cart").addEventListener("click", e => { const b = e.target.closest("button")
 
 /* forma de pago */
 const PAYS = [
-  P.deuna.activo ? { id: "deuna", t: "Deuna o transferencia", s: "Pagas ahora y despachamos apenas se acredite.", tag: "Más rápido" } : null,
+  P.deuna.activo ? { id: "deuna", t: "Pagar ahora", s: "Con tarjeta, Deuna, transferencia, PayPal o USDT. Despachamos apenas se acredite.", tag: "Más rápido" } : null,
   P.contraEntrega.activo ? { id: "contra", t: "Contra entrega", s: ANT ? `Pagas solo ${money(ANT)} para confirmar y el resto al recibir.` : "Pagas en efectivo cuando la recibes." } : null
 ].filter(Boolean);
 $("#pays").innerHTML = PAYS.map((o,i) => `<label class="pay">${o.tag ? `<span class="tag">${o.tag}</span>` : ""}<input type="radio" name="pago" value="${o.t}" data-id="${o.id}" ${i ? "" : "checked"}><span><b>${o.t}</b><span>${o.s}</span></span></label>`).join("");

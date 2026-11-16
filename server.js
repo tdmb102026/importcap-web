@@ -348,6 +348,15 @@ ${montosPanel(e).map(fila).join("")}
 <p class="muted" style="margin:8px 0 0">Si un cliente pide un monto que no tiene enlace, la página le muestra el enlace general de Deuna y le dice qué monto escribir, junto con la transferencia.</p><button class="btn" style="width:100%;margin-top:12px;padding:12px">Guardar enlaces</button></form></details>`;
 }
 
+function linksHTML(host) {
+  const b = `https://${host}/excavadora/`;
+  const fila = (t, sub, url) => `<div class="row" style="display:block;padding:10px 0;border-top:1px solid #2a4433"><b>${t}</b> <span class="muted">${sub}</span>
+<div style="display:flex;gap:8px;align-items:center;margin-top:6px"><input readonly value="${esc(url)}" style="flex:1;min-width:0;padding:10px;border-radius:10px;border:1px solid #2a4433;background:#0c1a10;color:#f4f1e8;font-size:14px"><button type="button" class="btn s" data-copiar="${esc(url)}">📋 Copiar</button></div></div>`;
+  return `<details class="card" id="links"><summary style="cursor:pointer;font-weight:700;font-size:16px">🔗 Enlaces para mandar por WhatsApp</summary>
+${fila("🇪🇨 Directo al cuestionario", "(sin el resto de la página)", b + "?pedir")}
+${fila("🌎 Ventas internacionales", "(+$10 por juguete, envío incluido)", b + "?int")}
+${fila("🛒 Página completa", "", b)}</details>`;
+}
 app.get("/admin", auth, (req, res) => {
   const regs = leer(), est = leerJSON(EST_F, {}), bor = new Set(leerJSON(BOR_F, []));
   const comp = {}, intento = {}, ppPag = {};
@@ -381,11 +390,12 @@ app.get("/admin", auth, (req, res) => {
   const sueltos = regs.filter(r => r.formulario === "comprobante" && !bor.has(r.id) && !todos.some(p => p.datos.codigo === r.datos.codigo));
   const cuenta = x => pedidos.filter(r => (est[r.datos.codigo] || "nuevo") === x).length;
   res.set("Cache-Control", "no-store").send(CABEZA(`Pedidos (${pedidos.length}) · Importcap`) + `
-<header><div class="tit"><h1>Pedidos (${pedidos.length})</h1><a class="mini" href="/excavadora/" target="_blank">🛒 Ventas</a><a class="mini" href="/" target="_blank">🏠 Importcap</a></div><div class="btns"><button class="btn" id="noti" hidden>🔔 Activar avisos</button><button class="btn s" id="probar" hidden>🔔 Probar</button><button class="btn s" id="inst" hidden>📲 Instalar</button><a class="btn s" href="/admin">↻ Actualizar</a><a class="btn s" href="#resenas">⭐ Reseñas</a><a class="btn s" href="#enlaces">💳 Enlaces</a><a class="btn s" href="/admin/pedidos.csv">Excel</a><a class="btn s" href="/admin/salir">Salir</a></div>
+<header><div class="tit"><h1>Pedidos (${pedidos.length})</h1><a class="mini" href="/excavadora/" target="_blank">🛒 Ventas</a><a class="mini" href="/" target="_blank">🏠 Importcap</a></div><div class="btns"><button class="btn" id="noti" hidden>🔔 Activar avisos</button><button class="btn s" id="probar" hidden>🔔 Probar</button><button class="btn s" id="inst" hidden>📲 Instalar</button><a class="btn s" href="/admin">↻ Actualizar</a><a class="btn s" href="#resenas">⭐ Reseñas</a><a class="btn s" href="#links">🔗 Links</a><a class="btn s" href="#enlaces">💳 Enlaces</a><a class="btn s" href="/admin/pedidos.csv">Excel</a><a class="btn s" href="/admin/salir">Salir</a></div>
 <div class="f" id="f"><button class="on" data-f="">Todos</button>${ESTADOS.map(x => `<button data-f="${x}">${({ nuevo: "Nuevos", pagado: "Pagados", despachado: "Enviados", cancelado: "Cancel." })[x]} ${cuenta(x)}</button>`).join("")}${papelera.length ? `<button data-f="papelera">🗑️ papelera (${papelera.length})</button>` : ""}</div></header>
 <div id="pushInfo" hidden style="display:flex;gap:8px;align-items:center;margin:6px 12px 0;font-size:12px;color:#b9c2b5"><span id="pushTxt" style="flex:1"></span><button type="button" id="pushX" aria-label="Cerrar" style="background:none;border:0;color:#b9c2b5;font-size:16px;cursor:pointer;padding:2px 6px">✕</button></div>
 <div class="aviso" id="ios" hidden>En iPhone: toca <b>Compartir</b> → <b>Agregar a pantalla de inicio</b>, abre la app desde ahí y luego activa las notificaciones.</div>
 <main style="max-width:none">${req.query.enlaces ? '<div class="card" id="guardado" style="border-color:#d2ff3c;padding:10px 14px">✓ Enlaces guardados. La página ya usa los nuevos.</div>' : ""}<div class="tabla"><table><thead><tr><th>Fecha / código</th><th>Cliente</th><th>Dirección</th><th>Pedido</th><th>Pago</th><th>Estado</th><th>Anuncio</th></tr></thead><tbody>${tarjetas || '<tr><td colspan="7">Todavía no hay pedidos.</td></tr>'}</tbody></table></div>
+${linksHTML(req.get("host") || "importcap.squadraec.com")}
 ${resenasHTML(regs, bor, fmt)}
 ${enlacesHTML()}
 ${sueltos.length ? `<div class="card"><b>Comprobantes sin pedido</b><p class="muted" style="margin:4px 0 0">Capturas que llegaron con un código que no está en la lista. Bórralas con 🗑️ si no sirven.</p>` + sueltos.map(s => `<div class="row">${esc(fmt(s.fecha))} · ${esc(s.datos.codigo)} · ${esc(s.datos.nombre)} · <a href="/admin/comprobante/${esc(s.archivo)}" target="_blank">ver</a> <button data-del="${esc(s.id)}" class="btn s del" aria-label="Borrar">🗑️</button></div>`).join("") + `</div>` : ""}</main>
@@ -458,6 +468,10 @@ async function revisa() {
   } catch {}
 }
 revisa(); setInterval(revisa, 20000);
+document.addEventListener("click", e => { const b = e.target.closest("[data-copiar]"); if (!b) return; const v = b.dataset.copiar, ok = () => { b.textContent = "✅ Copiado"; setTimeout(() => b.textContent = "📋 Copiar", 1500); };
+  (navigator.clipboard ? navigator.clipboard.writeText(v) : Promise.reject()).then(ok).catch(() => { const i = b.previousElementSibling; i.select(); document.execCommand("copy"); ok(); }); });
+const abreLinks = () => { if (location.hash === "#links") { $("#links").open = true; $("#links").scrollIntoView(); } };
+addEventListener("hashchange", abreLinks); abreLinks();
 const abreEnl = () => { if (location.hash === "#enlaces") { $("#enlaces").open = true; $("#enlaces").scrollIntoView(); } };
 addEventListener("hashchange", abreEnl); abreEnl();
 document.querySelector('a[href="#enlaces"]').addEventListener("click", () => { $("#enlaces").open = true; });
