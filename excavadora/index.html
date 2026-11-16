@@ -278,6 +278,8 @@ footer a{color:var(--ink)}
 .metodos button{display:flex;flex-direction:column;align-items:center;gap:3px;background:#f2f4ee;border:2px solid #dde3d6;border-radius:16px;padding:14px 8px;cursor:pointer;color:#14200b;font:inherit;transition:border-color .15s,transform .15s}
 .metodos button:hover,.metodos button:focus-visible{border-color:#14200b;transform:translateY(-2px)}
 .metodos button[hidden]{display:none}
+body.solo main > :not(#pedido), body.solo footer, body.solo #sticky, body.solo .wa-flot{display:none !important}
+body.solo #pedido{padding-top:18px}
 .metodos .m-ancho{grid-column:1/-1;flex-direction:row;justify-content:flex-start;gap:12px;padding:14px 16px;text-align:left;border-color:#14200b;background:#fff}
 .metodos .m-ancho .m-i{margin:0;flex:none}
 .m-txt{display:flex;flex-direction:column;gap:2px}
@@ -501,6 +503,7 @@ footer a{color:var(--ink)}
       <div class="field"><label for="nombre">Nombre y apellido</label><input id="nombre" name="nombre" autocomplete="name" required><div class="err">Escribe tu nombre.</div></div>
       <div class="field"><label for="telefono">Celular (WhatsApp)</label><input id="telefono" name="telefono" type="tel" inputmode="numeric" placeholder="09XXXXXXXX" autocomplete="tel" required><div class="err">Escribe un celular de 10 dígitos que empiece con 09.</div></div>
       <div class="field"><label for="cedula">Cédula</label><input id="cedula" name="cedula" type="text" inputmode="numeric" maxlength="13" placeholder="10 dígitos" autocomplete="off" required><div class="err">Revisa tu cédula: son 10 dígitos (o 13 si es RUC).</div></div>
+      <div class="field" id="fPais" hidden><label for="pais">País</label><input id="pais" name="pais" list="paises" autocomplete="country-name" placeholder="Ej. Estados Unidos"><datalist id="paises"><option>Estados Unidos</option><option>España</option><option>Colombia</option><option>Perú</option><option>Chile</option><option>México</option><option>Argentina</option><option>Italia</option><option>Canadá</option><option>Venezuela</option><option>Panamá</option><option>Bolivia</option><option>Alemania</option><option>Reino Unido</option></datalist><div class="err">Escribe tu país.</div></div>
       <div class="field"><label for="ciudad">Ciudad</label><input id="ciudad" name="ciudad" autocomplete="address-level2" placeholder="Ej. Quito" required><div class="err">Escribe tu ciudad.</div></div>
       <div class="field"><label for="direccion">Dirección y referencia <span class="muted" style="font-weight:400">(opcional si marcas tu ubicación abajo)</span></label><textarea id="direccion" name="direccion" placeholder="Calles, número de casa y una referencia"></textarea><div class="err">Escribe la dirección con una referencia, o marca tu ubicación en el mapa aquí abajo.</div></div>
       <div class="field"><label for="ubicacion">Ubicación de Google Maps <small>(opcional, ayuda al courier)</small></label>
@@ -646,6 +649,8 @@ const CONFIG = {
   oferta: { activa: true, nombre: "Black Friday" }, // sello de oferta en la barra, el precio y la colección
   precioAntes: null,                       // ej. 60 para mostrar $60 tachado (solo si es real)
   envio: { costo: 0, texto: "Envío incluido a todo Ecuador" }, // costo: 0 = incluido
+  // enlace para ventas fuera de Ecuador: /excavadora/?int · envio: costo fijo en USD, o null = se cotiza por WhatsApp
+  internacional: { envio: null, texto: "Enviamos desde Ecuador a tu país. El costo del envío te lo cotizamos por WhatsApp según tu ciudad." },
   pagos: {
     deuna: { activo: true, qr: "", /* QR quitado a pedido de fer: confundía. Para volver: "img/deuna-qr.png" */ link: "https://pagar.deuna.app/H92p/merchant?id=6964a0ead4ee6a238e89b599cb040b6d556ecd22",
       // PayPal: tu usuario de paypal.me (lo que va después de paypal.me/). Vacío = no se muestra
@@ -706,6 +711,9 @@ const $ = s => document.querySelector(s);
 const money = n => "$" + (Math.round(n * 100) / 100).toFixed(n % 1 ? 2 : 0);
 const envioGratis = CONFIG.envio.costo === 0;
 const PRODS = CONFIG.productos, base = PRODS[0];
+/* enlaces directos: ?pedir = solo el formulario · ?int = formulario para ventas internacionales */
+const MODO = new URLSearchParams(location.search), INTL = MODO.has("int"), SOLO = INTL || MODO.has("pedir");
+if (SOLO) document.body.classList.add("solo");
 const P = CONFIG.pagos, ANT = P.contraEntrega.activo ? (P.contraEntrega.anticipo || 0) : 0;
 const pagoTxt = [P.deuna.activo ? "con Deuna" : "", P.contraEntrega.activo ? (ANT ? `contra entrega (reservas con ${money(ANT)} por Deuna y el resto lo pagas al recibir)` : "contra entrega, en efectivo al recibir") : ""].filter(Boolean).join(" o ");
 const pagoCorto = [P.deuna.activo ? "Deuna" : "", P.contraEntrega.activo ? "contra entrega" : ""].filter(Boolean).join(" o ");
@@ -869,13 +877,13 @@ $("#pays").addEventListener("change", () => total());
 function calc(){
   const items = PRODS.filter(p => qty[p.id]).map(p => ({ ...p, n: qty[p.id] }));
   const sub = items.reduce((a, p) => a + p.precio * p.n, 0);
-  const env = CONFIG.envio.costo || 0;
+  const env = INTL ? (CONFIG.internacional.envio || 0) : (CONFIG.envio.costo || 0);
   const tot = sub + env, id = payId();
   const ahora = id === "deuna" ? tot : Math.min(ANT, tot);
-  return { items, sub, env, tot, cant: items.reduce((a, p) => a + p.n, 0), ahora, alRecibir: tot - ahora, pago: id };
+  return { items, sub, env, tot, cant: items.reduce((a, p) => a + p.n, 0), ahora, alRecibir: tot - ahora, pago: id, intl: INTL, envCotiza: INTL && CONFIG.internacional.envio == null };
 }
 function sumHTML(c){
-  const envTxt = CONFIG.envio.costo === 0 ? "Incluido" : CONFIG.envio.costo ? money(CONFIG.envio.costo) : "Por confirmar";
+  const envTxt = c.intl ? (c.envCotiza ? "Te lo cotizamos" : money(c.env)) : CONFIG.envio.costo === 0 ? "Incluido" : CONFIG.envio.costo ? money(CONFIG.envio.costo) : "Por confirmar";
   return c.items.map(p => `<div><span>${p.corto} × ${p.n}</span><span>${money(p.precio * p.n)}</span></div>`).join("") + `<div><span>Envío</span><span>${envTxt}</span></div><div class="tot"><span>Total</span><span>${money(c.tot)}</span></div>` +
     (c.ahora ? `<div><span>Pagas ahora</span><span>${money(c.ahora)}</span></div>` : "") +
     (c.alRecibir ? `<div><span>Pagas al recibir</span><span>${money(c.alRecibir)}</span></div>` : "");
@@ -963,6 +971,12 @@ const rules = {
   cedula: v => cedulaOk(v.replace(/\D/g, "")),
   ciudad: v => v.trim().length >= 3, direccion: v => v.trim().length >= 8 || !!$("#ubicacion").value.trim()
 };
+if (INTL) Object.assign(rules, {
+  telefono: v => /^\d{7,15}$/.test(v.replace(/\D/g, "").replace(/^00/, "")),
+  cedula: v => v.trim().length >= 5,
+  direccion: v => v.trim().length >= 10,
+  pais: v => v.trim().length >= 3
+});
 function check(name){ const el = form.elements[name], ok = rules[name](el.value); el.closest(".field").classList.toggle("bad", !ok); return ok; }
 Object.keys(rules).forEach(n => {
   const el = form.elements[n];
@@ -973,7 +987,7 @@ Object.keys(rules).forEach(n => {
 
 function waText(d, c){
   return `Hola Importcap, acabo de hacer este pedido en la página:%0A` + encodeURIComponent(
-    `• Pedido ${d.codigo}\n• ${d.productos} — Total ${money(c.tot)}\n• Pago: ${d.pago}\n• ${d.nombre}\n• Cédula ${d.cedula}\n• ${d.telefono}\n• ${d.ciudad}\n• ${d.direccion}` + (d.ubicacion ? `\n• Ubicación: ${d.ubicacion}` : ""));
+    `• Pedido ${d.codigo}\n• ${d.productos} — Total ${money(c.tot)}\n• Pago: ${d.pago}\n• ${d.nombre}\n• ${d.pais ? "Documento" : "Cédula"} ${d.cedula}\n• ${d.telefono}\n• ${d.ciudad}${d.pais ? ", " + d.pais : ""}\n• ${d.direccion}` + (d.ubicacion ? `\n• Ubicación: ${d.ubicacion}` : ""));
 }
 
 form.addEventListener("submit", async e => {
@@ -984,14 +998,14 @@ form.addEventListener("submit", async e => {
   $("#formerr").style.display = "none";
   $("#fCodigo").value = "IC-" + Date.now().toString(36).slice(-4).toUpperCase() + Math.floor(Math.random()*90+10);
   const fd = new FormData(form);
-  fd.set("telefono", fd.get("telefono").replace(/\D/g,"")); fd.set("cedula", (fd.get("cedula") || "").replace(/\D/g,""));
+  fd.set("telefono", INTL ? fd.get("telefono").replace(/\D/g,"").replace(/^00/, "") : fd.get("telefono").replace(/\D/g,"")); fd.set("cedula", INTL ? (fd.get("cedula") || "").trim().slice(0, 20) : (fd.get("cedula") || "").replace(/\D/g,""));
   const d = Object.fromEntries(fd), c = calc();
   try {
     const r = await fetch("/", { method: "POST", headers: {"Content-Type": "application/x-www-form-urlencoded"}, body: new URLSearchParams(fd).toString() });
     if (!r.ok) throw new Error(r.status);
     if (window.fbq) fbq("track", "Purchase", { value: c.tot, currency: "USD", content_name: "Excavadora RC", num_items: c.cant });
     $("#thxMsg").innerHTML = `Gracias, <b>${d.nombre.split(" ")[0]}</b>. Te contactaremos al <b>${d.telefono}</b> para confirmar la entrega.`;
-    $("#thxSum").innerHTML = sumHTML(c) + `<div style="margin-top:8px;color:var(--muted);font-size:14px;display:block">${d.direccion ? d.direccion + ", " : (d.ubicacion ? "📍 Ubicación marcada en el mapa · " : "")}${d.ciudad}</div>`;
+    $("#thxSum").innerHTML = sumHTML(c) + `<div style="margin-top:8px;color:var(--muted);font-size:14px;display:block">${d.direccion ? d.direccion + ", " : (d.ubicacion ? "📍 Ubicación marcada en el mapa · " : "")}${d.ciudad}${d.pais ? ", " + d.pais : ""}</div>`;
     $("#thxWa").href = `https://wa.me/${CONFIG.whatsapp}?text=` + waText(d, c);
     showPay(d, c);
     $("#thanks").classList.add("on"); document.body.style.overflow = "hidden"; onScroll(); marca("thx");
@@ -1063,7 +1077,9 @@ function showPay(d, c){
   $("#yaTransf").hidden = !(P.deuna.cuenta || {}).numero; $("#yaTransf").disabled = false; $("#yaTransf").textContent = "✅ Ya hice mi transferencia"; $("#yaOk").hidden = true;
   $("#payMonto").hidden = !hasLink || !!fijo; $("#payMonto").innerHTML = `Al abrir Deuna escribe el monto: <b>${money(c.ahora)}</b>`;
   $("#payNota").hidden = c.pago === "deuna";
+  if (c.intl) { $("#mDeuna").hidden = true; $("#mBanco").hidden = true; if (c.envCotiza) { $("#payNota").hidden = false; } }
   $("#payNota").innerHTML = `Pagas <b>solo ${money(c.ahora)}</b> ahora para confirmar tu pedido. Los <b>${money(c.alRecibir)}</b> restantes los pagas al recibirlo.`;
+  if (c.intl && c.envCotiza) $("#payNota").innerHTML = `Ahora pagas los juguetes: <b>${money(c.ahora)}</b>. El envío a tu país te lo cotizamos por WhatsApp y se paga aparte.`;
   const cu = P.deuna.cuenta || {};
   $("#payBank").hidden = !cu.numero;
   if (cu.numero) $("#payBank").innerHTML = `<b>Transfiere ${money(c.ahora)} a esta cuenta</b>` + [["Banco", cu.banco], ["Cuenta " + (cu.tipo || ""), cu.numero], ["Titular", cu.titular], ["Cédula", cu.cedula]].filter(x => x[1]).map(([k,v]) => `<div><span>${k}</span><span><b>${v}</b> <button type="button" data-copy="${v}">Copiar</button></span></div>`).join("");
@@ -1215,6 +1231,27 @@ async function ppOficial(m){
 $("#ppPlanB").onclick = e => { e.preventDefault(); ppB = true; $("#ppOficial").hidden = true; $("#ppSimple").hidden = false; $("#upForm").hidden = false; };
 $(".metodos").addEventListener("click", e => { const b = e.target.closest("button[data-m]"); if (b) eligeMetodo(b.dataset.m); });
 $("#mCambiar").onclick = () => eligeMetodo(null);
+/* modo internacional: textos y campos para clientes fuera de Ecuador */
+if (INTL) {
+  $("#topbar").innerHTML = "🌎 Envíos internacionales desde Ecuador";
+  $("#fOrigen").value = "internacional | " + $("#fOrigen").value;
+  $("#fPais").hidden = false; $("#pais").required = true;
+  const lab = (id, t) => { const l = document.querySelector(`label[for=${id}]`); if (l) l.innerHTML = t; };
+  lab("telefono", "Celular con código de país (WhatsApp)"); $("#telefono").placeholder = "+1 555 123 4567"; $("#telefono").inputMode = "tel";
+  $("#telefono").closest(".field").querySelector(".err").textContent = "Escribe tu número con el código de país, por ejemplo +1 555 123 4567.";
+  lab("cedula", "Documento de identidad o pasaporte"); $("#cedula").placeholder = "Número de documento"; $("#cedula").inputMode = "text"; $("#cedula").maxLength = 20;
+  $("#cedula").closest(".field").querySelector(".err").textContent = "Escribe tu número de documento o pasaporte.";
+  lab("direccion", "Dirección completa y código postal"); $("#direccion").placeholder = "Calle, número, apartamento, estado o provincia y código postal";
+  $("#direccion").closest(".field").querySelector(".err").textContent = "Escribe la dirección completa con el código postal.";
+  $("#ciudad").placeholder = "Ej. Miami";
+  $("#ubicacion").closest(".field").hidden = true;
+  $("#pays").innerHTML = '<input type="radio" name="pago" value="Pago internacional (tarjeta, PayPal o USDT)" data-id="deuna" checked hidden>';
+  $("#pays").previousElementSibling.hidden = true;
+  $("#fine").textContent = CONFIG.internacional.texto;
+  $("#pedidoSub").textContent = "Pagas con tarjeta de crédito o débito, PayPal o USDT. " + CONFIG.internacional.texto;
+  total();
+}
+if (SOLO) { scrollTo(0, 0); }
 </script>
 </body>
 </html>

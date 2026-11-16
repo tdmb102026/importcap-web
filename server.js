@@ -325,7 +325,7 @@ app.get("/admin/comprobante/:f", auth, (req, res) => {
 app.get("/admin/pedidos.csv", auth, (req, res) => {
   const bor = new Set(leerJSON(BOR_F, []));
   const rows = leer().filter(r => r.formulario === "pedido-excavadora" && !bor.has(r.id)), est = leerJSON(EST_F, {});
-  const cols = ["fecha", "estado", "codigo", "nombre", "cedula", "telefono", "ciudad", "direccion", "ubicacion", "productos", "cantidad", "total", "pago", "a_pagar_ahora", "provincia", "tarjeta_regalo", "notas", "origen"];
+  const cols = ["fecha", "estado", "codigo", "nombre", "cedula", "telefono", "ciudad", "pais", "direccion", "ubicacion", "productos", "cantidad", "total", "pago", "a_pagar_ahora", "provincia", "tarjeta_regalo", "notas", "origen"];
   const val = (r, c) => c === "fecha" ? r.fecha : c === "estado" ? est[r.datos.codigo] || "nuevo" : r.datos[c] ?? "";
   const csv = [cols.join(",")].concat(rows.map(r => cols.map(c => '"' + String(val(r, c)).replace(/"/g, '""') + '"').join(","))).join("\n");
   res.type("text/csv").set("Content-Disposition", "attachment; filename=pedidos-importcap.csv").send("﻿" + csv);
@@ -359,7 +359,7 @@ app.get("/admin", auth, (req, res) => {
   const fmt = iso => new Date(iso).toLocaleString("es-EC", { timeZone: "America/Guayaquil", dateStyle: "short", timeStyle: "short" });
   const tarjetas = todos.map(r => {
     const d = r.datos, cs = comp[d.codigo] || [], borrado = bor.has(r.id), e = borrado ? "papelera" : est[d.codigo] || "nuevo";
-    const tel = String(d.telefono || "").replace(/\D/g, "").replace(/^0/, "593");
+    const tel = String(d.telefono || "").replace(/\D/g, "").replace(/^0(?=9)/, "593");
     // mensajes de WhatsApp listos: un toque abre el chat del cliente con el texto escrito
     const nom = String(d.nombre || "").trim().split(/\s+/)[0] || "";
     const contra = /contra/i.test(d.pago || "");
@@ -373,7 +373,7 @@ app.get("/admin", auth, (req, res) => {
       : `<select data-c="${esc(d.codigo)}">${ESTADOS.map(x => `<option${x === e ? " selected" : ""}>${x}</option>`).join("")}</select> <button data-del="${esc(r.id)}" class="btn s del" aria-label="Eliminar">🗑️</button>`;
     return `<tr id="${esc(d.codigo)}" data-e="${e}"${borrado ? " hidden" : ""}><td>${esc(fmt(r.fecha))}<br><b class="code">${esc(d.codigo)}</b><br><span class="est e-${e}">${e}</span></td>
 <td><b>${esc(d.nombre)}</b>${d.cedula ? `<br><span class="muted">CI ${esc(d.cedula)}</span>` : ""}<br><a href="https://wa.me/${esc(tel)}" target="_blank">${esc(d.telefono)}</a><div class="wab"><a class="btn s" href="${esc(wa(msgRecibido))}" target="_blank">📲 Recibido</a><a class="btn s" href="${esc(wa(msgAprobado))}" target="_blank" data-aprobar="${esc(d.codigo)}">✅ Aprobado</a></div></td>
-<td>${esc(d.direccion)}<br>${esc(d.ciudad)}${d.provincia ? ", " + esc(d.provincia) : ""}${maps}${d.notas ? `<br>📝 ${esc(d.notas)}` : ""}</td>
+<td>${esc(d.direccion)}<br>${esc(d.ciudad)}${d.provincia ? ", " + esc(d.provincia) : ""}${d.pais ? `<br>🌎 <b>${esc(d.pais)}</b>` : ""}${maps}${d.notas ? `<br>📝 ${esc(d.notas)}` : ""}</td>
 <td>${esc(d.productos || d.cantidad + " × excavadora")}<br><b>${esc(d.total)}</b></td>
 <td>${esc(d.pago)}<br>Ahora: ${esc(d.a_pagar_ahora)}<br>${(intento[d.codigo] || []).map(v => `<span class="ok-t">👉 ${esc(VIAS[v] || v)}</span><br>`).join("")}${(ppPag[d.codigo] || []).map(x => `<span class="ok-t">${x.estado === "COMPLETED" ? "💰 Pagado " : "⏳ En revisión "}${x.fuente === "tarjeta" ? "con tarjeta" : "por PayPal"} $${esc(x.monto)}</span><br>`).join("")}${comps || ((ppPag[d.codigo] || []).length ? "" : '<span class="no">sin comprobante</span>')}</td>
 <td class="nw">${accion}</td><td class="o">${esc(d.origen)}</td></tr>`;
