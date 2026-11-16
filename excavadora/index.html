@@ -546,6 +546,12 @@ footer a{color:var(--ink)}
       <div class="bank" id="payBank" hidden></div>
       <button type="button" class="btn" id="yaTransf" hidden style="margin-top:10px;width:100%">✅ Ya hice mi transferencia</button>
       <p id="yaOk" hidden style="margin:8px 0 0;font-size:14px;font-weight:700">¡Gracias! Ahora sube aquí abajo la captura de la transferencia 👇</p>
+      <div id="payOtros" hidden style="margin-top:14px">
+        <p style="margin:0 0 6px;font-weight:700;font-size:14px">O paga con</p>
+        <a class="btn" id="payPaypal" target="_blank" rel="noopener" hidden style="margin:0 0 8px;background:#ffc439;color:#14200b"></a>
+        <div class="bank" id="payUsdt" hidden></div>
+        <button type="button" class="btn" id="yaUsdt" hidden style="margin-top:10px;width:100%">✅ Ya envié los USDT</button>
+      </div>
       <p style="font-size:14px;margin:12px 0 0" hidden>En la descripción del pago pon tu código <span class="code" id="payCode"></span></p>
       <p style="font-size:14px;margin:10px 0 0" id="payNoQr" hidden>En unos minutos te enviamos el QR de Deuna por WhatsApp.</p>
       <form class="up" name="comprobante" method="POST" data-netlify="true" netlify-honeypot="bot-field" enctype="multipart/form-data" id="upForm">
@@ -583,6 +589,10 @@ const CONFIG = {
   envio: { costo: 0, texto: "Envío incluido a todo Ecuador" }, // costo: 0 = incluido
   pagos: {
     deuna: { activo: true, qr: "", /* QR quitado a pedido de fer: confundía. Para volver: "img/deuna-qr.png" */ link: "https://pagar.deuna.app/H92p/merchant?id=6964a0ead4ee6a238e89b599cb040b6d556ecd22",
+      // PayPal: tu usuario de paypal.me (lo que va después de paypal.me/). Vacío = no se muestra
+      paypal: { usuario: "" },
+      // USDT: dirección de tu billetera y la red (TRC20, BEP20, ERC20...). Vacío = no se muestra
+      usdt: { direccion: "", red: "TRC20" },
       cuenta: { banco: "Banco Pichincha", tipo: "de ahorros", numero: "2207286479", titular: "Fernando Benítez", cedula: "1804770830" },
       // enlaces de cobro con monto fijo: se usan si el monto coincide y no ha pasado la fecha "hasta"; si no, se usa el enlace general de arriba
       enlaces: [
@@ -980,6 +990,11 @@ function showPay(d, c){
   $("#payFijo").hidden = !fijo;
   if (fijo) { $("#payFijo").href = fijo.url; $("#payFijo").textContent = `💳 Pagar ${money(c.ahora)} con Deuna`; }
   $("#payLink").hidden = !hasLink || !!fijo; $("#payLink").textContent = `💳 Pagar ${money(c.ahora)} con Deuna`;
+  const pp = (P.deuna.paypal || {}).usuario, ut = P.deuna.usdt || {};
+  $("#payPaypal").hidden = !pp; if (pp) { $("#payPaypal").href = `https://www.paypal.me/${encodeURIComponent(pp)}/${c.ahora}USD`; $("#payPaypal").textContent = `🅿️ Pagar ${money(c.ahora)} con PayPal`; }
+  $("#payUsdt").hidden = !ut.direccion; $("#yaUsdt").hidden = !ut.direccion; $("#yaUsdt").disabled = false; $("#yaUsdt").textContent = "✅ Ya envié los USDT";
+  if (ut.direccion) $("#payUsdt").innerHTML = `<b>Envía ${c.ahora} USDT</b><div><span>Red</span><span><b>${ut.red}</b></span></div><div><span>Dirección</span><span><b style="word-break:break-all;font-size:12px">${ut.direccion}</b> <button type="button" data-copy="${ut.direccion}">Copiar</button></span></div><p style="margin:6px 0 0;font-size:12px">Usa solo la red ${ut.red}. Si envías por otra red, el pago se pierde.</p>`;
+  $("#payOtros").hidden = !pp && !ut.direccion;
   $("#yaTransf").hidden = !(P.deuna.cuenta || {}).numero; $("#yaTransf").disabled = false; $("#yaTransf").textContent = "✅ Ya hice mi transferencia"; $("#yaOk").hidden = true;
   $("#payMonto").hidden = !hasLink || !!fijo; $("#payMonto").innerHTML = `Al abrir Deuna escribe el monto: <b>${money(c.ahora)}</b>`;
   $("#payNota").hidden = c.pago === "deuna";
@@ -1007,7 +1022,7 @@ $("#upForm").addEventListener("submit", async e => {
   finally { b.disabled = false; }
 });
 
-$("#payBank").addEventListener("click", e => { const v = e.target.dataset.copy; if (!v) return; navigator.clipboard.writeText(v).then(() => { e.target.textContent = "¡Copiado!"; setTimeout(() => e.target.textContent = "Copiar", 1500); }).catch(() => {}); });
+["#payBank", "#payUsdt"].forEach(q => $(q).addEventListener("click", e => { const v = e.target.dataset.copy; if (!v) return; navigator.clipboard.writeText(v).then(() => { e.target.textContent = "¡Copiado!"; setTimeout(() => e.target.textContent = "Copiar", 1500); }).catch(() => {}); }));
 
 /* barra fija: aparece al bajar y se oculta en el formulario */
 const sticky = $("#sticky"), pedido = $("#pedido");
@@ -1066,6 +1081,12 @@ function avisaPago(via){
   try { fetch("/", { method: "POST", keepalive: true, headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: new URLSearchParams({ "form-name": "pago-iniciado", codigo: cod, via }).toString() }); } catch {}
 }
 ["#payFijo", "#payLink"].forEach(q => $(q).addEventListener("click", () => avisaPago("deuna")));
+$("#payPaypal").addEventListener("click", () => { avisaPago("paypal"); marcaPago(); });
+$("#yaUsdt").onclick = () => {
+  avisaPago("usdt"); marcaPago();
+  $("#yaUsdt").disabled = true; $("#yaUsdt").textContent = "✅ Recibido, gracias";
+  $("#upForm").scrollIntoView({ behavior: "smooth", block: "center" });
+};
 $("#yaTransf").onclick = () => {
   avisaPago("transferencia");
   $("#yaTransf").disabled = true; $("#yaTransf").textContent = "✅ Recibido, gracias"; $("#yaOk").hidden = false;

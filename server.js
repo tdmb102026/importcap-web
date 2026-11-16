@@ -58,6 +58,8 @@ function guardar(reg) {
   fs.appendFileSync(DB, JSON.stringify(reg) + "\n");
 }
 
+// cómo se muestra cada forma de pago en avisos y panel
+const VIAS = { deuna: "tocó Pagar con Deuna", transferencia: "dice que ya transfirió", paypal: "tocó Pagar con PayPal", usdt: "dice que envió USDT" };
 app.post("/", express.urlencoded({ extended: false, limit: "50kb" }), upload.single("captura"), (req, res) => {
   const b = req.body || {};
   if (!b["form-name"]) return res.status(400).send("Falta form-name");
@@ -83,7 +85,7 @@ app.post("/", express.urlencoded({ extended: false, limit: "50kb" }), upload.sin
   if (b["form-name"] === "pedido-excavadora") // aviso con sonido: confirmó pero aún no paga
     avisar({ title: `📝 ${datos.codigo || ""}: confirmó un pedido, aún sin pagar`, body: `${datos.nombre || ""} · ${datos.productos || ""} · ${datos.total || ""} · ${datos.ciudad || ""}`, tag: datos.codigo, url: "/admin#" + (datos.codigo || "") }).catch(() => {});
   else if (pedido) {
-    const p = pedido.datos, como = datos.via === "transferencia" ? "dice que ya transfirió" : "tocó Pagar con Deuna";
+    const p = pedido.datos, como = VIAS[datos.via] || VIAS.deuna;
     avisar({ title: `🛒 Pedido ${p.codigo}: ${como}`, body: `${p.nombre || ""} · ${p.productos || ""} · ${p.total || ""}\nA pagar ahora: ${p.a_pagar_ahora || ""} · ${p.ciudad || ""}`, tag: p.codigo, url: "/admin#" + p.codigo }).catch(() => {});
   }
   else if (b["form-name"] === "resena")
@@ -313,7 +315,7 @@ app.get("/admin", auth, (req, res) => {
 <td><b>${esc(d.nombre)}</b>${d.cedula ? `<br><span class="muted">CI ${esc(d.cedula)}</span>` : ""}<br><a href="https://wa.me/${esc(tel)}" target="_blank">${esc(d.telefono)}</a><div class="wab"><a class="btn s" href="${esc(wa(msgRecibido))}" target="_blank">📲 Recibido</a><a class="btn s" href="${esc(wa(msgAprobado))}" target="_blank" data-aprobar="${esc(d.codigo)}">✅ Aprobado</a></div></td>
 <td>${esc(d.direccion)}<br>${esc(d.ciudad)}${d.provincia ? ", " + esc(d.provincia) : ""}${maps}${d.notas ? `<br>📝 ${esc(d.notas)}` : ""}</td>
 <td>${esc(d.productos || d.cantidad + " × excavadora")}<br><b>${esc(d.total)}</b></td>
-<td>${esc(d.pago)}<br>Ahora: ${esc(d.a_pagar_ahora)}<br>${(intento[d.codigo] || []).map(v => `<span class="ok-t">👉 ${v === "transferencia" ? "dice que transfirió" : "tocó Pagar con Deuna"}</span><br>`).join("")}${comps || '<span class="no">sin comprobante</span>'}</td>
+<td>${esc(d.pago)}<br>Ahora: ${esc(d.a_pagar_ahora)}<br>${(intento[d.codigo] || []).map(v => `<span class="ok-t">👉 ${esc(VIAS[v] || v)}</span><br>`).join("")}${comps || '<span class="no">sin comprobante</span>'}</td>
 <td class="nw">${accion}</td><td class="o">${esc(d.origen)}</td></tr>`;
   }).join("");
   const sueltos = regs.filter(r => r.formulario === "comprobante" && !bor.has(r.id) && !todos.some(p => p.datos.codigo === r.datos.codigo));
