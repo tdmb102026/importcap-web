@@ -278,6 +278,12 @@ footer a{color:var(--ink)}
 .metodos button{display:flex;flex-direction:column;align-items:center;gap:3px;background:#f2f4ee;border:2px solid #dde3d6;border-radius:16px;padding:14px 8px;cursor:pointer;color:#14200b;font:inherit;transition:border-color .15s,transform .15s}
 .metodos button:hover,.metodos button:focus-visible{border-color:#14200b;transform:translateY(-2px)}
 .metodos button[hidden]{display:none}
+.metodos .m-ancho{grid-column:1/-1;flex-direction:row;justify-content:flex-start;gap:12px;padding:14px 16px;text-align:left;border-color:#14200b;background:#fff}
+.metodos .m-ancho .m-i{margin:0;flex:none}
+.m-txt{display:flex;flex-direction:column;gap:2px}
+.metodos .m-i.m-cards{width:auto;height:auto;flex-direction:row;border-radius:12px;padding:8px 10px;gap:4px;display:flex}
+.metodos .m-i.m-cards svg,.m-l.m-cards svg{width:26px;height:26px}
+.m-l.m-cards{width:auto;gap:3px;display:inline-flex}
 .metodos .m-i{display:grid;place-items:center;width:52px;height:52px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-bottom:4px}
 .metodos .m-i svg{width:28px;height:28px}.metodos .m-i img{width:44px;height:44px;border-radius:50%}
 .m-l{display:inline-grid;place-items:center;width:30px;height:30px;vertical-align:middle;margin-right:8px}.m-l svg{width:22px;height:22px}.m-l img{width:30px;height:30px;border-radius:50%}
@@ -558,11 +564,19 @@ footer a{color:var(--ink)}
       <div id="metodos">
         <p class="m-t">¿Cómo quieres pagar?</p>
         <div class="metodos">
+          <button type="button" data-m="tarjeta" id="mTarjeta" class="m-ancho" hidden><span class="m-i m-cards"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#1A1F71" d="M9.112 8.262L5.97 15.758H3.92L2.374 9.775c-.094-.368-.175-.503-.461-.658C1.447 8.864.677 8.627 0 8.479l.046-.217h3.3a.904.904 0 01.894.764l.817 4.338 2.018-5.102zm8.033 5.049c.008-1.979-2.736-2.088-2.717-2.972.006-.269.262-.555.822-.628a3.66 3.66 0 011.913.336l.34-1.59a5.207 5.207 0 00-1.814-.333c-1.917 0-3.266 1.02-3.278 2.479-.012 1.079.963 1.68 1.698 2.04.756.367 1.01.603 1.006.931-.005.504-.602.725-1.16.734-.975.015-1.54-.263-1.992-.473l-.351 1.642c.453.208 1.289.39 2.156.398 2.037 0 3.37-1.006 3.377-2.564m5.061 2.447H24l-1.565-7.496h-1.656a.883.883 0 00-.826.55l-2.909 6.946h2.036l.405-1.12h2.488zm-2.163-2.656l1.02-2.815.588 2.815zm-8.16-4.84l-1.603 7.496H8.34l1.605-7.496z"/></svg><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#EB001B" d="M11.343 18.031c.058.049.12.098.181.146-1.177.783-2.59 1.238-4.107 1.238C3.32 19.416 0 16.096 0 12c0-4.095 3.32-7.416 7.416-7.416 1.518 0 2.931.456 4.105 1.238-.06.051-.12.098-.165.15C9.6 7.489 8.595 9.688 8.595 12c0 2.311 1.001 4.51 2.748 6.031zm5.241-13.447c-1.52 0-2.931.456-4.105 1.238.06.051.12.098.165.15C14.4 7.489 15.405 9.688 15.405 12c0 2.31-1.001 4.507-2.748 6.031-.058.049-.12.098-.181.146 1.177.783 2.588 1.238 4.107 1.238C20.68 19.416 24 16.096 24 12c0-4.094-3.32-7.416-7.416-7.416zM12 6.174c-.096.075-.189.15-.28.231C10.156 7.764 9.169 9.765 9.169 12c0 2.236.987 4.236 2.551 5.595.09.08.185.158.28.232.096-.074.189-.152.28-.232 1.563-1.359 2.551-3.359 2.551-5.595 0-2.235-.987-4.236-2.551-5.595-.09-.08-.184-.156-.28-.231z"/></svg></span><span class="m-txt"><b>Tarjeta de crédito o débito</b><small>Visa, Mastercard y más · pago seguro al instante</small></span></button>
           <button type="button" data-m="deuna" id="mDeuna"><span class="m-i"><img src="img/deuna-logo.png" alt="" width="40" height="40"></span><b>Deuna</b><small>Al instante, desde tu celular</small></button>
           <button type="button" data-m="banco" id="mBanco"><span class="m-i"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#14200b" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M3 9.5 12 4l9 5.5"/><path d="M4 10h16"/><path d="M6 10v8M10 10v8M14 10v8M18 10v8"/><path d="M3 20.5h18"/></svg></span><b>Transferencia</b><small>Desde cualquier banco</small></button>
           <button type="button" data-m="usdt" id="mUsdt"><span class="m-i"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#50AF95" d="M18.7538 10.5176c0 .6251-2.2379 1.1483-5.2381 1.2812l.0028.0007c-.0848.0064-.5233.0325-1.5012.0325-.7778 0-1.33-.0233-1.5237-.0325-3.0059-.1322-5.2495-.6555-5.2495-1.2819s2.2436-1.149 5.2495-1.2834v2.0442c.1965.0142.7594.0474 1.5372.0474.9334 0 1.4008-.0389 1.4849-.0466V9.2356c2.9994.1337 5.2381.657 5.2381 1.282zm5.19.5466L12.1248 22.389a.1803.1803 0 0 1-.2496 0L.0562 11.0635a.1781.1781 0 0 1-.0382-.2079l4.3762-9.1921a.1767.1767 0 0 1 .1626-.1026h14.8878a.1768.1768 0 0 1 .1612.1032l4.3762 9.1922a.1782.1782 0 0 1-.0382.2079zm-4.478-.4038c0-.8068-2.5515-1.4799-5.9473-1.6369V7.195h4.186V4.4055H6.3076V7.195h4.1852v1.8286c-3.4018.1562-5.9601.83-5.9601 1.6376 0 .8075 2.5583 1.4806 5.9601 1.6376v5.8618h3.025v-5.8639c3.394-.1563 5.948-.8295 5.948-1.6363z"/></svg></span><b>Cripto</b><small>USDT · TRC20 o BEP20</small></button>
-          <button type="button" data-m="paypal" id="mPaypal"><span class="m-i"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#003087" d="M15.607 4.653H8.941L6.645 19.251H1.82L4.862 0h7.995c3.754 0 6.375 2.294 6.473 5.513-.648-.478-2.105-.86-3.722-.86m6.57 5.546c0 3.41-3.01 6.853-6.958 6.853h-2.493L11.595 24H6.74l1.845-11.538h3.592c4.208 0 7.346-3.634 7.153-6.949a5.24 5.24 0 0 1 2.848 4.686M9.653 5.546h6.408c.907 0 1.942.222 2.363.541-.195 2.741-2.655 5.483-6.441 5.483H8.714Z"/></svg></span><b>PayPal</b><small>Cuenta PayPal o tarjeta</small></button>
+          <button type="button" data-m="paypal" id="mPaypal"><span class="m-i"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#003087" d="M15.607 4.653H8.941L6.645 19.251H1.82L4.862 0h7.995c3.754 0 6.375 2.294 6.473 5.513-.648-.478-2.105-.86-3.722-.86m6.57 5.546c0 3.41-3.01 6.853-6.958 6.853h-2.493L11.595 24H6.74l1.845-11.538h3.592c4.208 0 7.346-3.634 7.153-6.949a5.24 5.24 0 0 1 2.848 4.686M9.653 5.546h6.408c.907 0 1.942.222 2.363.541-.195 2.741-2.655 5.483-6.441 5.483H8.714Z"/></svg></span><b>PayPal</b><small>Con tu cuenta PayPal</small></button>
         </div>
+      </div>
+      <div class="m-panel" id="pmTarjeta" hidden>
+        <p class="m-h"><span class="m-l m-cards"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#1A1F71" d="M9.112 8.262L5.97 15.758H3.92L2.374 9.775c-.094-.368-.175-.503-.461-.658C1.447 8.864.677 8.627 0 8.479l.046-.217h3.3a.904.904 0 01.894.764l.817 4.338 2.018-5.102zm8.033 5.049c.008-1.979-2.736-2.088-2.717-2.972.006-.269.262-.555.822-.628a3.66 3.66 0 011.913.336l.34-1.59a5.207 5.207 0 00-1.814-.333c-1.917 0-3.266 1.02-3.278 2.479-.012 1.079.963 1.68 1.698 2.04.756.367 1.01.603 1.006.931-.005.504-.602.725-1.16.734-.975.015-1.54-.263-1.992-.473l-.351 1.642c.453.208 1.289.39 2.156.398 2.037 0 3.37-1.006 3.377-2.564m5.061 2.447H24l-1.565-7.496h-1.656a.883.883 0 00-.826.55l-2.909 6.946h2.036l.405-1.12h2.488zm-2.163-2.656l1.02-2.815.588 2.815zm-8.16-4.84l-1.603 7.496H8.34l1.605-7.496z"/></svg><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#EB001B" d="M11.343 18.031c.058.049.12.098.181.146-1.177.783-2.59 1.238-4.107 1.238C3.32 19.416 0 16.096 0 12c0-4.095 3.32-7.416 7.416-7.416 1.518 0 2.931.456 4.105 1.238-.06.051-.12.098-.165.15C9.6 7.489 8.595 9.688 8.595 12c0 2.311 1.001 4.51 2.748 6.031zm5.241-13.447c-1.52 0-2.931.456-4.105 1.238.06.051.12.098.165.15C14.4 7.489 15.405 9.688 15.405 12c0 2.31-1.001 4.507-2.748 6.031-.058.049-.12.098-.181.146 1.177.783 2.588 1.238 4.107 1.238C20.68 19.416 24 16.096 24 12c0-4.094-3.32-7.416-7.416-7.416zM12 6.174c-.096.075-.189.15-.28.231C10.156 7.764 9.169 9.765 9.169 12c0 2.236.987 4.236 2.551 5.595.09.08.185.158.28.232.096-.074.189-.152.28-.232 1.563-1.359 2.551-3.359 2.551-5.595 0-2.235-.987-4.236-2.551-5.595-.09-.08-.184-.156-.28-.231z"/></svg></span>Pagar con tarjeta</p>
+        <p class="ppTot" style="margin:10px 0 10px;font-size:15px"></p>
+        <div id="cardBtns" style="min-height:50px"></div>
+        <p id="cardMsg" hidden style="margin:8px 0 0;font-weight:700"></p>
+        <p style="margin:8px 0 0;font-size:13px;text-align:left">🔒 Pagas aquí mismo con tu tarjeta de crédito o débito, sin crear cuentas. El pago lo procesa PayPal de forma segura y se confirma solo: no necesitas subir captura.</p>
       </div>
       <div class="m-panel" id="pmDeuna" hidden>
         <p class="m-h"><span class="m-l"><img src="img/deuna-logo.png" alt="" width="40" height="40"></span>Pagar con Deuna</p>
@@ -584,10 +598,10 @@ footer a{color:var(--ink)}
       <div class="m-panel" id="pmPaypal" hidden>
         <p class="m-h"><span class="m-l"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#003087" d="M15.607 4.653H8.941L6.645 19.251H1.82L4.862 0h7.995c3.754 0 6.375 2.294 6.473 5.513-.648-.478-2.105-.86-3.722-.86m6.57 5.546c0 3.41-3.01 6.853-6.958 6.853h-2.493L11.595 24H6.74l1.845-11.538h3.592c4.208 0 7.346-3.634 7.153-6.949a5.24 5.24 0 0 1 2.848 4.686M9.653 5.546h6.408c.907 0 1.942.222 2.363.541-.195 2.741-2.655 5.483-6.441 5.483H8.714Z"/></svg></span>Pagar con PayPal</p>
         <div id="ppOficial" hidden>
-          <p id="ppTotal" style="margin:10px 0 10px;font-size:15px"></p>
+          <p class="ppTot" style="margin:10px 0 10px;font-size:15px"></p>
           <div id="ppBtns" style="min-height:50px"></div>
           <p id="ppMsg" hidden style="margin:8px 0 0;font-weight:700"></p>
-          <p style="margin:8px 0 0;font-size:13px;text-align:left">Pagas aquí mismo con tu cuenta PayPal o con tarjeta de crédito o débito. El pago se confirma solo, no necesitas subir captura.</p>
+          <p style="margin:8px 0 0;font-size:13px;text-align:left">Pagas aquí mismo con tu cuenta PayPal. El pago se confirma solo, no necesitas subir captura.</p>
           <p style="margin:10px 0 0;font-size:13px">¿No te carga? <a href="#" id="ppPlanB" style="color:inherit;font-weight:700">Paga con el enlace de PayPal</a></p>
         </div>
         <div id="ppSimple">
@@ -1045,7 +1059,7 @@ function showPay(d, c){
   const ppm = !pp && PPc.correo;
   $("#payPpMail").hidden = !ppm;
   if (ppm) $("#payPpMail").innerHTML = `<b>🅿️ Envía ${money(ppMonto)} por PayPal</b>${PPc.recargo ? ` <span style="font-size:12px">(incluye ${money(+PPc.recargo)} de comisión)</span>` : ""}<div><span>A</span><span><b style="word-break:break-all">${PPc.correo}</b> <button type="button" data-copy="${PPc.correo}">Copiar</button></span></div><a href="https://www.paypal.com/myaccount/transfer/homepage/pay" target="_blank" rel="noopener" id="ppAbrir" style="display:block;margin-top:8px;font-weight:700">Abrir PayPal →</a>`;
-  $("#mPaypal").hidden = !pp && !ppm; $("#mUsdt").hidden = !ut.length; $("#mBanco").hidden = !(P.deuna.cuenta || {}).numero; $("#mDeuna").hidden = !hasLink && !fijo;
+  $("#mPaypal").hidden = !pp && !ppm && !(ppCfg && ppCfg.activo); $("#mTarjeta").hidden = !(ppCfg && ppCfg.activo); $("#mUsdt").hidden = !ut.length; $("#mBanco").hidden = !(P.deuna.cuenta || {}).numero; $("#mDeuna").hidden = !hasLink && !fijo;
   $("#yaTransf").hidden = !(P.deuna.cuenta || {}).numero; $("#yaTransf").disabled = false; $("#yaTransf").textContent = "✅ Ya hice mi transferencia"; $("#yaOk").hidden = true;
   $("#payMonto").hidden = !hasLink || !!fijo; $("#payMonto").innerHTML = `Al abrir Deuna escribe el monto: <b>${money(c.ahora)}</b>`;
   $("#payNota").hidden = c.pago === "deuna";
@@ -1149,45 +1163,54 @@ $("#yaTransf").onclick = () => {
 /* elegir forma de pago: 4 opciones, se abre solo la elegida */
 
 function eligeMetodo(m, sinScroll){
-  if (m && $("#m" + m[0].toUpperCase() + m.slice(1)).hidden) m = null;
+  const quiso = m; if (m && $("#m" + m[0].toUpperCase() + m.slice(1)).hidden) m = null;
   $("#metodos").hidden = !!m; $("#mCambiar").hidden = !m;
-  for (const [k, q] of Object.entries({ deuna: "#pmDeuna", banco: "#pmBanco", usdt: "#pmUsdt", paypal: "#pmPaypal" })) $(q).hidden = k !== m;
+  for (const [k, q] of Object.entries({ tarjeta: "#pmTarjeta", deuna: "#pmDeuna", banco: "#pmBanco", usdt: "#pmUsdt", paypal: "#pmPaypal" })) $(q).hidden = k !== m;
   if (!$("#upOk").style.display || $("#upOk").style.display === "none") $("#upForm").hidden = !m;
-  try { const g = pedidoGuardado(); if (g) { if (m) g.via = m; else delete g.via; localStorage.setItem("ic_pedido", JSON.stringify(g)); } } catch {}
-  if (m === "paypal") ppOficial();
+  try { const g = pedidoGuardado(); if (g) { if (m) g.via = m; else if (!quiso) delete g.via; localStorage.setItem("ic_pedido", JSON.stringify(g)); } } catch {}
+  if (m === "paypal" || m === "tarjeta") ppOficial(m);
   if (!sinScroll) $("#paybox").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 /* botón oficial de PayPal: se carga solo si el servidor tiene el Secret puesto; si no, queda el enlace paypal.me */
-var ppCfg = null, ppListo = false, ppB = false;
-async function ppOficial(){
-  const cod = $("#upCodigo").value; if (!cod || ppB) return;
-  try { ppCfg = ppCfg || await fetch("/api/paypal").then(r => r.json()); } catch { return; }
-  if (!ppCfg.activo) return;
-  const ponTotal = () => { const g = pedidoGuardado(); const base = g && g.c ? g.c.ahora : 0; $("#ppTotal").innerHTML = base ? `Total con PayPal: <b>${money(base + (+ppCfg.recargo || 0))}</b>${ppCfg.recargo ? ` <span style="font-size:12px">(incluye ${money(+ppCfg.recargo)} de comisión)</span>` : ""}` : ""; };
-  const pinta = () => {
-    if (ppListo) return;
-    $("#ppBtns").innerHTML = "";
-    paypal.Buttons({
-      style: { layout: "vertical", shape: "rect", color: "gold", label: "pay", height: 48 },
-      createOrder: () => fetch("/api/paypal/orden", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ codigo: $("#upCodigo").value }) }).then(r => r.json()).then(j => { if (!j.id) throw new Error(j.error || "orden"); avisaPago("paypal"); return j.id; }),
-      onApprove: d => fetch("/api/paypal/capturar", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: d.orderID }) }).then(r => r.json()).then(j => {
-        if (!j.ok) throw new Error(j.error || "captura");
-        $("#ppBtns").hidden = true; $("#ppMsg").hidden = false;
-        $("#ppMsg").textContent = j.estado === "COMPLETED" ? "✅ ¡Pago recibido! Ya preparamos tu envío. Te escribimos por WhatsApp." : "⏳ PayPal está revisando tu pago. Te avisamos por WhatsApp apenas se confirme.";
-        $("#upForm").hidden = true; $("#mCambiar").hidden = true;
-        try { localStorage.removeItem("ic_pedido"); } catch {}
-      }),
-      onError: () => { $("#ppMsg").hidden = false; $("#ppMsg").textContent = "No se pudo completar el pago. Intenta otra vez o usa el enlace de PayPal de abajo."; }
-    }).render("#ppBtns").then(() => { ppListo = true; }).catch(() => {});
-  };
-  $("#ppOficial").hidden = false; $("#ppSimple").hidden = true; $("#upForm").hidden = true; ponTotal();
-  if (window.paypal) return pinta();
-  if (document.getElementById("ppSdk")) return;
+var ppCfg = null, ppB = false, ppHecho = {}, ppSdkP = null;
+/* botón oficial de PayPal y pago con tarjeta: se activan solo si el servidor tiene el Secret puesto */
+const ppConfig = () => ppCfg ? Promise.resolve(ppCfg) : fetch("/api/paypal").then(r => r.json()).then(j => (ppCfg = j)).catch(() => ({}));
+const ppSdk = () => ppSdkP || (ppSdkP = new Promise((ok, mal) => {
   const s = document.createElement("script"); s.id = "ppSdk";
   s.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(ppCfg.clientId)}&currency=USD&intent=capture&components=buttons&enable-funding=card&disable-funding=paylater,venmo&locale=es_EC`;
-  s.onload = pinta;
-  s.onerror = () => { $("#ppOficial").hidden = true; $("#ppSimple").hidden = false; };
-  document.head.appendChild(s);
+  s.onload = ok; s.onerror = () => { ppSdkP = null; s.remove(); mal(); }; document.head.appendChild(s);
+}));
+// al cargar la página: si PayPal oficial está activo, aparece la opción Tarjeta
+ppConfig().then(c => { if (!c.activo) return; $("#mTarjeta").hidden = false; $("#mPaypal").hidden = false; const g = pedidoGuardado(); if (g && g.via === "tarjeta" && $("#thanks").classList.contains("on")) eligeMetodo("tarjeta", true); });
+async function ppOficial(m){
+  const cod = $("#upCodigo").value; if (!cod) return;
+  const c = await ppConfig();
+  const tarjeta = m === "tarjeta", caja = tarjeta ? "#cardBtns" : "#ppBtns", msg = tarjeta ? "#cardMsg" : "#ppMsg";
+  if (!c.activo) { if (tarjeta) eligeMetodo(null, true); return; }
+  if (!tarjeta && ppB) return;
+  const g = pedidoGuardado(), base = g && g.c ? g.c.ahora : 0;
+  document.querySelectorAll(".ppTot").forEach(e => e.innerHTML = base ? `Total a pagar: <b>${money(base + (+c.recargo || 0))}</b>${c.recargo ? ` <span style="font-size:12px">(incluye ${money(+c.recargo)} de comisión)</span>` : ""}` : "");
+  if (!tarjeta) { $("#ppOficial").hidden = false; $("#ppSimple").hidden = true; }
+  $("#upForm").hidden = true;
+  if (ppHecho[m]) return;
+  const falla = () => { if (tarjeta) { $(msg).hidden = false; $(msg).textContent = "El pago con tarjeta no está disponible en este momento. Elige otra forma de pago."; $("#upForm").hidden = true; } else { $("#ppOficial").hidden = true; $("#ppSimple").hidden = false; $("#upForm").hidden = false; } };
+  try { await ppSdk(); } catch { return falla(); }
+  const btn = paypal.Buttons({
+    fundingSource: tarjeta ? paypal.FUNDING.CARD : paypal.FUNDING.PAYPAL,
+    style: tarjeta ? { shape: "rect", color: "black", height: 48 } : { shape: "rect", color: "gold", label: "pay", height: 48 },
+    createOrder: () => fetch("/api/paypal/orden", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ codigo: $("#upCodigo").value }) }).then(r => r.json()).then(j => { if (!j.id) throw new Error(j.error || "orden"); avisaPago(tarjeta ? "tarjeta" : "paypal"); return j.id; }),
+    onApprove: d => fetch("/api/paypal/capturar", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: d.orderID }) }).then(r => r.json()).then(j => {
+      if (!j.ok) throw new Error(j.error || "captura");
+      $(caja).hidden = true; $(msg).hidden = false;
+      $(msg).textContent = j.estado === "COMPLETED" ? "✅ ¡Pago recibido! Ya preparamos tu envío. Te escribimos por WhatsApp." : "⏳ Tu pago está en revisión. Te avisamos por WhatsApp apenas se confirme.";
+      $("#upForm").hidden = true; $("#mCambiar").hidden = true;
+      try { localStorage.removeItem("ic_pedido"); } catch {}
+    }),
+    onError: () => { $(msg).hidden = false; $(msg).textContent = tarjeta ? "No se pudo completar el pago con la tarjeta. Revisa los datos e intenta otra vez, o elige otra forma de pago." : "No se pudo completar el pago. Intenta otra vez o usa el enlace de PayPal de abajo."; }
+  });
+  if (btn.isEligible && !btn.isEligible()) return falla();
+  ppHecho[m] = true; $(caja).innerHTML = "";
+  btn.render(caja).catch(() => { ppHecho[m] = false; falla(); });
 }
 $("#ppPlanB").onclick = e => { e.preventDefault(); ppB = true; $("#ppOficial").hidden = true; $("#ppSimple").hidden = false; $("#upForm").hidden = false; };
 $(".metodos").addEventListener("click", e => { const b = e.target.closest("button[data-m]"); if (b) eligeMetodo(b.dataset.m); });

@@ -59,7 +59,7 @@ function guardar(reg) {
 }
 
 // cómo se muestra cada forma de pago en avisos y panel
-const VIAS = { deuna: "tocó Pagar con Deuna", transferencia: "dice que ya transfirió", paypal: "tocó Pagar con PayPal", usdt: "dice que envió USDT" };
+const VIAS = { deuna: "tocó Pagar con Deuna", transferencia: "dice que ya transfirió", paypal: "tocó Pagar con PayPal", tarjeta: "está pagando con tarjeta", usdt: "dice que envió USDT" };
 app.post("/", express.urlencoded({ extended: false, limit: "50kb" }), upload.single("captura"), (req, res) => {
   const b = req.body || {};
   if (!b["form-name"]) return res.status(400).send("Falta form-name");
@@ -143,10 +143,11 @@ app.post("/api/paypal/capturar", express.json({ limit: "2kb" }), async (req, res
     const cod = String(cap.custom_id || pu.custom_id || pu.reference_id || "").slice(0, 40);
     const ok = cap.status === "COMPLETED", monto = (cap.amount || {}).value || "";
     if (!leer().some(x => x.formulario === "pago-paypal" && x.datos.captura === cap.id)) {
-      guardar({ id: crypto.randomUUID(), fecha: new Date().toISOString(), formulario: "pago-paypal", datos: { codigo: cod, monto, estado: cap.status, captura: cap.id, orden: id, pagador: ((r.j.payer || {}).email_address || "").slice(0, 120) }, archivo: null });
+      guardar({ id: crypto.randomUUID(), fecha: new Date().toISOString(), formulario: "pago-paypal", datos: { codigo: cod, monto, estado: cap.status, captura: cap.id, orden: id, pagador: ((r.j.payer || {}).email_address || "").slice(0, 120), fuente: r.j.payment_source && r.j.payment_source.card ? "tarjeta" : "paypal" }, archivo: null });
       if (ok) { const e = leerJSON(EST_F, {}); if (!e[cod] || e[cod] === "nuevo") { e[cod] = "pagado"; fs.writeFileSync(EST_F, JSON.stringify(e)); } }
       const p = (leer().find(x => x.formulario === "pedido-excavadora" && x.datos.codigo === cod) || {}).datos || {};
-      avisar({ title: ok ? `💰 ${cod}: pagó $${monto} por PayPal` : `⏳ ${cod}: PayPal dejó el pago de $${monto} en revisión`, body: `${p.nombre || ""} · ${p.productos || ""}\n${ok ? "Confirmado por PayPal, ya está como pagado. Puedes despachar." : "Espera a que PayPal lo libere antes de despachar."}`, tag: "p" + cod, url: "/admin#" + cod }).catch(() => {});
+      const con = r.j.payment_source && r.j.payment_source.card ? "con tarjeta" : "por PayPal";
+      avisar({ title: ok ? `💰 ${cod}: pagó $${monto} ${con}` : `⏳ ${cod}: el pago de $${monto} ${con} quedó en revisión`, body: `${p.nombre || ""} · ${p.productos || ""}\n${ok ? "Confirmado por PayPal, ya está como pagado. Puedes despachar." : "Espera a que PayPal lo libere antes de despachar."}`, tag: "p" + cod, url: "/admin#" + cod }).catch(() => {});
     }
     res.json({ ok: true, estado: cap.status });
   } catch (e) { console.error(e.message); res.status(502).json({ error: "paypal" }); }
@@ -374,7 +375,7 @@ app.get("/admin", auth, (req, res) => {
 <td><b>${esc(d.nombre)}</b>${d.cedula ? `<br><span class="muted">CI ${esc(d.cedula)}</span>` : ""}<br><a href="https://wa.me/${esc(tel)}" target="_blank">${esc(d.telefono)}</a><div class="wab"><a class="btn s" href="${esc(wa(msgRecibido))}" target="_blank">📲 Recibido</a><a class="btn s" href="${esc(wa(msgAprobado))}" target="_blank" data-aprobar="${esc(d.codigo)}">✅ Aprobado</a></div></td>
 <td>${esc(d.direccion)}<br>${esc(d.ciudad)}${d.provincia ? ", " + esc(d.provincia) : ""}${maps}${d.notas ? `<br>📝 ${esc(d.notas)}` : ""}</td>
 <td>${esc(d.productos || d.cantidad + " × excavadora")}<br><b>${esc(d.total)}</b></td>
-<td>${esc(d.pago)}<br>Ahora: ${esc(d.a_pagar_ahora)}<br>${(intento[d.codigo] || []).map(v => `<span class="ok-t">👉 ${esc(VIAS[v] || v)}</span><br>`).join("")}${(ppPag[d.codigo] || []).map(x => `<span class="ok-t">${x.estado === "COMPLETED" ? "💰 PayPal confirmado" : "⏳ PayPal en revisión"} $${esc(x.monto)}</span><br>`).join("")}${comps || ((ppPag[d.codigo] || []).length ? "" : '<span class="no">sin comprobante</span>')}</td>
+<td>${esc(d.pago)}<br>Ahora: ${esc(d.a_pagar_ahora)}<br>${(intento[d.codigo] || []).map(v => `<span class="ok-t">👉 ${esc(VIAS[v] || v)}</span><br>`).join("")}${(ppPag[d.codigo] || []).map(x => `<span class="ok-t">${x.estado === "COMPLETED" ? "💰 Pagado " : "⏳ En revisión "}${x.fuente === "tarjeta" ? "con tarjeta" : "por PayPal"} $${esc(x.monto)}</span><br>`).join("")}${comps || ((ppPag[d.codigo] || []).length ? "" : '<span class="no">sin comprobante</span>')}</td>
 <td class="nw">${accion}</td><td class="o">${esc(d.origen)}</td></tr>`;
   }).join("");
   const sueltos = regs.filter(r => r.formulario === "comprobante" && !bor.has(r.id) && !todos.some(p => p.datos.codigo === r.datos.codigo));
