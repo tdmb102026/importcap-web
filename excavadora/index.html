@@ -583,9 +583,18 @@ footer a{color:var(--ink)}
       </div>
       <div class="m-panel" id="pmPaypal" hidden>
         <p class="m-h"><span class="m-l"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#003087" d="M15.607 4.653H8.941L6.645 19.251H1.82L4.862 0h7.995c3.754 0 6.375 2.294 6.473 5.513-.648-.478-2.105-.86-3.722-.86m6.57 5.546c0 3.41-3.01 6.853-6.958 6.853h-2.493L11.595 24H6.74l1.845-11.538h3.592c4.208 0 7.346-3.634 7.153-6.949a5.24 5.24 0 0 1 2.848 4.686M9.653 5.546h6.408c.907 0 1.942.222 2.363.541-.195 2.741-2.655 5.483-6.441 5.483H8.714Z"/></svg></span>Pagar con PayPal</p>
+        <div id="ppOficial" hidden>
+          <p id="ppTotal" style="margin:10px 0 10px;font-size:15px"></p>
+          <div id="ppBtns" style="min-height:50px"></div>
+          <p id="ppMsg" hidden style="margin:8px 0 0;font-weight:700"></p>
+          <p style="margin:8px 0 0;font-size:13px;text-align:left">Pagas aquí mismo con tu cuenta PayPal o con tarjeta de crédito o débito. El pago se confirma solo, no necesitas subir captura.</p>
+          <p style="margin:10px 0 0;font-size:13px">¿No te carga? <a href="#" id="ppPlanB" style="color:inherit;font-weight:700">Paga con el enlace de PayPal</a></p>
+        </div>
+        <div id="ppSimple">
         <a class="btn" id="payPaypal" target="_blank" rel="noopener" hidden style="margin:10px 0 8px;background:#ffc439;color:#14200b;flex-direction:column"></a>
         <div class="bank" id="payPpMail" hidden style="margin-bottom:8px"></div>
         <p style="margin:6px 0 0;font-size:13px;text-align:left">Se abre PayPal con el monto ya puesto. Puedes pagar con tu cuenta PayPal o con tarjeta. Cuando termines, vuelve aquí y sube la captura.</p>
+        </div>
       </div>
       <button type="button" id="mCambiar" hidden>← Elegir otra forma de pago</button>
       <p style="font-size:14px;margin:12px 0 0" hidden>En la descripción del pago pon tu código <span class="code" id="payCode"></span></p>
@@ -1145,8 +1154,42 @@ function eligeMetodo(m, sinScroll){
   for (const [k, q] of Object.entries({ deuna: "#pmDeuna", banco: "#pmBanco", usdt: "#pmUsdt", paypal: "#pmPaypal" })) $(q).hidden = k !== m;
   if (!$("#upOk").style.display || $("#upOk").style.display === "none") $("#upForm").hidden = !m;
   try { const g = pedidoGuardado(); if (g) { if (m) g.via = m; else delete g.via; localStorage.setItem("ic_pedido", JSON.stringify(g)); } } catch {}
+  if (m === "paypal") ppOficial();
   if (!sinScroll) $("#paybox").scrollIntoView({ behavior: "smooth", block: "start" });
 }
+/* botón oficial de PayPal: se carga solo si el servidor tiene el Secret puesto; si no, queda el enlace paypal.me */
+var ppCfg = null, ppListo = false, ppB = false;
+async function ppOficial(){
+  const cod = $("#upCodigo").value; if (!cod || ppB) return;
+  try { ppCfg = ppCfg || await fetch("/api/paypal").then(r => r.json()); } catch { return; }
+  if (!ppCfg.activo) return;
+  const ponTotal = () => { const g = pedidoGuardado(); const base = g && g.c ? g.c.ahora : 0; $("#ppTotal").innerHTML = base ? `Total con PayPal: <b>${money(base + (+ppCfg.recargo || 0))}</b>${ppCfg.recargo ? ` <span style="font-size:12px">(incluye ${money(+ppCfg.recargo)} de comisión)</span>` : ""}` : ""; };
+  const pinta = () => {
+    if (ppListo) return;
+    $("#ppBtns").innerHTML = "";
+    paypal.Buttons({
+      style: { layout: "vertical", shape: "rect", color: "gold", label: "pay", height: 48 },
+      createOrder: () => fetch("/api/paypal/orden", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ codigo: $("#upCodigo").value }) }).then(r => r.json()).then(j => { if (!j.id) throw new Error(j.error || "orden"); avisaPago("paypal"); return j.id; }),
+      onApprove: d => fetch("/api/paypal/capturar", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: d.orderID }) }).then(r => r.json()).then(j => {
+        if (!j.ok) throw new Error(j.error || "captura");
+        $("#ppBtns").hidden = true; $("#ppMsg").hidden = false;
+        $("#ppMsg").textContent = j.estado === "COMPLETED" ? "✅ ¡Pago recibido! Ya preparamos tu envío. Te escribimos por WhatsApp." : "⏳ PayPal está revisando tu pago. Te avisamos por WhatsApp apenas se confirme.";
+        $("#upForm").hidden = true; $("#mCambiar").hidden = true;
+        try { localStorage.removeItem("ic_pedido"); } catch {}
+      }),
+      onError: () => { $("#ppMsg").hidden = false; $("#ppMsg").textContent = "No se pudo completar el pago. Intenta otra vez o usa el enlace de PayPal de abajo."; }
+    }).render("#ppBtns").then(() => { ppListo = true; }).catch(() => {});
+  };
+  $("#ppOficial").hidden = false; $("#ppSimple").hidden = true; $("#upForm").hidden = true; ponTotal();
+  if (window.paypal) return pinta();
+  if (document.getElementById("ppSdk")) return;
+  const s = document.createElement("script"); s.id = "ppSdk";
+  s.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(ppCfg.clientId)}&currency=USD&intent=capture&components=buttons&enable-funding=card&disable-funding=paylater,venmo&locale=es_EC`;
+  s.onload = pinta;
+  s.onerror = () => { $("#ppOficial").hidden = true; $("#ppSimple").hidden = false; };
+  document.head.appendChild(s);
+}
+$("#ppPlanB").onclick = e => { e.preventDefault(); ppB = true; $("#ppOficial").hidden = true; $("#ppSimple").hidden = false; $("#upForm").hidden = false; };
 $(".metodos").addEventListener("click", e => { const b = e.target.closest("button[data-m]"); if (b) eligeMetodo(b.dataset.m); });
 $("#mCambiar").onclick = () => eligeMetodo(null);
 </script>

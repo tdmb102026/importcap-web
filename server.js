@@ -94,6 +94,64 @@ app.post("/", express.urlencoded({ extended: false, limit: "50kb" }), upload.sin
     avisar({ title: `💸 Comprobante ${datos.codigo || ""}`, body: `${datos.nombre || ""} subió la captura del pago`, tag: "c" + datos.codigo, url: "/admin#" + (datos.codigo || "") }).catch(() => {});
 });
 
+/* ---------- PayPal: botón oficial (cobro con cuenta PayPal o tarjeta, se confirma solo) ---------- */
+// El Client ID es público. El Secret va SOLO en Railway → Variables → PAYPAL_SECRET. Sin Secret, la página usa paypal.me.
+const PP_ID = process.env.PAYPAL_CLIENT_ID || "BAAMzczNh_WODzMf3aMVQLLDdNGqZ_ZRjToparhjZZnC2fsUHZ_sArZFsjk32GihntSeWEUaMrrlWjT7zo";
+const PP_SECRET = process.env.PAYPAL_SECRET || "", PP_API = process.env.PAYPAL_API || "https://api-m.paypal.com";
+const PP_RECARGO = Number(process.env.PAYPAL_RECARGO ?? 3);
+let ppTok = null;
+async function ppToken() {
+  if (ppTok && ppTok.exp > Date.now()) return ppTok.t;
+  const r = await fetch(PP_API + "/v1/oauth2/token", { method: "POST", headers: { Authorization: "Basic " + Buffer.from(PP_ID + ":" + PP_SECRET).toString("base64"), "Content-Type": "application/x-www-form-urlencoded" }, body: "grant_type=client_credentials" });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok || !j.access_token) throw new Error("paypal token " + r.status);
+  ppTok = { t: j.access_token, exp: Date.now() + ((j.expires_in || 3000) - 120) * 1000 };
+  return ppTok.t;
+}
+async function ppApi(metodo, ruta, cuerpo) {
+  const r = await fetch(PP_API + ruta, { method: metodo, headers: { Authorization: "Bearer " + await ppToken(), "Content-Type": "application/json" }, body: cuerpo ? JSON.stringify(cuerpo) : undefined });
+  return { ok: r.ok, status: r.status, j: await r.json().catch(() => ({})) };
+}
+app.get("/api/paypal", (req, res) => res.set("Cache-Control", "no-store").json({ activo: !!PP_SECRET, clientId: PP_ID, recargo: PP_RECARGO }));
+app.post("/api/paypal/orden", express.json({ limit: "2kb" }), async (req, res) => {
+  if (!PP_SECRET) return res.status(503).json({ error: "apagado" });
+  const cod = String((req.body || {}).codigo || "").slice(0, 40);
+  const p = leer().find(r => r.formulario === "pedido-excavadora" && r.datos.codigo === cod);
+  if (!p) return res.status(404).json({ error: "pedido" });
+  // el monto lo calcula el servidor, no el navegador
+  const base = parseFloat(String(p.datos.a_pagar_ahora || "").replace(/[^\d.]/g, ""));
+  if (!(base > 0)) return res.status(400).json({ error: "monto" });
+  try {
+    const r = await ppApi("POST", "/v2/checkout/orders", {
+      intent: "CAPTURE",
+      purchase_units: [{ reference_id: cod, custom_id: cod, description: `Importcap · pedido ${cod}`, amount: { currency_code: "USD", value: (base + PP_RECARGO).toFixed(2) } }],
+      application_context: { brand_name: "Importcap", shipping_preference: "NO_SHIPPING", user_action: "PAY_NOW" }
+    });
+    if (!r.ok || !r.j.id) { console.error("paypal orden", r.status, JSON.stringify(r.j).slice(0, 300)); return res.status(502).json({ error: "paypal" }); }
+    res.json({ id: r.j.id });
+  } catch (e) { console.error(e.message); res.status(502).json({ error: "paypal" }); }
+});
+app.post("/api/paypal/capturar", express.json({ limit: "2kb" }), async (req, res) => {
+  if (!PP_SECRET) return res.status(503).json({ error: "apagado" });
+  const id = String((req.body || {}).id || "");
+  if (!/^[A-Z0-9]{5,40}$/.test(id)) return res.status(400).json({ error: "id" });
+  try {
+    let r = await ppApi("POST", `/v2/checkout/orders/${id}/capture`);
+    if (!r.ok && (r.j.details || []).some(d => d.issue === "ORDER_ALREADY_CAPTURED")) r = await ppApi("GET", `/v2/checkout/orders/${id}`);
+    const pu = (r.j.purchase_units || [])[0] || {}, cap = ((pu.payments || {}).captures || [])[0];
+    if (!cap) return res.status(402).json({ error: ((r.j.details || [])[0] || {}).issue || "no" });
+    const cod = String(cap.custom_id || pu.custom_id || pu.reference_id || "").slice(0, 40);
+    const ok = cap.status === "COMPLETED", monto = (cap.amount || {}).value || "";
+    if (!leer().some(x => x.formulario === "pago-paypal" && x.datos.captura === cap.id)) {
+      guardar({ id: crypto.randomUUID(), fecha: new Date().toISOString(), formulario: "pago-paypal", datos: { codigo: cod, monto, estado: cap.status, captura: cap.id, orden: id, pagador: ((r.j.payer || {}).email_address || "").slice(0, 120) }, archivo: null });
+      if (ok) { const e = leerJSON(EST_F, {}); if (!e[cod] || e[cod] === "nuevo") { e[cod] = "pagado"; fs.writeFileSync(EST_F, JSON.stringify(e)); } }
+      const p = (leer().find(x => x.formulario === "pedido-excavadora" && x.datos.codigo === cod) || {}).datos || {};
+      avisar({ title: ok ? `💰 ${cod}: pagó $${monto} por PayPal` : `⏳ ${cod}: PayPal dejó el pago de $${monto} en revisión`, body: `${p.nombre || ""} · ${p.productos || ""}\n${ok ? "Confirmado por PayPal, ya está como pagado. Puedes despachar." : "Espera a que PayPal lo libere antes de despachar."}`, tag: "p" + cod, url: "/admin#" + cod }).catch(() => {});
+    }
+    res.json({ ok: true, estado: cap.status });
+  } catch (e) { console.error(e.message); res.status(502).json({ error: "paypal" }); }
+});
+
 /* ---------- acceso al panel ---------- */
 // Entra con la clave (ADMIN_CLAVE) una vez y el celular queda con la sesión abierta.
 const SESION = CLAVE ? crypto.createHmac("sha256", CLAVE).update("panel-importcap").digest("hex") : "";
@@ -291,7 +349,8 @@ ${montosPanel(e).map(fila).join("")}
 
 app.get("/admin", auth, (req, res) => {
   const regs = leer(), est = leerJSON(EST_F, {}), bor = new Set(leerJSON(BOR_F, []));
-  const comp = {}, intento = {};
+  const comp = {}, intento = {}, ppPag = {};
+  regs.filter(r => r.formulario === "pago-paypal").forEach(r => { (ppPag[r.datos.codigo] ||= []).push(r.datos); });
   regs.filter(r => r.formulario === "pago-iniciado").forEach(r => { (intento[r.datos.codigo] ||= []).push(r.datos.via); });
   regs.filter(r => r.formulario === "comprobante").forEach(r => { (comp[r.datos.codigo] ||= []).push(r); });
   const todos = regs.filter(r => r.formulario === "pedido-excavadora").reverse();
@@ -315,7 +374,7 @@ app.get("/admin", auth, (req, res) => {
 <td><b>${esc(d.nombre)}</b>${d.cedula ? `<br><span class="muted">CI ${esc(d.cedula)}</span>` : ""}<br><a href="https://wa.me/${esc(tel)}" target="_blank">${esc(d.telefono)}</a><div class="wab"><a class="btn s" href="${esc(wa(msgRecibido))}" target="_blank">📲 Recibido</a><a class="btn s" href="${esc(wa(msgAprobado))}" target="_blank" data-aprobar="${esc(d.codigo)}">✅ Aprobado</a></div></td>
 <td>${esc(d.direccion)}<br>${esc(d.ciudad)}${d.provincia ? ", " + esc(d.provincia) : ""}${maps}${d.notas ? `<br>📝 ${esc(d.notas)}` : ""}</td>
 <td>${esc(d.productos || d.cantidad + " × excavadora")}<br><b>${esc(d.total)}</b></td>
-<td>${esc(d.pago)}<br>Ahora: ${esc(d.a_pagar_ahora)}<br>${(intento[d.codigo] || []).map(v => `<span class="ok-t">👉 ${esc(VIAS[v] || v)}</span><br>`).join("")}${comps || '<span class="no">sin comprobante</span>'}</td>
+<td>${esc(d.pago)}<br>Ahora: ${esc(d.a_pagar_ahora)}<br>${(intento[d.codigo] || []).map(v => `<span class="ok-t">👉 ${esc(VIAS[v] || v)}</span><br>`).join("")}${(ppPag[d.codigo] || []).map(x => `<span class="ok-t">${x.estado === "COMPLETED" ? "💰 PayPal confirmado" : "⏳ PayPal en revisión"} $${esc(x.monto)}</span><br>`).join("")}${comps || ((ppPag[d.codigo] || []).length ? "" : '<span class="no">sin comprobante</span>')}</td>
 <td class="nw">${accion}</td><td class="o">${esc(d.origen)}</td></tr>`;
   }).join("");
   const sueltos = regs.filter(r => r.formulario === "comprobante" && !bor.has(r.id) && !todos.some(p => p.datos.codigo === r.datos.codigo));
