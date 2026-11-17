@@ -376,8 +376,9 @@ body.solo #pedido{padding-top:18px}
     <li><span class="ic">🕹️</span><div><b>11 canales, un botón por movimiento</b><span>Brazo, cuchara, giro de cabina, avance y luces se manejan por separado, como una máquina real.</span></div></li>
     <li><span class="ic">⛏️</span><div><b>Cuchara metálica que cava de verdad</b><span>Levanta arena, tierra y piedritas. Ideal para el patio, el parque o el arenero.</span></div></li>
     <li><span class="ic">💡</span><div><b>Luces LED y sonido</b><span>Para jugar también cuando oscurece.</span></div></li>
-    <li><span class="ic">🔋</span><div><b>Batería recargable por USB</b><span>Se carga con el cable que viene en la caja. El control usa pilas AA (no incluidas).</span></div></li>
+    <li><span class="ic">🔋</span><div><b>Batería recargable por USB</b><span>Unos 30 minutos de juego por carga. Se carga con el cable USB que viene en la caja.</span></div></li>
     <li><span class="ic">🚜</span><div><b>Orugas de goma y giro de 680°</b><span>Avanza en arena, tierra y piso. Control 2.4 GHz sin interferencia, aunque haya otros juguetes cerca.</span></div></li>
+    <li><span class="ic">👨‍👦</span><div><b>De 6 a 99 años</b><span>Para niños desde 6 años y para los papás que también quieren jugar.</span></div></li>
     <li><span class="ic">📦</span><div><b>En la caja</b><span>Excavadora escala 1:20, control remoto de 11 canales, batería y cable USB.</span></div></li>
   </ul>
   <div class="specs" style="margin-top:14px">
@@ -640,15 +641,15 @@ body.solo #pedido{padding-top:18px}
 const CONFIG = {
   whatsapp: "593968428316",
   productos: [
-    { id: "excavadora", nombre: "Excavadora RC 11 canales", corto: "Excavadora", precio: 50, antes: null, specs: "11 canales · gira 680° · luces y sonido", fotos: ["img/estudio.jpg", "../img/excavadora-1.jpg", "img/excava.jpg"] },
-    { id: "volqueta", nombre: "Volqueta RC", corto: "Volqueta", precio: 45, antes: null, specs: "Volteo real · batería recargable", fotos: ["../img/volquete-1.jpg", "../img/volquete-2.jpg", "../img/volquete-3.jpg"] },
-    { id: "bulldozer", nombre: "Bulldozer RC", corto: "Bulldozer", precio: 45, antes: null, specs: "9 canales · aleación · luces y sonido", fotos: ["../img/topadora-2.jpg", "../img/topadora-1.jpg", "../img/topadora-3.jpg"] },
-    { id: "tractor", nombre: "Tractor cargador RC", corto: "Tractor cargador", precio: 45, antes: null, specs: "Pala que sube y baja · aleación", fotos: ["../img/pala-2.jpg", "../img/pala-1.jpg", "../img/pala-4.jpg"] }
+    { id: "excavadora", nombre: "Excavadora RC 11 canales", corto: "Excavadora", precio: 50, antes: 65, specs: "11 canales · gira 680° · luces y sonido", fotos: ["img/estudio.jpg", "../img/excavadora-1.jpg", "img/excava.jpg"] },
+    { id: "volqueta", nombre: "Volqueta RC", corto: "Volqueta", precio: 45, antes: 55, specs: "Volteo real · batería recargable", fotos: ["../img/volquete-1.jpg", "../img/volquete-2.jpg", "../img/volquete-3.jpg"] },
+    { id: "bulldozer", nombre: "Bulldozer RC", corto: "Bulldozer", precio: 45, antes: 55, specs: "9 canales · aleación · luces y sonido", fotos: ["../img/topadora-2.jpg", "../img/topadora-1.jpg", "../img/topadora-3.jpg"] },
+    { id: "tractor", nombre: "Tractor cargador RC", corto: "Tractor cargador", precio: 45, antes: 55, specs: "Pala que sube y baja · aleación", fotos: ["../img/pala-2.jpg", "../img/pala-1.jpg", "../img/pala-4.jpg"] }
   ],
   maxCantidad: 10,
   oferta: { activa: true, nombre: "Black Friday" }, // sello de oferta en la barra, el precio y la colección
   precioAntes: null,                       // ej. 60 para mostrar $60 tachado (solo si es real)
-  envio: { costo: 0, texto: "Envío incluido a todo Ecuador" }, // costo: 0 = incluido
+  envio: { costo: 0, texto: "Envío incluido a todo Ecuador. Te llega en 1 día, máximo 2." }, // costo: 0 = incluido
   // enlace para ventas fuera de Ecuador: /excavadora/?int · envio: costo fijo en USD, o null = se cotiza por WhatsApp
   internacional: { extra: 10, envio: 0, texto: "Envío incluido desde Ecuador hasta tu puerta." },
   pagos: {
@@ -733,7 +734,7 @@ const antesBase = base.antes || CONFIG.precioAntes;
 if (antesBase) { $("#antesHero").textContent = money(antesBase); $("#antesWrap").hidden = false; }
 $("#envioHero").innerHTML = envioGratis ? "<b style='color:var(--ink)'>Envío incluido</b> a todo Ecuador" : CONFIG.envio.texto;
 $("#ctaSub").textContent = "Paga " + pagoCorto + " · Pídela en 1 minuto";
-$("#underHero").innerHTML = [envioGratis ? "Envío gratis" : "Envíos a todo Ecuador", CONFIG.garantia ? "Garantía " + CONFIG.garantia : "", "Tienda en Ambato"].filter(Boolean).map(t => `<span>${t}</span>`).join("");
+$("#underHero").innerHTML = [envioGratis ? "Envío gratis" : "Envíos a todo Ecuador", "Llega en 1 a 2 días", CONFIG.garantia ? "Garantía " + CONFIG.garantia : "", "Tienda en Ambato"].filter(Boolean).map(t => `<span>${t}</span>`).join("");
 $("#pedidoSub").textContent = "Te escribimos solo para confirmar la entrega. Pagas " + pagoTxt + ".";
 $("#fine").textContent = CONFIG.envio.texto;
 $("#trust").innerHTML = [
@@ -830,8 +831,10 @@ const FAQ = [
   ["¿Cómo pago?", "Pagas " + pagoTxt + ". Al terminar tu pedido eliges cómo pagar y te mostramos el monto exacto."],
   ANT ? ["¿Por qué piden un anticipo en contra entrega?", `Para reservar tu excavadora y cubrir el envío. Son ${money(ANT)} (con tarjeta, Deuna, transferencia, PayPal o USDT) y el resto lo pagas al recibir. Así despachamos más rápido a quien de verdad la espera.`] : null,
   ["¿Cuánto cuesta el envío y cuánto tarda?", CONFIG.envio.texto],
+  ["¿Para qué edad es?", "Para niños desde 6 años, y también para adultos: es de 6 a 99 años. Los más pequeños pueden jugar con ayuda de un adulto."],
+  ["¿Cuánto dura la batería?", "Unos 30 minutos de juego por carga. Se recarga con el cable USB que viene en la caja."],
   ["¿Tengo que escribir por WhatsApp para pedir?", "No. Llenas el formulario y nosotros te contactamos para confirmar la entrega. Si prefieres, también puedes escribirnos al 096 842 8316."],
-  ["¿Qué trae la caja?", "La excavadora con luces y sonido, el control de 11 canales y la batería recargable con su cable USB. El control usa pilas AA, que no vienen incluidas."],
+  ["¿Qué trae la caja?", "La excavadora con luces y sonido, el control de 11 canales y la batería recargable con su cable USB."],
   ["¿Funciona en arena y tierra?", "Sí. Tiene orugas de goma y la cuchara es metálica, así que cava arena, tierra y piedritas. No la metas al agua."],
   ["¿Puedo pedir varias máquinas juntas?", "Sí. En el formulario eliges cuántas quieres de cada una: excavadora, volqueta, bulldozer o tractor cargador. Todas llegan en el mismo envío."],
   ["¿La pueden envolver para regalo?", "Sí, sin costo. Escríbenos en el pedido si es para regalo."],
