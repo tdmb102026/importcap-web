@@ -355,7 +355,8 @@ function linksHTML(host) {
   return `<details class="card" id="links"><summary style="cursor:pointer;font-weight:700;font-size:16px">🔗 Enlaces para mandar por WhatsApp</summary>
 ${fila("🇪🇨 Directo al cuestionario", "(sin el resto de la página)", b + "?pedir")}
 ${fila("🌎 Ventas internacionales", "(+$10 por juguete, envío incluido)", b + "?int")}
-${fila("🛒 Página completa", "", b)}</details>`;
+${fila("🛒 Página completa", "", b)}
+${fila("📣 Para anuncios de Meta", "(pégalo en el enlace del anuncio: cada pedido dirá de qué anuncio vino)", b + "?utm_source=meta&utm_campaign={{campaign.name}}&utm_content={{ad.name}}&utm_term={{adset.name}}&utm_placement={{placement}}")}</details>`;
 }
 app.get("/admin", auth, (req, res) => {
   const regs = leer(), est = leerJSON(EST_F, {}), bor = new Set(leerJSON(BOR_F, []));
