@@ -186,6 +186,10 @@ footer a{color:var(--ink)}
 .regalo .rt{font:900 22px var(--head);color:#ffd27a;letter-spacing:.02em}
 .regalo.ok{background:#10240f;border-color:var(--lime)}.regalo.ok b{color:var(--lime)}
 .sticky .t em.rg{color:#ffd27a}
+.reloj{margin:0 0 14px;padding:12px 14px;border-radius:14px;background:#2a0d0b;border:1px solid #ff6b5e;color:#fff;display:flex;gap:12px;align-items:center}
+.reloj .ri{font-size:28px;line-height:1}
+.reloj b{color:#ffb3ad}
+.reloj .rt{font:900 26px var(--head);color:#ff8a7f;letter-spacing:.02em}
 .sticky{position:fixed;left:0;right:0;bottom:0;z-index:20;background:rgba(12,26,16,.96);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:10px 14px calc(10px + env(safe-area-inset-bottom));transform:translateY(110%);transition:transform .25s}
 .sticky.on{transform:none}
 .sticky .in{max-width:560px;margin:0 auto;display:flex;gap:12px;align-items:center}
@@ -381,6 +385,7 @@ body.solo #pedido{padding-top:18px}
   <div class="antes" id="antesWrap" hidden>Precio normal <s id="antesHero"></s></div>
   <div class="price"><b id="precioHero">$50</b></div>
   <p style="margin:0 0 16px" class="muted" id="envioHero"></p>
+  <div class="reloj" id="relojHero" hidden></div>
   <div class="regalo" id="regaloHero" hidden></div>
   <div class="cuenta" id="cuentaHero" hidden></div>
 
@@ -501,6 +506,7 @@ body.solo #pedido{padding-top:18px}
     <p class="eyebrow">Haz tu pedido</p>
     <h2 style="margin-top:8px">Llena tus datos <span class="hl">y listo</span></h2>
     <p class="muted" id="pedidoSub"></p>
+    <div class="reloj" id="relojPedido" hidden></div>
     <div class="regalo" id="regaloPedido" hidden></div>
     <div class="cuenta mini" id="cuentaPedido" hidden></div>
 
@@ -562,7 +568,7 @@ body.solo #pedido{padding-top:18px}
 
 <div class="sticky" id="sticky"><div class="in">
   <img src="img/estudio.jpg" alt="">
-  <div class="t"><b>Excavadora RC 11 canales</b><span id="stickyPrice">$50</span><em id="stickyCuenta" hidden></em><em class="rg" id="stickyRegalo" hidden></em></div>
+  <div class="t"><b>Excavadora RC 11 canales</b><span id="stickyPrice">$50</span><em id="stickyCuenta" hidden></em><em id="stickyReloj" hidden></em><em class="rg" id="stickyRegalo" hidden></em></div>
   <a class="cta" href="#pedido">Pedir ahora</a>
 </div></div>
 
@@ -667,6 +673,9 @@ const CONFIG = {
   maxCantidad: 10,
   // regalo por pedir rápido: cada visitante tiene sus propios minutos desde que entra por primera vez (no se reinician al volver).
   // regalo: "" = apagado. soloExcavadora: true = el regalo solo aplica si el pedido incluye la excavadora
+  // precio por tiempo: cada visitante tiene "minutos" desde su primera visita para pedir a "precio"; después vale "antes" (precio normal).
+  // productos: ids a los que aplica. minutos: 0 = apagado
+  precioReloj: { minutos: 60, productos: ["excavadora"] },
   regaloRapido: { regalo: "stickers de la colección Importcap", minutos: 30, soloExcavadora: false },
   oferta: { activa: true, nombre: "Black Friday", hasta: "2026-11-29T23:59:59-05:00" }, // sello de oferta + cuenta regresiva hasta esa fecha (hora de Ecuador). Al pasar la fecha la cuenta y los sellos se ocultan solos
   precioAntes: null,                       // ej. 60 para mostrar $60 tachado (solo si es real)
@@ -735,6 +744,14 @@ const envioGratis = CONFIG.envio.costo === 0;
 // ventas internacionales: cada juguete cuesta "extra" dólares más
 if (new URLSearchParams(location.search).has("int")) CONFIG.productos.forEach(p => { p.precio += CONFIG.internacional.extra || 0; if (p.antes) p.antes += CONFIG.internacional.extra || 0; });
 const PRODS = CONFIG.productos, base = PRODS[0];
+/* reloj de cada visitante: empieza la primera vez que entra y no se reinicia */
+const RELOJ_INI = (() => { try { let i = +localStorage.getItem("ic_reloj") || 0; if (!i) { i = Date.now(); localStorage.setItem("ic_reloj", i); } return i; } catch { return Date.now(); } })();
+const PR = CONFIG.precioReloj || {}, PR_FIN = PR.minutos && !new URLSearchParams(location.search).has("int") ? RELOJ_INI + PR.minutos * 6e4 : 0;
+const PR_PROD = PRODS.filter(p => (PR.productos || []).includes(p.id) && p.antes);
+const PR_OFERTA = PR_PROD.map(p => p.precio);
+let relojVencido = false;
+function precioNormal(){ relojVencido = true; PR_PROD.forEach(p => { p.precio = p.antes; p.antes = null; }); }
+if (PR_FIN && Date.now() > PR_FIN) precioNormal();
 /* enlaces directos: ?pedir = solo el formulario · ?int = formulario para ventas internacionales */
 const MODO = new URLSearchParams(location.search), INTL = MODO.has("int"), SOLO = INTL || MODO.has("pedir");
 if (SOLO) document.body.classList.add("solo");
@@ -1278,10 +1295,38 @@ async function ppOficial(m){
 $("#ppPlanB").onclick = e => { e.preventDefault(); ppB = true; $("#ppOficial").hidden = true; $("#ppSimple").hidden = false; $("#upForm").hidden = false; };
 $(".metodos").addEventListener("click", e => { const b = e.target.closest("button[data-m]"); if (b) eligeMetodo(b.dataset.m); });
 $("#mCambiar").onclick = () => eligeMetodo(null);
+/* precio por 1 hora: muestra el reloj y, al llegar a cero, el producto pasa a su precio normal de verdad */
+(function(){
+  if (!PR_FIN || !PR_PROD.length) return;
+  const nombres = PR_PROD.map(p => p.corto.toLowerCase()).join(" y "), dd = x => String(x).padStart(2, "0");
+  const vence = () => {
+    ["#relojHero", "#relojPedido", "#stickyReloj"].forEach(i => $(i).hidden = true);
+    ["#cuentaHero", "#cuentaPedido"].forEach(i => $(i).hidden = true);
+    if (PR_PROD.includes(base)) { $("#precioHero").textContent = money(base.precio); $("#antesWrap").hidden = true; $("#bfHero").hidden = true;
+      $("#stickyPrice").innerHTML = money(base.precio) + (envioGratis ? ' <small style="font:600 12px var(--sans);color:var(--muted)">envío incluido</small>' : ""); }
+    document.querySelectorAll("#coll .prod").forEach((el, i) => { const p = PRODS[i]; if (!PR_PROD.includes(p)) return;
+      const an = el.querySelector(".an"); if (an) an.remove(); const bf = el.querySelector(".bf"); if (bf) bf.remove();
+      const pr = el.querySelector(".pr"); if (pr) pr.firstChild.textContent = money(p.precio); });
+    renderCart();
+  };
+  if (relojVencido) return vence();
+  ["#cuentaHero", "#cuentaPedido"].forEach(i => $(i).hidden = true);
+  const tic = () => {
+    const r = PR_FIN - Date.now();
+    if (r <= 0) { clearInterval(iv); precioNormal(); return vence(); }
+    const t = `${dd(Math.floor(r / 6e4))}:${dd(Math.floor(r / 1e3) % 60)}`;
+    const html = `<span class="ri">⏰</span><div>Tu precio de <b>${money(PR_OFERTA[0])}</b> por la ${nombres} dura solo <span class="rt">${t}</span><br>Después vuelve a su precio normal de <b>${money(PR_PROD[0].antes)}</b>.</div>`;
+    $("#relojHero").hidden = false; $("#relojHero").innerHTML = html;
+    $("#relojPedido").hidden = false; $("#relojPedido").innerHTML = html;
+    $("#stickyReloj").hidden = false; $("#stickyReloj").textContent = `⏰ A ${money(PR_OFERTA[0])} solo por ${t}`; $("#stickyCuenta").hidden = true;
+  };
+  const iv = setInterval(tic, 1000); tic();
+})();
+
 /* regalo por pedir en los primeros minutos: el reloj es de cada visitante y no se reinicia */
 (function(){
   const R = CONFIG.regaloRapido; if (!R || !R.regalo || INTL) return;
-  let ini = 0; try { ini = +localStorage.getItem("ic_reloj") || 0; if (!ini) { ini = Date.now(); localStorage.setItem("ic_reloj", ini); } } catch { ini = Date.now(); }
+  const ini = RELOJ_INI;
   const fin = ini + (R.minutos || 30) * 6e4, dd = x => String(x).padStart(2, "0");
   const aplica = () => !R.soloExcavadora || calc().items.some(p => p.id === PRODS[0].id);
   const pinta = () => {
@@ -1291,7 +1336,7 @@ $("#mCambiar").onclick = () => eligeMetodo(null);
     const html = `<span class="ri">🎁</span><div>Pide en los próximos <span class="rt">${t}</span><br>y te llevas <b>GRATIS ${R.regalo}</b>${cond}.</div>`;
     $("#regaloHero").hidden = false; $("#regaloHero").innerHTML = html;
     $("#regaloPedido").hidden = false; $("#regaloPedido").innerHTML = html;
-    $("#stickyRegalo").hidden = false; $("#stickyRegalo").textContent = `🎁 Regalo gratis: quedan ${t}`; $("#stickyCuenta").hidden = true;
+    $("#stickyRegalo").hidden = !$("#stickyReloj").hidden; $("#stickyRegalo").textContent = `🎁 Regalo gratis: quedan ${t}`; $("#stickyCuenta").hidden = true;
     $("#fRegalo").value = aplica() ? R.regalo : "";
   };
   const iv = setInterval(pinta, 1000); pinta();
