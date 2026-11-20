@@ -173,6 +173,13 @@ footer{padding:30px 0 20px;border-top:1px solid var(--line);font-size:13px;color
 footer a{color:var(--ink)}
 
 /* barra fija */
+.cuenta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 14px;padding:10px 12px;border-radius:14px;background:#000;border:1px solid #2b2b2b;color:#fff}
+.cuenta .ct{font-size:13px;font-weight:700;letter-spacing:.02em}
+.cuenta .cd{display:flex;gap:6px}
+.cuenta .cd span{min-width:44px;text-align:center;background:#1b1b1b;border-radius:8px;padding:4px 6px;font:900 20px var(--head);color:var(--lime);line-height:1.05}
+.cuenta .cd small{display:block;font:600 10px var(--sans);color:#bbb;letter-spacing:.04em}
+.cuenta.mini{margin:0 0 12px;padding:8px 10px}
+.sticky .t em{display:block;font:700 11px var(--sans);color:#ffb3ad;font-style:normal}
 .sticky{position:fixed;left:0;right:0;bottom:0;z-index:20;background:rgba(12,26,16,.96);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:10px 14px calc(10px + env(safe-area-inset-bottom));transform:translateY(110%);transition:transform .25s}
 .sticky.on{transform:none}
 .sticky .in{max-width:560px;margin:0 auto;display:flex;gap:12px;align-items:center}
@@ -360,7 +367,7 @@ body.solo #pedido{padding-top:18px}
     <span class="chip">Cuchara metálica</span><span class="chip">Luces LED</span><span class="chip">Sonido</span><span class="chip">Orugas de goma</span>
   </div>
 
-  <p class="eyebrow">Excavadora RC 11 canales</p>
+  <p class="eyebrow">Excavadora a control remoto · 11 canales</p>
   <h1 style="margin-top:8px">No es otro carrito. <span class="hl">Es maquinaria a escala.</span></h1>
   <p class="muted">Cava, levanta, gira y descarga como una de verdad. Tu hijo la maneja con un control de 11 canales, un botón para cada movimiento.</p>
 
@@ -368,6 +375,7 @@ body.solo #pedido{padding-top:18px}
   <div class="antes" id="antesWrap" hidden>Precio normal <s id="antesHero"></s></div>
   <div class="price"><b id="precioHero">$50</b></div>
   <p style="margin:0 0 16px" class="muted" id="envioHero"></p>
+  <div class="cuenta" id="cuentaHero" hidden></div>
 
   <a class="cta" href="#pedido">Quiero mi excavadora<small id="ctaSub">Pídela en 1 minuto, sin chatear</small></a>
   <div class="under" id="underHero"></div>
@@ -486,6 +494,7 @@ body.solo #pedido{padding-top:18px}
     <p class="eyebrow">Haz tu pedido</p>
     <h2 style="margin-top:8px">Llena tus datos <span class="hl">y listo</span></h2>
     <p class="muted" id="pedidoSub"></p>
+    <div class="cuenta mini" id="cuentaPedido" hidden></div>
 
     <form name="pedido-excavadora" method="POST" data-netlify="true" netlify-honeypot="bot-field" id="form" novalidate>
       <input type="hidden" name="form-name" value="pedido-excavadora">
@@ -544,7 +553,7 @@ body.solo #pedido{padding-top:18px}
 
 <div class="sticky" id="sticky"><div class="in">
   <img src="img/estudio.jpg" alt="">
-  <div class="t"><b>Excavadora RC 11 canales</b><span id="stickyPrice">$50</span></div>
+  <div class="t"><b>Excavadora RC 11 canales</b><span id="stickyPrice">$50</span><em id="stickyCuenta" hidden></em></div>
   <a class="cta" href="#pedido">Pedir ahora</a>
 </div></div>
 
@@ -647,7 +656,7 @@ const CONFIG = {
     { id: "tractor", nombre: "Tractor cargador RC", corto: "Tractor cargador", precio: 45, antes: 55, specs: "Pala que sube y baja · aleación", fotos: ["../img/pala-2.jpg", "../img/pala-1.jpg", "../img/pala-4.jpg"] }
   ],
   maxCantidad: 10,
-  oferta: { activa: true, nombre: "Black Friday" }, // sello de oferta en la barra, el precio y la colección
+  oferta: { activa: true, nombre: "Black Friday", hasta: "2026-11-29T23:59:59-05:00" }, // sello de oferta + cuenta regresiva hasta esa fecha (hora de Ecuador). Al pasar la fecha la cuenta y los sellos se ocultan solos
   precioAntes: null,                       // ej. 60 para mostrar $60 tachado (solo si es real)
   envio: { costo: 0, texto: "Envío incluido a todo Ecuador. Te llega en 1 día, máximo 2." }, // costo: 0 = incluido
   // enlace para ventas fuera de Ecuador: /excavadora/?int · envio: costo fijo en USD, o null = se cotiza por WhatsApp
@@ -724,11 +733,32 @@ const pagoCorto = [P.deuna.activo ? "en línea" : "", P.contraEntrega.activo ? "
 /* textos que dependen de la configuración */
 $("#precioHero").textContent = money(base.precio);
 $("#stickyPrice").innerHTML = money(base.precio) + (envioGratis ? ' <small style="font:600 12px var(--sans);color:var(--muted)">envío incluido</small>' : "");
+/* la oferta se apaga sola cuando pasa la fecha "hasta" */
+if (CONFIG.oferta && CONFIG.oferta.hasta && Date.now() > Date.parse(CONFIG.oferta.hasta)) CONFIG.oferta.activa = false;
 if (CONFIG.oferta && CONFIG.oferta.activa) {
   const n = CONFIG.oferta.nombre;
   $("#topbar").classList.add("negro");
   $("#topbar").innerHTML = `🖤 <b>${n.toUpperCase()}</b> · Precios especiales en toda la colección · Envío incluido`;
   $("#bfHero").hidden = false; $("#bfHero").textContent = n.toUpperCase();
+  const fin = Date.parse(CONFIG.oferta.hasta || "");
+  if (fin) {
+    const dia = new Date(fin).toLocaleDateString("es-EC", { weekday: "long", day: "numeric", month: "long", timeZone: "America/Guayaquil" });
+    const dd = x => String(x).padStart(2, "0");
+    const caja = (v, t) => `<span>${v}<small>${t}</small></span>`;
+    $("#cuentaHero").hidden = false; $("#cuentaPedido").hidden = false; $("#stickyCuenta").hidden = false;
+    const tic = () => {
+      let r = Math.max(0, fin - Date.now());
+      if (!r) { ["#cuentaHero", "#cuentaPedido", "#stickyCuenta"].forEach(i => $(i).hidden = true); $("#topbar").innerHTML = `La oferta de ${n} terminó · Envíos a todo Ecuador`; clearInterval(iv); return; }
+      const d = Math.floor(r / 864e5), h = Math.floor(r / 36e5) % 24, m = Math.floor(r / 6e4) % 60, sg = Math.floor(r / 1e3) % 60;
+      const cd = `<div class="cd">${d ? caja(d, d === 1 ? "DÍA" : "DÍAS") : ""}${caja(dd(h), "HORAS")}${caja(dd(m), "MIN")}${caja(dd(sg), "SEG")}</div>`;
+      $("#cuentaHero").innerHTML = `<span class="ct">⏰ El precio de ${n}<br>termina en</span>${cd}`;
+      $("#cuentaPedido").innerHTML = `<span class="ct">⏰ Precio de ${n} hasta el ${dia}, 23:59</span>${cd}`;
+      const corto = (d ? d + "d " : "") + `${dd(h)}:${dd(m)}:${dd(sg)}`;
+      $("#stickyCuenta").textContent = `⏰ Termina en ${corto}`;
+      if (!INTL) $("#topbar").innerHTML = `🖤 <b>${n.toUpperCase()}</b> · Termina en <b>${corto}</b> · Envío incluido`;
+    };
+    const iv = setInterval(tic, 1000); tic();
+  }
 }
 const antesBase = base.antes || CONFIG.precioAntes;
 if (antesBase) { $("#antesHero").textContent = money(antesBase); $("#antesWrap").hidden = false; }
